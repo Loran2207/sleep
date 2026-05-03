@@ -80,6 +80,73 @@ export function useDraft(): [SleepDraft, (patch: Partial<SleepDraft>) => void] {
   return [s, (patch) => draftStore.set((prev) => ({ ...prev, ...patch }))];
 }
 
+// ─── JOURNAL ENTRIES ─────────────────────────────────────────────
+export type JournalEntry = {
+  id: string;
+  // 2D mood — x ∈ [0,1] (sad → happy), y ∈ [0,1] (low → high energy)
+  moodX: number;
+  moodY: number;
+  // Stored alongside the position so edits persist exactly even if the
+  // mood-name table later drifts. Recomputed on every position change.
+  feeling: string;
+  feelingDesc: string;
+  legacyMood: 'great' | 'good' | 'meh' | 'bad' | 'awful';
+  date: string;          // YYYY-MM-DD
+  time: string;          // HH:MM
+  whenLabel: string;     // "Today, 09:12" / "17 December, 23:12"
+  text: string;
+  context: string[];     // selected tag ids
+};
+
+const journalStore = createStore<JournalEntry[]>([
+  {
+    id: 'j-1', moodX: 0.85, moodY: 0.55, feeling: 'Happy', feelingDesc: 'Light and clear',
+    legacyMood: 'great', date: '2026-02-19', time: '09:12', whenLabel: 'Today, 09:12',
+    text: 'Took a morning stroll through Central Park. The air was so fresh and the sun felt amazing. Total connection with nature. Perfect way to start the day, feeling super recharged and ready for anything.',
+    context: ['outdoors', 'exercise'],
+  },
+  {
+    id: 'j-2', moodX: 0.5, moodY: 0.75, feeling: 'Alert', feelingDesc: 'Wired and busy',
+    legacyMood: 'meh', date: '2025-12-17', time: '23:12', whenLabel: '17 December, 23:12',
+    text: "Big presentation for the new launch next week. Honestly, I'm freaking out a bit! I've been staring at the slides for hours, but that \"what if\" voice won't shut up. Just need to breathe, visualize the win, and remember why I started.",
+    context: ['work'],
+  },
+  {
+    id: 'j-3', moodX: 0.7, moodY: 0.4, feeling: 'Calm', feelingDesc: 'At ease',
+    legacyMood: 'good', date: '2025-12-15', time: '21:40', whenLabel: '15 December, 21:40',
+    text: "Finally saw the sun after days of rain! It felt like the world was giving me a massive high-five. Just a reminder that the tough bits don't last forever. Things always get better if you just keep going.",
+    context: ['outdoors'],
+  },
+  {
+    id: 'j-4', moodX: 0.3, moodY: 0.7, feeling: 'Anxious', feelingDesc: 'Worried',
+    legacyMood: 'bad', date: '2025-12-13', time: '22:05', whenLabel: '13 December, 22:05',
+    text: "Couldn't fall asleep again. Mind racing. Tried 4-7-8 breathing for ten minutes, helped a bit but still tossed for an hour after. Cutting caffeine after lunch from now on.",
+    context: ['bed'],
+  },
+]);
+
+export function useJournal() {
+  const list = useSyncExternalStore(journalStore.subscribe, journalStore.get, journalStore.get);
+  return {
+    list,
+    update: (id: string, patch: Partial<JournalEntry>) =>
+      journalStore.set((prev) => prev.map((e) => e.id === id ? { ...e, ...patch } : e)),
+    add: (entry: Omit<JournalEntry, 'id'>): JournalEntry => {
+      const next: JournalEntry = { ...entry, id: `j-${Date.now()}` };
+      journalStore.set((prev) => [next, ...prev]);
+      return next;
+    },
+    remove: (id: string) =>
+      journalStore.set((prev) => prev.filter((e) => e.id !== id)),
+  };
+}
+
+const editingJournalStore = createStore<string | null>(null);
+export function useEditingJournalId(): [string | null, (id: string | null) => void] {
+  const v = useSyncExternalStore(editingJournalStore.subscribe, editingJournalStore.get, editingJournalStore.get);
+  return [v, editingJournalStore.set];
+}
+
 // ─── COURSE: currently viewed lesson ─────────────────────────────
 const currentLessonStore = createStore<number>(3);
 export function useCurrentLesson(): [number, (n: number) => void] {

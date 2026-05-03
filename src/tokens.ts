@@ -35,4 +35,5 @@ export type ScreenId =
   | 'practice-complete'
   | 'analytics'
   | 'journal'
+  | 'journal-entry'
   | 'profile';

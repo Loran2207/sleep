@@ -16,6 +16,7 @@ import { ScheduleMix, ScheduleSounds } from './screens/ScheduleMixer';
 import { HabitLibrary, RoutineCheckIn } from './screens/HabitsScreens';
 import { PracticeIntro, PracticeSession, PracticeComplete } from './screens/Practice';
 import { Journal } from './screens/Journal';
+import { JournalEntryEdit } from './screens/JournalEntry';
 import { StubScreen } from './screens/Stub';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
@@ -42,6 +43,7 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'practice-complete': () => <PracticeComplete />,
   'analytics': () => <StubScreen title="Analytics" hint="Charts and trends will live here. Coming soon." />,
   'journal': () => <Journal />,
+  'journal-entry': () => <JournalEntryEdit />,
   'profile': () => <StubScreen title="Profile" hint="Account, sounds, preferences. Coming soon." />,
 };
 
