@@ -9,9 +9,11 @@ import {
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
 
-// Top status pad (replaces iOS status bar height)
-export function TopPad({ h = 56 }: { h?: number }) {
-  return <div style={{ height: h, flexShrink: 0 }} />;
+// Small breathing pad above content. Adds iOS safe-area-inset-top so the
+// system clock doesn't overlap content when the page runs as a PWA on iOS.
+// On desktop / Android the inset evaluates to 0 and only `h` is used.
+export function TopPad({ h = 8 }: { h?: number }) {
+  return <div style={{ height: `calc(${h}px + env(safe-area-inset-top))`, flexShrink: 0 }} />;
 }
 
 // Header bar for back-able subscreens
