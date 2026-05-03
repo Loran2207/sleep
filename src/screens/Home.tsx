@@ -11,7 +11,7 @@ import {
   StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
   type Day,
 } from '../components/shared';
-import { useHabits, type Habit } from '../state/store';
+import { useHabits, useSchedules, pickScheduleForDay, type Habit } from '../state/store';
 
 const days: Day[] = [
   { dow: 'M', n: 9, mood: 'good', sleep: '7h 12m' },
@@ -100,32 +100,35 @@ export function Home() {
 }
 
 function RoutineHero() {
-  const bed = { h: 22, m: 30, on: true };
-  const wake = { h: 7, m: 0, on: true };
+  const { list: schedules } = useSchedules();
+  // Prototype "today" is a weekday (Thursday) — pick the matching schedule.
+  const todaySchedule = pickScheduleForDay(schedules, 4);
+
   const countdown = '4h 12m';
   const sleepEst = '8h 30m';
 
   const [napOpen, setNapOpen] = useState(false);
   const [napMin, setNapMin] = useState(20);
 
-  const fmt = (t: { h: number; m: number }) =>
-    `${String(t.h).padStart(2, '0')}:${String(t.m).padStart(2, '0')}`;
+  const fmt = (h: number, m: number) =>
+    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
   return (
     <div style={{ padding: '14px 20px 10px', color: W.ink, fontFamily: W.font }}>
       <div style={{
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 56,
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 28,
       }}>
         <TimeSlot
           label="Bedtime"
-          time={fmt(bed)}
-          on={bed.on}
+          time={fmt(todaySchedule.bedHour, todaySchedule.bedMinute)}
+          on
           caption={<>in <span style={{ color: W.ink, fontWeight: 600 }}>{countdown}</span></>}
         />
+        <EditScheduleButton />
         <TimeSlot
           label="Wake up"
-          time={fmt(wake)}
-          on={wake.on}
+          time={fmt(todaySchedule.wakeHour, todaySchedule.wakeMinute)}
+          on
           caption={<>sleep ~ <span style={{ color: W.ink, fontWeight: 600 }}>{sleepEst}</span></>}
         />
       </div>
@@ -224,13 +227,9 @@ function TimeSlot({ label, time, on, caption }: {
   label: string; time: string; on: boolean; caption?: ReactNode;
 }) {
   return (
-    <div
-      onClick={() => go('sleep-schedule')}
-      style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        cursor: 'pointer',
-      }}
-    >
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+    }}>
       <div style={{ fontSize: 12, color: W.weak, fontWeight: 500, marginBottom: 6 }}>{label}</div>
       <div style={{
         fontSize: 36, fontWeight: 600, letterSpacing: '-0.02em',
@@ -243,6 +242,25 @@ function TimeSlot({ label, time, on, caption }: {
           fontVariantNumeric: 'tabular-nums',
         }}>{caption}</div>
       )}
+    </div>
+  );
+}
+
+function EditScheduleButton() {
+  return (
+    <div
+      onClick={() => go('sleep-schedule')}
+      aria-label="Edit schedule"
+      style={{
+        // Vertically centered against the 36px time numbers (which sit ~18px from the label baseline).
+        marginTop: 22,
+        width: 30, height: 30, borderRadius: 15,
+        background: W.fill, border: `1px solid ${W.veryweak}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', flexShrink: 0,
+      }}
+    >
+      <PencilIcon size={14} stroke={W.ink} />
     </div>
   );
 }

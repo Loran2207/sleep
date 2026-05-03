@@ -103,6 +103,38 @@ export function useMix() {
   };
 }
 
+// ─── SLEEP SCHEDULES (Weekdays / Weekends on Home) ───────────────
+export type Schedule = {
+  id: string;
+  name: string;
+  days: number[];          // 0=Sun … 6=Sat
+  bedHour: number;
+  bedMinute: number;
+  wakeHour: number;
+  wakeMinute: number;
+  sound: string;           // sound that plays while falling asleep
+};
+
+const schedulesStore = createStore<Schedule[]>([
+  { id: 'weekdays', name: 'Weekdays', days: [1, 2, 3, 4, 5], bedHour: 22, bedMinute: 30, wakeHour: 6, wakeMinute: 30, sound: 'Rain' },
+  { id: 'weekends', name: 'Weekends', days: [0, 6], bedHour: 0, bedMinute: 0, wakeHour: 8, wakeMinute: 30, sound: 'Soft chimes' },
+]);
+
+export function useSchedules() {
+  const list = useSyncExternalStore(schedulesStore.subscribe, schedulesStore.get, schedulesStore.get);
+  return {
+    list,
+    update: (id: string, patch: Partial<Schedule>) =>
+      schedulesStore.set((prev) => prev.map((s) => s.id === id ? { ...s, ...patch } : s)),
+  };
+}
+
+// Returns the schedule whose `days` includes the given JS day-of-week
+// (0=Sun … 6=Sat). Falls back to the first schedule.
+export function pickScheduleForDay(list: Schedule[], jsDow: number): Schedule {
+  return list.find((s) => s.days.includes(jsDow)) ?? list[0];
+}
+
 // ─── PRESETS (Track sleep main screen) ───────────────────────────
 export type Preset = {
   id: string;

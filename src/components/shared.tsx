@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  HomeFilled, AnalyticsFilled, ScheduleFilled, JournalFilled,
+  HomeFilled, AnalyticsFilled, JournalFilled,
   ChevronRightIcon, MoodBlob,
   type IconProps,
 } from './icons';
@@ -84,13 +84,12 @@ export function SettingsCard({ icon, title, desc, onClick }: {
 }
 
 // ─── Liquid Glass bottom navigation ──────────────────────────────
-type NavId = 'home' | 'analytics' | 'sleep-schedule' | 'journal' | 'track';
+type NavId = 'home' | 'analytics' | 'journal' | 'track';
 
 export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string }) {
   const items: { id: NavId; icon: (p: { size?: number; fill?: string }) => ReactNode; stub?: boolean; nav: ScreenId | null }[] = [
     { id: 'home', icon: HomeFilled, nav: 'home' },
     { id: 'analytics', icon: AnalyticsFilled, stub: true, nav: null },
-    { id: 'sleep-schedule', icon: ScheduleFilled, nav: 'sleep-schedule' },
     { id: 'journal', icon: JournalFilled, nav: 'journal' },
   ];
   return (
