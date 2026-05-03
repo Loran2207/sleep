@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
   GlyphPlay, GlyphPause, GlyphSliders, GlyphPlus, GlyphChevDn, GlyphTrash,
 } from '../components/icons';
-import { TopPad } from '../components/shared';
+import { TopPad, VolumeSlider } from '../components/shared';
 import { useMix } from '../state/store';
 import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from '../data/sounds';
 
@@ -251,46 +251,6 @@ function EmptyMix() {
         border: '1px solid rgba(255,255,255,0.25)',
         color: '#fff', fontSize: 13, cursor: 'pointer',
       }}>Browse sounds</div>
-    </div>
-  );
-}
-
-function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const setFromEvent = (e: PointerEvent | React.PointerEvent) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const x = ('clientX' in e ? e.clientX : 0) - rect.left;
-    const v = Math.max(0, Math.min(1, x / rect.width));
-    onChange(v);
-  };
-  const onPointerDown = (e: React.PointerEvent) => {
-    e.preventDefault();
-    setFromEvent(e);
-    const move = (ev: PointerEvent) => setFromEvent(ev);
-    const up = () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  };
-  return (
-    <div ref={ref} onPointerDown={onPointerDown} style={{
-      position: 'relative', height: 22, cursor: 'pointer',
-      display: 'flex', alignItems: 'center',
-      touchAction: 'none',
-    }}>
-      <div style={{ height: 2, width: '100%', background: 'rgba(255,255,255,0.18)', borderRadius: 1 }} />
-      <div style={{
-        position: 'absolute', left: 0, height: 2,
-        width: `${value * 100}%`, background: 'rgba(255,255,255,0.85)', borderRadius: 1,
-      }} />
-      <div style={{
-        position: 'absolute', left: `calc(${value * 100}% - 8px)`,
-        width: 16, height: 16, borderRadius: 8, background: '#fff',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
-      }} />
     </div>
   );
 }

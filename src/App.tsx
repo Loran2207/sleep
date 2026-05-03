@@ -12,6 +12,7 @@ import { TrackingActive, TrackingMixer, TrackingSounds, TrackingStopConfirm } fr
 import { RoutineSetup } from './screens/RoutineSetup';
 import { CourseList, Lesson } from './screens/Course';
 import { SleepSchedules } from './screens/SleepSchedules';
+import { ScheduleMix, ScheduleSounds } from './screens/ScheduleMixer';
 import { HabitLibrary, RoutineCheckIn } from './screens/HabitsScreens';
 import { PracticeIntro, PracticeSession, PracticeComplete } from './screens/Practice';
 import { Journal } from './screens/Journal';
@@ -32,6 +33,8 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'habit-library': () => <HabitLibrary />,
   'routine-checkin': () => <RoutineCheckIn />,
   'sleep-schedule': () => <SleepSchedules />,
+  'schedule-mix': () => <ScheduleMix />,
+  'schedule-sounds': () => <ScheduleSounds />,
   'course': () => <CourseList />,
   'lesson': () => <Lesson />,
   'practice-intro': () => <PracticeIntro />,

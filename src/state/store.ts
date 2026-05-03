@@ -136,12 +136,12 @@ export type Schedule = {
   bedMinute: number;
   wakeHour: number;
   wakeMinute: number;
-  sound: string;           // sound that plays while falling asleep
+  sounds: MixSound[];      // sounds that play while falling asleep
 };
 
 const schedulesStore = createStore<Schedule[]>([
-  { id: 'weekdays', name: 'Weekdays', days: [1, 2, 3, 4, 5], bedHour: 22, bedMinute: 30, wakeHour: 6, wakeMinute: 30, sound: 'rain' },
-  { id: 'weekends', name: 'Weekends', days: [0, 6], bedHour: 0, bedMinute: 0, wakeHour: 8, wakeMinute: 30, sound: 'chimes' },
+  { id: 'weekdays', name: 'Weekdays', days: [1, 2, 3, 4, 5], bedHour: 22, bedMinute: 30, wakeHour: 6, wakeMinute: 30, sounds: [{ id: 'rain', vol: 0.65 }, { id: 'chimes', vol: 0.45 }] },
+  { id: 'weekends', name: 'Weekends', days: [0, 6], bedHour: 0, bedMinute: 0, wakeHour: 8, wakeMinute: 30, sounds: [{ id: 'chimes', vol: 0.55 }] },
 ]);
 
 export function useSchedules() {
@@ -150,6 +150,38 @@ export function useSchedules() {
     list,
     update: (id: string, patch: Partial<Schedule>) =>
       schedulesStore.set((prev) => prev.map((s) => s.id === id ? { ...s, ...patch } : s)),
+  };
+}
+
+// Which schedule the mixer / sounds-catalog screens are currently editing.
+const editingScheduleStore = createStore<string | null>(null);
+export function useEditingScheduleId(): [string | null, (id: string | null) => void] {
+  const v = useSyncExternalStore(editingScheduleStore.subscribe, editingScheduleStore.get, editingScheduleStore.get);
+  return [v, editingScheduleStore.set];
+}
+
+// Same shape as `useMix`, but bound to the schedule currently being edited.
+// Returns `null` for `schedule` if nothing is being edited.
+export function useScheduleMix() {
+  const id = useSyncExternalStore(editingScheduleStore.subscribe, editingScheduleStore.get, editingScheduleStore.get);
+  const list = useSyncExternalStore(schedulesStore.subscribe, schedulesStore.get, schedulesStore.get);
+  const schedule = id ? list.find((s) => s.id === id) ?? null : null;
+  const mutate = (fn: (s: Schedule) => Schedule) =>
+    schedulesStore.set((prev) => prev.map((s) => s.id === id ? fn(s) : s));
+  return {
+    schedule,
+    mix: schedule?.sounds ?? [],
+    setVol: (sid: string, vol: number) =>
+      mutate((s) => ({ ...s, sounds: s.sounds.map((x) => x.id === sid ? { ...x, vol } : x) })),
+    removeSound: (sid: string) =>
+      mutate((s) => ({ ...s, sounds: s.sounds.filter((x) => x.id !== sid) })),
+    addSound: (sid: string) =>
+      mutate((s) => s.sounds.some((x) => x.id === sid) ? s : { ...s, sounds: [...s.sounds, { id: sid, vol: 0.55 }] }),
+    toggleSound: (sid: string) =>
+      mutate((s) => s.sounds.some((x) => x.id === sid)
+        ? { ...s, sounds: s.sounds.filter((x) => x.id !== sid) }
+        : { ...s, sounds: [...s.sounds, { id: sid, vol: 0.55 }] }),
+    clearAll: () => mutate((s) => ({ ...s, sounds: [] })),
   };
 }
 
