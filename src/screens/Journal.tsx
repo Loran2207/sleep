@@ -97,38 +97,25 @@ function EntryRow({ entry, isLast, onClick }: {
           <div style={{ position: 'absolute', left: 4, top: 18, bottom: -8, width: 1.5, background: W.veryweak }} />
         )}
       </div>
-      <div onClick={onClick} style={{
-        flex: 1, padding: '0 0 22px',
-        cursor: 'pointer',
-      }}>
-        <div style={{
-          background: W.paper, border: `1px solid ${W.fill}`,
-          borderRadius: 14, padding: '12px 14px',
-          transition: 'background .12s ease',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <MoodBlob type={entry.legacyMood} size={22} />
-            <div style={{ fontSize: 13, fontWeight: 600, color: W.ink, lineHeight: 1.2 }}>
-              {entry.feeling}
-            </div>
-            <div style={{ fontSize: 11, color: W.weak, marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>
-              {entry.whenLabel}
-            </div>
-          </div>
-          {entry.text && (
+      <div style={{ flex: 1, padding: '0 0 22px' }}>
+        {entry.text && (
+          <div onClick={onClick} style={{ cursor: 'pointer' }}>
             <div style={{ fontSize: 14, lineHeight: 1.5, color: W.ink }}>{entry.text}</div>
-          )}
-          {entry.context.length > 0 && (
-            <div style={{
-              marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 5,
-            }}>
-              {entry.context.map((id) => (
-                <span key={id} style={{
-                  fontSize: 11, color: W.weak,
-                }}>#{id}</span>
-              ))}
-            </div>
-          )}
+            <div style={{ fontSize: 12, color: W.weak, marginTop: 6 }}>{entry.whenLabel}</div>
+          </div>
+        )}
+        <div onClick={onClick} style={{
+          marginTop: entry.text ? 12 : 0,
+          background: W.fill, border: `1px solid ${W.veryweak}`,
+          borderRadius: 14, padding: '12px 14px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          cursor: 'pointer',
+        }}>
+          <MoodBlob type={entry.legacyMood} size={32} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: W.ink }}>{entry.feeling}</div>
+            <div style={{ fontSize: 12, color: W.weak, marginTop: 2 }}>{entry.whenLabel}</div>
+          </div>
         </div>
       </div>
     </div>
