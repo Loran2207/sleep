@@ -1,0 +1,18 @@
+- generic [ref=e291]:
+  - generic [ref=e294]:
+    - generic [ref=e295] [cursor=pointer]: End
+    - generic [ref=e296]: Tracking
+  - generic [ref=e297]:
+    - generic [ref=e298]: 11:36
+    - generic [ref=e299]:
+      - generic [ref=e300]: Alarm
+      - generic [ref=e301]: 07:00
+    - generic [ref=e302]: Wakes you in 7h 12m
+  - generic [ref=e304]:
+    - img [ref=e306] [cursor=pointer]
+    - generic [ref=e309] [cursor=pointer]:
+      - generic [ref=e310]: Mix
+      - generic [ref=e311]: Rain, Campfire, Flute
+    - img [ref=e313] [cursor=pointer]
+    - img [ref=e318] [cursor=pointer]
+  - generic [ref=e321] [cursor=pointer]: Quit tracking

@@ -1,0 +1,62 @@
+- generic [ref=e270]:
+  - generic [ref=e271]:
+    - button "Back" [ref=e274] [cursor=pointer]:
+      - img [ref=e275]
+    - generic [ref=e277]:
+      - generic [ref=e278]: Course · 12 lessons
+      - generic [ref=e279]:
+        - text: The Science
+        - text: of Sleep
+      - generic [ref=e280]: Short, evidence-based lessons on why sleep matters and how to make yours better.
+    - generic [ref=e282]:
+      - generic [ref=e283]: 2 of 12 done · ~18 min left
+      - generic [ref=e284]: 17%
+  - generic [ref=e287]:
+    - generic [ref=e288]: Lessons
+    - generic [ref=e289]:
+      - img [ref=e292]
+      - generic [ref=e296]:
+        - generic [ref=e297]: Lesson 1 · 2 min
+        - generic [ref=e298]: Why we sleep
+    - generic [ref=e299]:
+      - img [ref=e302]
+      - generic [ref=e306]:
+        - generic [ref=e307]: Lesson 2 · 3 min
+        - generic [ref=e308]: Sleep stages explained
+    - generic [ref=e309]:
+      - generic [ref=e311]: "3"
+      - generic [ref=e313] [cursor=pointer]:
+        - generic [ref=e314]:
+          - generic [ref=e315]: Lesson 3 · 2 min
+          - generic [ref=e316]: Sleep pressure & circadian rhythm
+        - img [ref=e318]
+    - generic [ref=e320]:
+      - img [ref=e323]
+      - generic [ref=e328]:
+        - generic [ref=e329]: Lesson 4 · 2 min
+        - generic [ref=e330]: Light & melatonin
+    - generic [ref=e331]:
+      - img [ref=e334]
+      - generic [ref=e339]:
+        - generic [ref=e340]: Lesson 5 · 3 min
+        - generic [ref=e341]: Caffeine half-life
+    - generic [ref=e342]:
+      - img [ref=e345]
+      - generic [ref=e350]:
+        - generic [ref=e351]: Lesson 6 · 2 min
+        - generic [ref=e352]: "Sleep debt: real or myth?"
+    - generic [ref=e353]:
+      - img [ref=e356]
+      - generic [ref=e361]:
+        - generic [ref=e362]: Lesson 7 · 2 min
+        - generic [ref=e363]: Naps that work
+    - generic [ref=e364]:
+      - img [ref=e367]
+      - generic [ref=e371]:
+        - generic [ref=e372]: Lesson 8 · 2 min
+        - generic [ref=e373]: Temperature & sleep
+  - generic [ref=e375]:
+    - img [ref=e377] [cursor=pointer]
+    - img [ref=e380]
+    - img [ref=e385] [cursor=pointer]
+    - img [ref=e390] [cursor=pointer]

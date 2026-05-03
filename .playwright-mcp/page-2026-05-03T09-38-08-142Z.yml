@@ -1,0 +1,44 @@
+- generic [ref=e270]:
+  - generic [ref=e273]:
+    - generic [ref=e274]: night
+    - generic [ref=e275] [cursor=pointer]: A
+  - generic [ref=e277]: Presets
+  - generic [ref=e278]:
+    - generic [ref=e279] [cursor=pointer]:
+      - generic [ref=e280]:
+        - img [ref=e282]
+        - generic [ref=e284]:
+          - generic [ref=e285]: Power Nap
+          - generic [ref=e286]:
+            - generic [ref=e287]: 20 min
+            - generic [ref=e288]: Sleep for
+        - generic "Start" [ref=e289]:
+          - img [ref=e290]
+      - generic [ref=e292]:
+        - generic [ref=e293]: Records sounds
+        - generic [ref=e294]: Lock screen
+    - generic [ref=e295] [cursor=pointer]:
+      - generic [ref=e296]:
+        - img [ref=e298]
+        - generic [ref=e300]:
+          - generic [ref=e301]: Full Night
+          - generic [ref=e302]:
+            - generic [ref=e303]: 07:00
+            - generic [ref=e304]: Wake up at
+        - generic "Start" [ref=e305]:
+          - img [ref=e306]
+      - generic [ref=e308]:
+        - generic [ref=e309]: Smart wake-up
+        - generic [ref=e310]: Records sounds
+        - generic [ref=e311]: Sound · Meditative State
+        - generic [ref=e312]: Lock screen
+    - generic [ref=e313] [cursor=pointer]:
+      - img [ref=e315]
+      - generic [ref=e317]:
+        - generic [ref=e318]: New preset
+        - generic [ref=e319]: Save another sleep or nap routine
+  - generic [ref=e321]:
+    - img [ref=e323] [cursor=pointer]
+    - img [ref=e326]
+    - img [ref=e331] [cursor=pointer]
+    - img [ref=e336] [cursor=pointer]
