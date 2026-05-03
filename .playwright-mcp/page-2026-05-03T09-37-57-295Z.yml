@@ -1,0 +1,81 @@
+- generic [ref=e270]:
+  - generic [ref=e273]:
+    - generic [ref=e274]: night
+    - generic [ref=e275] [cursor=pointer]: A
+  - generic [ref=e277]: Presets
+  - generic [ref=e278]:
+    - generic [ref=e279] [cursor=pointer]:
+      - generic [ref=e280]:
+        - img [ref=e282]
+        - generic [ref=e284]:
+          - generic [ref=e285]: Power Nap
+          - generic [ref=e286]:
+            - generic [ref=e287]: 20 min
+            - generic [ref=e288]: Sleep for
+        - generic "Start" [ref=e289]:
+          - img [ref=e290]
+      - generic [ref=e292]:
+        - generic [ref=e293]: Records sounds
+        - generic [ref=e294]: Lock screen
+    - generic [ref=e295] [cursor=pointer]:
+      - generic [ref=e296]:
+        - img [ref=e298]
+        - generic [ref=e300]:
+          - generic [ref=e301]: Full Night
+          - generic [ref=e302]:
+            - generic [ref=e303]: 07:00
+            - generic [ref=e304]: Wake up at
+        - generic "Start" [ref=e305]:
+          - img [ref=e306]
+      - generic [ref=e308]:
+        - generic [ref=e309]: Smart wake-up
+        - generic [ref=e310]: Records sounds
+        - generic [ref=e311]: Sound · Meditative State
+        - generic [ref=e312]: Lock screen
+    - generic [ref=e313] [cursor=pointer]:
+      - img [ref=e315]
+      - generic [ref=e317]:
+        - generic [ref=e318]: New preset
+        - generic [ref=e319]: Save another sleep or nap routine
+  - generic [ref=e321]:
+    - img [ref=e323] [cursor=pointer]
+    - img [ref=e326]
+    - img [ref=e331] [cursor=pointer]
+    - img [ref=e336] [cursor=pointer]
+  - generic [ref=e340]:
+    - generic [ref=e342]:
+      - generic [ref=e343]:
+        - textbox "Untitled preset" [ref=e344]: Power Nap
+        - generic [ref=e345]: Power nap
+      - generic [ref=e346]:
+        - generic [ref=e347] [cursor=pointer]: Time
+        - generic [ref=e348] [cursor=pointer]: Duration
+        - generic [ref=e349] [cursor=pointer]: No alarm
+      - generic [ref=e350]:
+        - generic [ref=e351]: Sleep for
+        - generic [ref=e352]:
+          - generic [ref=e353]: 20m
+          - generic [ref=e354]:
+            - generic [ref=e355] [cursor=pointer]: 10m
+            - generic [ref=e356] [cursor=pointer]: 15m
+            - generic [ref=e357] [cursor=pointer]: 20m
+            - generic [ref=e358] [cursor=pointer]: 25m
+            - generic [ref=e359] [cursor=pointer]: 30m
+            - generic [ref=e360] [cursor=pointer]: 45m
+            - generic [ref=e361] [cursor=pointer]: 60m
+            - generic [ref=e362] [cursor=pointer]: 90m
+      - generic [ref=e363]:
+        - generic [ref=e365]:
+          - generic [ref=e366]: Smart wake-up
+          - generic [ref=e367]: Wake within a 30-minute window when you sleep lightest.
+        - generic [ref=e371]:
+          - generic [ref=e372]: Record sleep sounds
+          - generic [ref=e373]: Capture snoring, sleep talk, and ambient noise.
+        - generic [ref=e377]:
+          - generic [ref=e378]: Lock screen widget
+          - generic [ref=e379]: Show tracking status on your Lock Screen.
+      - generic [ref=e384]:
+        - generic [ref=e385]: Play sound while falling asleep
+        - generic [ref=e386]: Calming audio that fades out once you doze off.
+      - generic [ref=e389] [cursor=pointer]: Delete preset
+    - generic [ref=e391] [cursor=pointer]: Done

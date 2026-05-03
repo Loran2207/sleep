@@ -1,0 +1,85 @@
+- generic [ref=e270]:
+  - generic [ref=e272]:
+    - generic [ref=e273] [cursor=pointer]: ← Back
+    - generic [ref=e274]: Block apps
+  - generic [ref=e275]:
+    - generic [ref=e276]:
+      - generic [ref=e277]:
+        - generic [ref=e278]: Start blocking
+        - generic [ref=e279]: From 22:00
+      - generic [ref=e280]:
+        - generic [ref=e281] [cursor=pointer]: At bed
+        - generic [ref=e282] [cursor=pointer]: −10m
+        - generic [ref=e283] [cursor=pointer]: −30m
+        - generic [ref=e284] [cursor=pointer]: −60m
+        - generic [ref=e285] [cursor=pointer]: −90m
+    - generic [ref=e286]:
+      - generic [ref=e287]:
+        - generic [ref=e288]: What to block
+        - generic [ref=e289]: 11 apps selected
+      - generic [ref=e290]:
+        - generic [ref=e291]:
+          - img [ref=e294]
+          - generic [ref=e297]: All apps and categories
+        - generic [ref=e298]:
+          - img [ref=e300] [cursor=pointer]
+          - img [ref=e303]
+          - generic [ref=e308] [cursor=pointer]:
+            - generic [ref=e309]: Social
+            - generic [ref=e310]: 6/6
+            - img [ref=e312]
+        - generic [ref=e314]:
+          - img [ref=e316] [cursor=pointer]
+          - img [ref=e319]
+          - generic [ref=e323] [cursor=pointer]:
+            - generic [ref=e324]: Games
+            - generic [ref=e325]: 5/5
+            - img [ref=e327]
+        - generic [ref=e329]:
+          - img [ref=e332]
+          - generic [ref=e335] [cursor=pointer]:
+            - generic [ref=e336]: Entertainment
+            - generic [ref=e337]: "5"
+            - img [ref=e339]
+        - generic [ref=e341]:
+          - img [ref=e344]
+          - generic [ref=e349] [cursor=pointer]:
+            - generic [ref=e350]: Creativity
+            - generic [ref=e351]: "4"
+            - img [ref=e353]
+        - generic [ref=e355]:
+          - img [ref=e358]
+          - generic [ref=e361] [cursor=pointer]:
+            - generic [ref=e362]: Education
+            - generic [ref=e363]: "3"
+            - img [ref=e365]
+        - generic [ref=e367]:
+          - img [ref=e370]
+          - generic [ref=e374] [cursor=pointer]:
+            - generic [ref=e375]: Health & fitness
+            - generic [ref=e376]: "3"
+            - img [ref=e378]
+        - generic [ref=e380]:
+          - img [ref=e383]
+          - generic [ref=e388] [cursor=pointer]:
+            - generic [ref=e389]: Reading
+            - generic [ref=e390]: "2"
+            - img [ref=e392]
+        - generic [ref=e394]:
+          - img [ref=e397]
+          - generic [ref=e400] [cursor=pointer]:
+            - generic [ref=e401]: Shopping
+            - generic [ref=e402]: "3"
+            - img [ref=e404]
+        - generic [ref=e406]:
+          - img [ref=e409]
+          - generic [ref=e413] [cursor=pointer]:
+            - generic [ref=e414]: News
+            - generic [ref=e415]: "3"
+            - img [ref=e417]
+  - generic [ref=e420] [cursor=pointer]: Save routine
+  - generic [ref=e422]:
+    - img [ref=e424] [cursor=pointer]
+    - img [ref=e427]
+    - img [ref=e432] [cursor=pointer]
+    - img [ref=e437] [cursor=pointer]

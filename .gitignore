@@ -8,5 +8,3 @@ dist-ssr
 .idea
 .vscode
 _design-bundle
-.playwright-mcp
-/*.png

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
-// Slim phone-shaped device frame for desktop preview.
-// Per user request: drop the iPhone "top bar" entirely (status bar +
-// dynamic island) so the screen content sits at the very top of the frame.
+// iPhone-shaped device frame for desktop preview.
+// Per user request: skip the iPhone status bar (time/battery) — but keep the
+// dynamic island and home indicator so the screen content lays out correctly.
 export function DeviceFrame({ children }: { children: ReactNode }) {
   return (
     <div className="device-frame" style={{
@@ -16,6 +16,13 @@ export function DeviceFrame({ children }: { children: ReactNode }) {
       fontFamily: '-apple-system, system-ui, sans-serif',
       WebkitFontSmoothing: 'antialiased',
     }}>
+      {/* Dynamic island */}
+      <div style={{
+        position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
+        width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50,
+        pointerEvents: 'none',
+      }} />
+      {/* Screen content */}
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>{children}</div>
       </div>
