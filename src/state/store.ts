@@ -41,6 +41,23 @@ export function useHabits(): [Habit[], (next: Habit[] | ((prev: Habit[]) => Habi
   return [list, habitsStore.set];
 }
 
+// User-created habits available to add. Distinct from `useHabits` (the daily
+// list) — these are recipes that can be added to the daily list multiple times.
+export type CustomHabit = { id: string; glyph: HabitGlyphName; title: string };
+
+const customLibStore = createStore<CustomHabit[]>([]);
+
+export function useCustomLibrary() {
+  const list = useSyncExternalStore(customLibStore.subscribe, customLibStore.get, customLibStore.get);
+  return {
+    list,
+    add: (h: Omit<CustomHabit, 'id'>) =>
+      customLibStore.set((prev) => [...prev, { ...h, id: `c-${Date.now()}` }]),
+    remove: (id: string) =>
+      customLibStore.set((prev) => prev.filter((x) => x.id !== id)),
+  };
+}
+
 // ─── SLEEP DRAFT (track-nap / track-night setup) ─────────────────
 export type SleepDraft = {
   kind: 'nap' | 'night' | null;
