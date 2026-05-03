@@ -80,6 +80,13 @@ export function useDraft(): [SleepDraft, (patch: Partial<SleepDraft>) => void] {
   return [s, (patch) => draftStore.set((prev) => ({ ...prev, ...patch }))];
 }
 
+// ─── COURSE: currently viewed lesson ─────────────────────────────
+const currentLessonStore = createStore<number>(3);
+export function useCurrentLesson(): [number, (n: number) => void] {
+  const v = useSyncExternalStore(currentLessonStore.subscribe, currentLessonStore.get, currentLessonStore.get);
+  return [v, currentLessonStore.set];
+}
+
 // ─── PRACTICE CYCLES ─────────────────────────────────────────────
 const practiceCyclesStore = createStore<number>(8);
 export function usePracticeCycles(): [number, (n: number) => void] {

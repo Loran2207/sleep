@@ -305,8 +305,8 @@ function PresetEditSheet({ preset, onChange, onDelete, onClose }: {
               padding: '20px 20px 22px', marginBottom: 18,
             }}>
               <div style={{
-                fontSize: 11, fontWeight: 600, letterSpacing: '0.08em',
-                color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase',
+                fontSize: 12, fontWeight: 500,
+                color: 'rgba(255,255,255,0.55)',
                 marginBottom: 6,
               }}>{preset.alarmMode === 'time' ? 'Wake up at' : 'Sleep for'}</div>
 
@@ -435,8 +435,8 @@ function SoundPicker({ selected, onSelect }: { selected: string; onSelect: (name
       padding: '14px 18px 16px',
     }}>
       <div style={{
-        fontSize: 11, fontWeight: 600, letterSpacing: '0.08em',
-        color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase',
+        fontSize: 12, fontWeight: 500,
+        color: 'rgba(255,255,255,0.55)',
         marginBottom: 10,
       }}>Choose a sound</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>

@@ -558,7 +558,7 @@ function CourseCard({ onClick }: { onClick: () => void }) {
       }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>Course</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Course</div>
           <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#fff', marginTop: 4, lineHeight: 1.15 }}>The Science of Sleep</div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>12 lessons · 28 min total</div>
         </div>

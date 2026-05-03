@@ -265,7 +265,7 @@ export function PracticeSession() {
 
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 20px' }}>
         <div onClick={() => go('practice-intro')} style={{ fontSize: 13, color: W.ink, opacity: 0.75, cursor: 'pointer' }}>End</div>
-        <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: W.weak }}>4-7-8 Breathing</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: W.weak }}>4-7-8 Breathing</div>
         <div style={{ fontSize: 13, color: W.weak, fontVariantNumeric: 'tabular-nums', minWidth: 38, textAlign: 'right' }}>
           {cycle}/{targetCycles}
         </div>
@@ -298,7 +298,7 @@ export function PracticeSession() {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: W.weak, marginBottom: 6 }}>{phase.name}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: W.weak, marginBottom: 6 }}>{phase.name}</div>
               <div style={{ fontSize: 88, fontWeight: 200, lineHeight: 1, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.04em' }}>
                 {remainingInPhase}
               </div>
@@ -323,9 +323,9 @@ export function PracticeSession() {
                   }} />
                 </div>
                 <div style={{
-                  fontSize: 10, color: isCurrent ? W.ink : W.weak,
-                  marginTop: 6, textAlign: 'center', letterSpacing: '0.06em',
-                  textTransform: 'uppercase', fontWeight: isCurrent ? 600 : 400,
+                  fontSize: 11, color: isCurrent ? W.ink : W.weak,
+                  marginTop: 6, textAlign: 'center',
+                  fontWeight: isCurrent ? 600 : 500,
                 }}>
                   {p.name} · {p.dur}
                 </div>
@@ -401,7 +401,7 @@ export function PracticeComplete() {
             <div style={{ position: 'absolute', inset: -14, borderRadius: 70, border: `1px dashed ${W.veryweak}` }} />
             <CheckIcon size={36} stroke={W.ink} />
           </div>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: W.weak, marginTop: 22 }}>Session complete</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: W.weak, marginTop: 22 }}>Session complete</div>
           <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15, marginTop: 8 }}>
             Nice. Carry that breath into bed.
           </div>
@@ -426,8 +426,7 @@ export function PracticeComplete() {
                 letterSpacing: '-0.02em', lineHeight: 1,
               }}>{s.v}</div>
               <div style={{
-                fontSize: 11, color: W.weak, marginTop: 6,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
+                fontSize: 12, color: W.weak, marginTop: 6,
               }}>{s.l}</div>
             </div>
           ))}
@@ -435,8 +434,8 @@ export function PracticeComplete() {
 
         <div style={{ marginTop: 26 }}>
           <div style={{
-            fontSize: 11, fontWeight: 600, letterSpacing: '0.08em',
-            textTransform: 'uppercase', color: W.weak, marginBottom: 12,
+            fontSize: 13, fontWeight: 500,
+            color: W.weak, marginBottom: 12,
           }}>How do you feel now?</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
             {[

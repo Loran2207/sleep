@@ -36,7 +36,7 @@ export function PlaceDevice() {
           }}>
             <GlyphX size={18} stroke="currentColor" />
           </div>
-          <div style={{ fontSize: 12, letterSpacing: 1.5, opacity: 0.55, textTransform: 'uppercase' }}>Setup</div>
+          <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Setup</div>
           <div style={{ width: 36 }} />
         </div>
 

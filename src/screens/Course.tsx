@@ -2,22 +2,33 @@ import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { TopPad, LiquidGlassNav } from '../components/shared';
 import { CheckIcon, ChevronLeftIcon, LockIcon, PlayIcon } from '../components/icons';
+import { useCurrentLesson } from '../state/store';
 
-const lessons = [
-  { n: 1, title: 'Why we sleep', dur: '2 min', state: 'done' as const },
-  { n: 2, title: 'Sleep stages explained', dur: '3 min', state: 'done' as const },
-  { n: 3, title: 'Sleep pressure & circadian rhythm', dur: '2 min', state: 'available' as const },
-  { n: 4, title: 'Light & melatonin', dur: '2 min', state: 'locked' as const },
-  { n: 5, title: 'Caffeine half-life', dur: '3 min', state: 'locked' as const },
-  { n: 6, title: 'Sleep debt: real or myth?', dur: '2 min', state: 'locked' as const },
-  { n: 7, title: 'Naps that work', dur: '2 min', state: 'locked' as const },
-  { n: 8, title: 'Temperature & sleep', dur: '2 min', state: 'locked' as const },
+type LessonState = 'done' | 'available' | 'locked';
+type LessonItem = { n: number; title: string; dur: string; state: LessonState };
+
+const lessons: LessonItem[] = [
+  { n: 1, title: 'Why we sleep', dur: '2 min', state: 'done' },
+  { n: 2, title: 'Sleep stages explained', dur: '3 min', state: 'done' },
+  { n: 3, title: 'Sleep pressure & circadian rhythm', dur: '2 min', state: 'available' },
+  { n: 4, title: 'Light & melatonin', dur: '2 min', state: 'locked' },
+  { n: 5, title: 'Caffeine half-life', dur: '3 min', state: 'locked' },
+  { n: 6, title: 'Sleep debt: real or myth?', dur: '2 min', state: 'locked' },
+  { n: 7, title: 'Naps that work', dur: '2 min', state: 'locked' },
+  { n: 8, title: 'Temperature & sleep', dur: '2 min', state: 'locked' },
 ];
 
 export function CourseList() {
+  const [, setCurrentLesson] = useCurrentLesson();
   const done = lessons.filter((l) => l.state === 'done').length;
   const total = 12;
   const pct = Math.round((done / total) * 100);
+
+  function openLesson(l: LessonItem) {
+    if (l.state === 'locked') return;
+    setCurrentLesson(l.n);
+    go('lesson');
+  }
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
@@ -46,7 +57,7 @@ export function CourseList() {
         </div>
 
         <div style={{ marginTop: 8, position: 'relative' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>Course · 12 lessons</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Course · 12 lessons</div>
           <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.1, marginTop: 6 }}>The Science<br/>of Sleep</div>
           <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 10, lineHeight: 1.45, maxWidth: 320 }}>
             Short, evidence-based lessons on why sleep matters and how to make yours better.
@@ -65,11 +76,13 @@ export function CourseList() {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px 130px' }}>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: W.weak, padding: '0 6px 12px' }}>Lessons</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: W.weak, padding: '0 6px 12px' }}>Lessons</div>
         {lessons.map((l, i) => {
           const isLocked = l.state === 'locked';
           const isDone = l.state === 'done';
           const isAvail = l.state === 'available';
+          const tappable = !isLocked;
+
           return (
             <div key={l.n} style={{ display: 'flex', alignItems: 'stretch', gap: 14 }}>
               <div style={{ width: 36, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 14 }}>
@@ -91,24 +104,23 @@ export function CourseList() {
                 )}
               </div>
 
-              <div onClick={() => isAvail && go('lesson')} style={{
-                flex: 1, marginBottom: 10, cursor: isAvail ? 'pointer' : 'default',
-                background: isAvail ? W.paper : 'transparent',
-                border: isAvail ? `1px solid ${W.fill}` : 'none',
+              <div onClick={() => openLesson(l)} style={{
+                flex: 1, marginBottom: 10, cursor: tappable ? 'pointer' : 'default',
+                background: tappable ? W.paper : 'transparent',
+                border: tappable ? `1px solid ${W.fill}` : 'none',
                 borderRadius: 16,
-                padding: isAvail ? '14px 16px' : '14px 4px',
+                padding: tappable ? '14px 16px' : '14px 4px',
                 boxShadow: isAvail ? '0 2px 6px rgba(0,0,0,0.04)' : 'none',
                 opacity: isLocked ? 0.55 : 1,
                 display: 'flex', alignItems: 'center', gap: 12,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>
-                    Lesson {l.n} · {l.dur}
+                    Lesson {l.n} · {l.dur}{isDone ? ' · watched' : ''}
                   </div>
                   <div style={{
                     fontSize: 15, fontWeight: 500, marginTop: 3,
-                    textDecoration: isDone ? 'line-through' : 'none',
-                    color: isDone ? W.weak : W.ink, lineHeight: 1.3,
+                    color: isLocked ? W.weak : W.ink, lineHeight: 1.3,
                   }}>{l.title}</div>
                 </div>
                 {isAvail && (
@@ -116,6 +128,13 @@ export function CourseList() {
                     width: 36, height: 36, borderRadius: 18, background: W.ink,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}><PlayIcon size={13} stroke={W.paper} /></div>
+                )}
+                {isDone && (
+                  <div aria-label="Re-watch" style={{
+                    width: 36, height: 36, borderRadius: 18,
+                    background: 'transparent', border: `1px solid ${W.fill}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}><PlayIcon size={12} stroke={W.ink} /></div>
                 )}
               </div>
             </div>
@@ -128,6 +147,14 @@ export function CourseList() {
 }
 
 export function Lesson() {
+  const [currentN] = useCurrentLesson();
+  const lesson = lessons.find((l) => l.n === currentN) ?? lessons[0];
+  const totalShown = lessons.length;
+  const isDone = lesson.state === 'done';
+  // Approximate playback position — for a watched lesson assume the whole video,
+  // for the in-progress lesson ~40% as before.
+  const positionPct = isDone ? 100 : 40;
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
       <div style={{ position: 'absolute', inset: 0, background: '#15151A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -144,21 +171,25 @@ export function Lesson() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div onClick={() => go('course')} style={{ color: '#fff', fontSize: 18, cursor: 'pointer' }}>✕</div>
           <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.2)', borderRadius: 2 }}>
-            <div style={{ width: '40%', height: '100%', background: W.ink, borderRadius: 2 }} />
+            <div style={{ width: `${positionPct}%`, height: '100%', background: W.ink, borderRadius: 2 }} />
           </div>
-          <div style={{ color: '#fff', fontSize: 12 }}>0:48 / 2:00</div>
+          <div style={{ color: '#fff', fontSize: 12 }}>
+            {isDone ? lesson.dur : `0:48 / ${lesson.dur.replace(' min', ':00')}`}
+          </div>
         </div>
       </div>
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2, padding: '20px 16px 40px',
         background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', color: '#fff',
       }}>
-        <div style={{ fontSize: 11, opacity: 0.7 }}>Lesson 3 of 12</div>
-        <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>Sleep pressure & circadian rhythm</div>
+        <div style={{ fontSize: 11, opacity: 0.7 }}>
+          Lesson {lesson.n} of {totalShown}{isDone ? ' · watched' : ''}
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>{lesson.title}</div>
         <div onClick={() => go('course')} style={{
           marginTop: 16, padding: '12px 0', textAlign: 'center',
           background: W.ink, color: W.bg, borderRadius: 999, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-        }}>Mark as completed →</div>
+        }}>{isDone ? 'Back to course' : 'Mark as completed →'}</div>
       </div>
     </div>
   );

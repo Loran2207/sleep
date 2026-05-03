@@ -92,7 +92,7 @@ export function TrackingActive() {
 
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', padding: '4px 20px', alignItems: 'center' }}>
         <div onClick={() => go('tracking-stop-confirm')} style={{ fontSize: 14, color: '#fff', cursor: 'pointer', opacity: 0.75 }}>End</div>
-        <div style={{ fontSize: 12, opacity: 0.55, letterSpacing: 1.5, textTransform: 'uppercase' }}>Tracking</div>
+        <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Tracking</div>
         <div style={{ width: 30 }} />
       </div>
 
@@ -204,7 +204,7 @@ export function TrackingMixer() {
         }}>
           <GlyphChevDn size={18} stroke="currentColor" />
         </div>
-        <div style={{ fontSize: 12, letterSpacing: 1.5, opacity: 0.55, textTransform: 'uppercase' }}>Mix</div>
+        <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Mix</div>
         <div onClick={clearAll} style={{
           fontSize: 13, color: state.mix.length === 0 ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.85)',
           cursor: state.mix.length === 0 ? 'default' : 'pointer',
@@ -362,7 +362,7 @@ export function TrackingSounds() {
         }}>
           <GlyphChevDn size={18} stroke="currentColor" />
         </div>
-        <div style={{ fontSize: 12, letterSpacing: 1.5, opacity: 0.55, textTransform: 'uppercase' }}>Sounds</div>
+        <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Sounds</div>
         <div style={{ width: 36 }} />
       </div>
 
