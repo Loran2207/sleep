@@ -4,7 +4,7 @@ import { go } from '../state/navigation';
 import { TopPad } from '../components/shared';
 import { ChevronRightIcon, MicIcon, StopIcon } from '../components/icons';
 import { useEditingJournalId, useJournal } from '../state/store';
-import { readMood, CONTEXT_TAGS } from '../data/mood';
+import { readMood } from '../data/mood';
 
 const GRID_COLS = 9;
 const GRID_ROWS = 7;
@@ -36,7 +36,6 @@ export function JournalEntryEdit() {
   const [text, setText] = useState(entry?.text ?? '');
   const [date, setDate] = useState(entry?.date ?? '');
   const [time, setTime] = useState(entry?.time ?? '');
-  const [context, setContext] = useState<string[]>(entry?.context ?? []);
 
   const [sheet, setSheet] = useState<'mood' | 'text' | null>(null);
 
@@ -48,7 +47,6 @@ export function JournalEntryEdit() {
     setText(entry.text);
     setDate(entry.date);
     setTime(entry.time);
-    setContext(entry.context);
   }, [entry?.id]);
 
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
@@ -69,13 +67,8 @@ export function JournalEntryEdit() {
       text: text.trim(),
       date, time,
       whenLabel: formatWhenLabel(date, time, entry!.whenLabel),
-      context,
     });
     go('journal');
-  }
-
-  function toggleTag(id: string) {
-    setContext((c) => c.includes(id) ? c.filter((x) => x !== id) : [...c, id]);
   }
 
   return (
@@ -112,25 +105,6 @@ export function JournalEntryEdit() {
 
         <SectionLabel>Entry</SectionLabel>
         <EntryCard text={text} onClick={() => setSheet('text')} />
-
-        <SectionLabel hint="Helps reveal mood patterns">Context</SectionLabel>
-        <div style={{
-          display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 4px',
-        }}>
-          {CONTEXT_TAGS.map((t) => {
-            const on = context.includes(t.id);
-            return (
-              <div key={t.id} onClick={() => toggleTag(t.id)} style={{
-                padding: '6px 10px', borderRadius: 999,
-                fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                background: on ? W.ink : 'transparent',
-                color: on ? W.bg : W.weak,
-                border: `1px solid ${on ? W.ink : W.fill}`,
-                transition: 'background .12s ease, color .12s ease',
-              }}>#{t.label}</div>
-            );
-          })}
-        </div>
 
         <SectionLabel>When</SectionLabel>
         <div style={{ display: 'flex', gap: 10, padding: '0 4px' }}>
