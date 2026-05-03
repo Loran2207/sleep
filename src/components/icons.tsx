@@ -72,15 +72,6 @@ export function JournalFilled({ size = 24, fill = '#fff' }: FilledProps) {
     </svg>
   );
 }
-export function ScheduleFilled({ size = 24, fill = '#fff' }: FilledProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}>
-      <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/>
-      <rect x="11.2" y="6.5" width="1.6" height="6" rx="0.8" fill="#0E0E11"/>
-      <rect x="11.2" y="11" width="4" height="1.6" rx="0.8" fill="#0E0E11"/>
-    </svg>
-  );
-}
 
 // ─── Habit glyphs ────────────────────────────────────────────────
 import type { HabitGlyphName } from '../state/store';
