@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  HomeFilled, AnalyticsFilled, JournalFilled,
+  HomeFilled, AnalyticsFilled, JournalFilled, ProfileFilled,
   ChevronRightIcon, MoodBlob,
   type IconProps,
 } from './icons';
@@ -85,13 +85,14 @@ export function SettingsCard({ icon, title, desc, onClick }: {
 }
 
 // ─── Liquid Glass bottom navigation ──────────────────────────────
-type NavId = 'home' | 'analytics' | 'journal' | 'track';
+type NavId = 'home' | 'analytics' | 'journal' | 'profile' | 'track';
 
 export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string }) {
   const items: { id: NavId; icon: (p: { size?: number; fill?: string }) => ReactNode; stub?: boolean; nav: ScreenId | null }[] = [
     { id: 'home', icon: HomeFilled, nav: 'home' },
     { id: 'analytics', icon: AnalyticsFilled, stub: true, nav: null },
     { id: 'journal', icon: JournalFilled, nav: 'journal' },
+    { id: 'profile', icon: ProfileFilled, nav: 'profile' },
   ];
   return (
     <div style={{
@@ -181,37 +182,6 @@ export function DayStrip({
           </div>
         );
       })}
-    </div>
-  );
-}
-
-// ─── Top app bar (Home & Journal) ────────────────────────────────
-export function StickyTopBar() {
-  return (
-    <div style={{
-      flexShrink: 0,
-      background: W.bg,
-      borderBottom: `1px solid ${W.fill}`,
-      position: 'relative', zIndex: 10,
-    }}>
-      <TopPad />
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '6px 18px 12px',
-      }}>
-        <div style={{
-          fontSize: 22, fontWeight: 600, letterSpacing: -0.5,
-          fontFamily: '"Times New Roman", Georgia, serif',
-          fontStyle: 'italic', color: W.ink,
-        }}>night</div>
-        <div onClick={() => go('profile')} style={{
-          width: 36, height: 36, borderRadius: 18,
-          background: W.fill, border: `1px solid ${W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-          fontSize: 13, fontWeight: 600, color: W.ink,
-        }}>A</div>
-      </div>
     </div>
   );
 }
