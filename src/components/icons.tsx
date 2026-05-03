@@ -46,6 +46,9 @@ export const PencilIcon = (p: IconProps) => <Icon {...p}><path d="M4 20l4-1 11-1
 export const TrashIcon = (p: IconProps) => <Icon {...p}><path d="M5 7h14"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M7 7l1 13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-13"/></Icon>;
 export const PlusIcon = (p: IconProps) => <Icon {...p}><path d="M12 5v14M5 12h14"/></Icon>;
 export const ArrowRightTinyIcon = (p: IconProps) => <Icon {...p}><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></Icon>;
+export const MicIcon = (p: IconProps) => <Icon {...p}><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></Icon>;
+export const StopIcon = (p: IconProps) => <Icon {...p}><rect x="6" y="6" width="12" height="12" rx="2" fill={p.stroke}/></Icon>;
+export const XIcon = (p: IconProps) => <Icon {...p}><path d="M6 6l12 12M18 6l-12 12"/></Icon>;
 
 // ─── Filled tab icons ────────────────────────────────────────────
 type FilledProps = { size?: number; fill?: string };
