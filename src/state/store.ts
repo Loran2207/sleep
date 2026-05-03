@@ -140,8 +140,8 @@ export type Schedule = {
 };
 
 const schedulesStore = createStore<Schedule[]>([
-  { id: 'weekdays', name: 'Weekdays', days: [1, 2, 3, 4, 5], bedHour: 22, bedMinute: 30, wakeHour: 6, wakeMinute: 30, sound: 'Rain' },
-  { id: 'weekends', name: 'Weekends', days: [0, 6], bedHour: 0, bedMinute: 0, wakeHour: 8, wakeMinute: 30, sound: 'Soft chimes' },
+  { id: 'weekdays', name: 'Weekdays', days: [1, 2, 3, 4, 5], bedHour: 22, bedMinute: 30, wakeHour: 6, wakeMinute: 30, sound: 'rain' },
+  { id: 'weekends', name: 'Weekends', days: [0, 6], bedHour: 0, bedMinute: 0, wakeHour: 8, wakeMinute: 30, sound: 'chimes' },
 ]);
 
 export function useSchedules() {
