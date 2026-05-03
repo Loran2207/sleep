@@ -3,47 +3,10 @@ import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
   GlyphPlay, GlyphPause, GlyphSliders, GlyphPlus, GlyphChevDn, GlyphTrash,
-  GlyphTimer, GlyphHeart, GlyphRain, GlyphFlame, GlyphFlute, GlyphOcean, GlyphForest,
-  GlyphCricket, GlyphChimes, GlyphWhite, GlyphFan, GlyphWind, GlyphCoffee, GlyphBook,
-  GlyphThunder, GlyphRiver, GlyphSynth, GlyphBinaural, GlyphBrown, GlyphKeyboard, GlyphSeagull,
 } from '../components/icons';
-import { TopPad, CircleAction } from '../components/shared';
+import { TopPad } from '../components/shared';
 import { useMix } from '../state/store';
-import type { IconProps } from '../components/icons';
-
-const SOUND_CATALOG: { id: string; name: string; cat: string; Glyph: (p: IconProps) => JSX.Element }[] = [
-  { id: 'rain', name: 'Rain', cat: 'nature', Glyph: GlyphRain },
-  { id: 'thunder', name: 'Thunder', cat: 'nature', Glyph: GlyphThunder },
-  { id: 'ocean', name: 'Ocean waves', cat: 'nature', Glyph: GlyphOcean },
-  { id: 'forest', name: 'Forest', cat: 'nature', Glyph: GlyphForest },
-  { id: 'river', name: 'River', cat: 'nature', Glyph: GlyphRiver },
-  { id: 'crickets', name: 'Crickets', cat: 'nature', Glyph: GlyphCricket },
-  { id: 'wind', name: 'Wind', cat: 'nature', Glyph: GlyphWind },
-  { id: 'campfire', name: 'Campfire', cat: 'indoor', Glyph: GlyphFlame },
-  { id: 'fan', name: 'Fan', cat: 'indoor', Glyph: GlyphFan },
-  { id: 'coffee', name: 'Coffee shop', cat: 'indoor', Glyph: GlyphCoffee },
-  { id: 'keyboard', name: 'Keyboard', cat: 'indoor', Glyph: GlyphKeyboard },
-  { id: 'bookstore', name: 'Bookstore', cat: 'indoor', Glyph: GlyphBook },
-  { id: 'chimes', name: 'Soft chimes', cat: 'ambient', Glyph: GlyphChimes },
-  { id: 'flute', name: 'Flute', cat: 'ambient', Glyph: GlyphFlute },
-  { id: 'synth', name: 'Synth pad', cat: 'ambient', Glyph: GlyphSynth },
-  { id: 'binaural', name: 'Binaural', cat: 'ambient', Glyph: GlyphBinaural },
-  { id: 'whitenoise', name: 'White noise', cat: 'noise', Glyph: GlyphWhite },
-  { id: 'brown', name: 'Brown noise', cat: 'noise', Glyph: GlyphBrown },
-  { id: 'seagull', name: 'Seagulls', cat: 'nature', Glyph: GlyphSeagull },
-];
-
-const SOUND_CATEGORIES = [
-  { id: 'all', label: 'All' },
-  { id: 'nature', label: 'Nature' },
-  { id: 'indoor', label: 'Indoor' },
-  { id: 'ambient', label: 'Ambient' },
-  { id: 'noise', label: 'Noise' },
-];
-
-function lookupSound(id: string) {
-  return SOUND_CATALOG.find((s) => s.id === id);
-}
+import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from '../data/sounds';
 
 // ─── Tracking Active ─────────────────────────────────────────────
 export function TrackingActive() {
@@ -260,9 +223,8 @@ export function TrackingMixer() {
       <div style={{
         position: 'relative', padding: '14px 24px 32px',
         borderTop: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <CircleAction icon={<GlyphTimer size={18} stroke="currentColor" />} label="Timer" />
         <div onClick={togglePlay} style={{
           width: 64, height: 64, borderRadius: 32,
           background: '#fff', color: '#0E1014',
@@ -271,7 +233,6 @@ export function TrackingMixer() {
         }}>
           {state.playing ? <GlyphPause size={22} stroke="#0E1014" /> : <GlyphPlay size={22} stroke="#0E1014" style={{ marginLeft: 3 }} />}
         </div>
-        <CircleAction icon={<GlyphHeart size={18} stroke="currentColor" />} label="Save mix" />
       </div>
     </div>
   );
@@ -337,7 +298,7 @@ function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number
 // ─── Tracking Sounds Catalog ────────────────────────────────────
 export function TrackingSounds() {
   const { state, toggleSound } = useMix();
-  const [cat, setCat] = useState<string>('all');
+  const [cat, setCat] = useState<SoundCategory>('all');
   const visible = cat === 'all' ? SOUND_CATALOG : SOUND_CATALOG.filter((s) => s.cat === cat);
   const activeIds = new Set(state.mix.map((s) => s.id));
 

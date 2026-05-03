@@ -8,6 +8,7 @@ import {
 } from './icons';
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
+import { lookupSound } from '../data/sounds';
 
 // Small breathing pad above content. Adds iOS safe-area-inset-top so the
 // system clock doesn't overlap content when the page runs as a PWA on iOS.
@@ -215,25 +216,6 @@ export function StickyTopBar() {
   );
 }
 
-// Helper used by track-presets etc.
-export function CircleAction({ icon, label }: { icon: ReactNode; label: string }) {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-      cursor: 'pointer',
-    }}>
-      <div style={{
-        width: 44, height: 44, borderRadius: 22,
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'rgba(255,255,255,0.85)',
-      }}>{icon}</div>
-      <div style={{ fontSize: 11, opacity: 0.6 }}>{label}</div>
-    </div>
-  );
-}
-
 // Placeholder used by track-setup style screens
 export function Row({ icon, label, value, onClick }: {
   icon: ReactNode; label: string; value: string; onClick?: () => void;
@@ -255,6 +237,41 @@ export function Row({ icon, label, value, onClick }: {
 
 export function Divider() {
   return <div style={{ height: 1, background: W.fill, marginLeft: 58 }} />;
+}
+
+// ─── Sound tile (icon + label) ───────────────────────────────────
+// Used by the schedule editor (single-select tile grid) and any
+// place that needs the same look as the tracking sound catalog.
+export function SoundTile({ id, selected, onClick }: {
+  id: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const meta = lookupSound(id);
+  if (!meta) return null;
+  const Glyph = meta.Glyph;
+  return (
+    <div onClick={onClick} style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+      cursor: 'pointer',
+    }}>
+      <div style={{
+        width: 52, height: 52, borderRadius: 26,
+        background: selected ? W.ink : W.paper,
+        border: `1px solid ${selected ? W.ink : W.fill}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'background .12s ease, border-color .12s ease',
+      }}>
+        <Glyph size={20} stroke={selected ? W.bg : W.ink} />
+      </div>
+      <div style={{
+        fontSize: 11, lineHeight: 1.2, textAlign: 'center',
+        color: selected ? W.ink : W.weak,
+        fontWeight: selected ? 500 : 400,
+        maxWidth: 70,
+      }}>{meta.name}</div>
+    </div>
+  );
 }
 
 // Re-export a generic IconProps for external screens convenience

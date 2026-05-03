@@ -1,14 +1,15 @@
 import { useRef } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad, HeaderBar } from '../components/shared';
+import { TopPad, HeaderBar, SoundTile } from '../components/shared';
 import { ArrowRightTinyIcon, MoonIcon, BellIcon, MusicIcon } from '../components/icons';
 import { useSchedules, type Schedule } from '../state/store';
 
-const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const SOUND_OPTIONS = [
-  'Rain', 'Ocean', 'Forest', 'Fireplace', 'Soft chimes',
-  'Crickets', 'Thunder', 'White noise', 'Brown noise',
+// Curated subset of the sound catalog — enough variety for picking
+// what helps you drift off, without overwhelming the page.
+const SCHEDULE_SOUND_IDS = [
+  'rain', 'ocean', 'forest', 'campfire',
+  'chimes', 'crickets', 'whitenoise', 'brown',
 ];
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
@@ -23,6 +24,13 @@ function durationBetween(bedH: number, bedM: number, wakeH: number, wakeM: numbe
   if (m === 0) return `${h}h`;
   return `${h}h ${m}m`;
 }
+
+// Subtitle shown under the preset name — these schedules cover fixed
+// day ranges (the user can't reassign days, only edit the times and sound).
+const PRESET_SUBTITLE: Record<string, string> = {
+  weekdays: 'Mon – Fri',
+  weekends: 'Sat & Sun',
+};
 
 export function SleepSchedules() {
   const { list, update } = useSchedules();
@@ -43,15 +51,21 @@ export function SleepSchedules() {
         </div>
 
         {list.map((s) => (
-          <ScheduleCard key={s.id} schedule={s} onChange={(patch) => update(s.id, patch)} />
+          <ScheduleCard
+            key={s.id}
+            schedule={s}
+            subtitle={PRESET_SUBTITLE[s.id] ?? ''}
+            onChange={(patch) => update(s.id, patch)}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function ScheduleCard({ schedule, onChange }: {
+function ScheduleCard({ schedule, subtitle, onChange }: {
   schedule: Schedule;
+  subtitle: string;
   onChange: (patch: Partial<Schedule>) => void;
 }) {
   const bedStr = fmt(schedule.bedHour, schedule.bedMinute);
@@ -66,16 +80,11 @@ function ScheduleCard({ schedule, onChange }: {
     const [h, m] = value.split(':').map(Number);
     if (Number.isFinite(h) && Number.isFinite(m)) onChange({ wakeHour: h, wakeMinute: m });
   }
-  function toggleDay(i: number) {
-    const has = schedule.days.includes(i);
-    const next = has ? schedule.days.filter((d) => d !== i) : [...schedule.days, i];
-    onChange({ days: next.sort((a, b) => a - b) });
-  }
 
   return (
     <div style={{
       background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 22, padding: '18px 18px 16px',
+      borderRadius: 22, padding: '18px 18px 18px',
     }}>
       <style>{`
         .sched-time {
@@ -91,9 +100,12 @@ function ScheduleCard({ schedule, onChange }: {
       `}</style>
 
       <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em' }}>{schedule.name}</div>
+      {subtitle && (
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 2 }}>{subtitle}</div>
+      )}
 
       <div style={{
-        marginTop: 14,
+        marginTop: 16,
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around', gap: 16,
       }}>
         <TimeField label="Bedtime" value={bedStr} onChange={setBed} />
@@ -104,49 +116,26 @@ function ScheduleCard({ schedule, onChange }: {
         <TimeField label="Wake up" value={wakeStr} onChange={setWake} />
       </div>
 
-      <div style={{
-        marginTop: 18, display: 'flex', justifyContent: 'center', gap: 6,
-      }}>
-        {DAY_LABELS.map((d, i) => {
-          const active = schedule.days.includes(i);
-          return (
-            <div key={i} onClick={() => toggleDay(i)} style={{
-              width: 30, height: 30, borderRadius: 15,
-              fontSize: 11, fontWeight: 600, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: active ? W.ink : 'transparent',
-              color: active ? W.bg : W.weak,
-              border: `1px solid ${active ? W.ink : W.fill}`,
-              transition: 'background .12s ease, color .12s ease',
-            }}>{d}</div>
-          );
-        })}
-      </div>
-
-      <div style={{ height: 1, background: W.fill, margin: '18px -18px 14px' }} />
+      <div style={{ height: 1, background: W.fill, margin: '20px -18px 16px' }} />
 
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8,
+        display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
       }}>
-        <MusicIcon size={16} stroke={W.weak} />
+        <MusicIcon size={14} stroke={W.weak} />
         <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>Sound</div>
       </div>
       <div style={{
-        display: 'flex', flexWrap: 'wrap', gap: 6,
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '14px 8px',
       }}>
-        {SOUND_OPTIONS.map((s) => {
-          const on = s === schedule.sound;
-          return (
-            <div key={s} onClick={() => onChange({ sound: s })} style={{
-              padding: '7px 12px', borderRadius: 999,
-              fontSize: 12, fontWeight: 500, cursor: 'pointer',
-              background: on ? W.ink : 'transparent',
-              color: on ? W.bg : W.ink,
-              border: `1px solid ${on ? W.ink : W.fill}`,
-              transition: 'background .12s ease, color .12s ease',
-            }}>{s}</div>
-          );
-        })}
+        {SCHEDULE_SOUND_IDS.map((id) => (
+          <SoundTile
+            key={id}
+            id={id}
+            selected={schedule.sound === id}
+            onClick={() => onChange({ sound: id })}
+          />
+        ))}
       </div>
     </div>
   );
@@ -162,7 +151,6 @@ function TimeField({ label, value, onChange }: {
       onClick={() => {
         const el = ref.current;
         if (!el) return;
-        // Native time picker — try modern API first, fall back to focus
         const showPicker = (el as unknown as { showPicker?: () => void }).showPicker;
         if (typeof showPicker === 'function') showPicker.call(el);
         else el.focus();
