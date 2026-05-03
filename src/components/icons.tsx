@@ -75,6 +75,14 @@ export function JournalFilled({ size = 24, fill = '#fff' }: FilledProps) {
     </svg>
   );
 }
+export function ProfileFilled({ size = 24, fill = '#fff' }: FilledProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}>
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 21a8 8 0 0 1 16 0z"/>
+    </svg>
+  );
+}
 
 // ─── Habit glyphs ────────────────────────────────────────────────
 import type { HabitGlyphName } from '../state/store';

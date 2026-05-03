@@ -8,7 +8,7 @@ import {
   PlayIcon, TrashIcon, WindIcon, HabitGlyph,
 } from '../components/icons';
 import {
-  StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
+  TopPad, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
   type Day,
 } from '../components/shared';
 import { useHabits, useSchedules, pickScheduleForDay, type Habit } from '../state/store';
@@ -50,7 +50,7 @@ export function Home() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
-      <StickyTopBar />
+      <TopPad />
 
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
         <div style={{ paddingTop: 4 }}>
