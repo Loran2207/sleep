@@ -86,8 +86,7 @@ export function Home() {
           <SettingsCard
             icon={<NightShiftIcon size={22} stroke={W.ink} />}
             title="Night Shift"
-            desc="Warms your screen at sunset to protect melatonin"
-            onClick={() => go('night-shift')}
+            desc="Please turn on Night Shift in your system settings to warm your screen at sunset and protect melatonin."
           />
 
           <SectionHeader style={{ marginTop: 24 }}>Continue learning</SectionHeader>
