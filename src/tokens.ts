@@ -26,7 +26,6 @@ export type ScreenId =
   | 'habit-library'
   | 'routine-checkin'
   | 'sleep-schedule'
-  | 'night-shift'
   | 'course'
   | 'lesson'
   | 'practice-intro'

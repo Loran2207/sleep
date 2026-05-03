@@ -14,7 +14,6 @@ import { CourseList, Lesson } from './screens/Course';
 import { SleepSchedules } from './screens/SleepSchedules';
 import { HabitLibrary, RoutineCheckIn } from './screens/HabitsScreens';
 import { PracticeIntro, PracticeSession, PracticeComplete } from './screens/Practice';
-import { NightShift } from './screens/NightShift';
 import { Journal } from './screens/Journal';
 import { StubScreen } from './screens/Stub';
 
@@ -33,7 +32,6 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'habit-library': () => <HabitLibrary />,
   'routine-checkin': () => <RoutineCheckIn />,
   'sleep-schedule': () => <SleepSchedules />,
-  'night-shift': () => <NightShift />,
   'course': () => <CourseList />,
   'lesson': () => <Lesson />,
   'practice-intro': () => <PracticeIntro />,
