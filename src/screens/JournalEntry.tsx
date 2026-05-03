@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { CheckIcon, MicIcon, StopIcon } from '../components/icons';
+import { ChevronRightIcon, MicIcon, StopIcon } from '../components/icons';
 import { useEditingJournalId, useJournal } from '../state/store';
 import { readMood, CONTEXT_TAGS } from '../data/mood';
 
@@ -38,6 +38,8 @@ export function JournalEntryEdit() {
   const [time, setTime] = useState(entry?.time ?? '');
   const [context, setContext] = useState<string[]>(entry?.context ?? []);
 
+  const [sheet, setSheet] = useState<'mood' | 'text' | null>(null);
+
   // Re-sync local state if a different entry is opened.
   useEffect(() => {
     if (!entry) return;
@@ -51,7 +53,7 @@ export function JournalEntryEdit() {
 
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
 
-  // If no entry is selected, bounce back to the journal.
+  // Bounce back if no entry.
   useEffect(() => {
     if (!entry) go('journal');
   }, [entry]);
@@ -87,36 +89,29 @@ export function JournalEntryEdit() {
       <TopPad />
       <div style={{
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '6px 16px', height: 44, flexShrink: 0,
+        padding: '6px 16px', height: 48, flexShrink: 0,
       }}>
         <div onClick={() => go('journal')} style={{
-          padding: '6px 12px', borderRadius: 999,
+          padding: '7px 14px', borderRadius: 999,
           background: W.fill, border: `1px solid ${W.veryweak}`,
           fontSize: 13, color: W.ink, cursor: 'pointer',
         }}>Cancel</div>
         <div style={{ fontSize: 15, fontWeight: 600 }}>Edit entry</div>
-        <div onClick={save} aria-label="Save" style={{
-          width: 34, height: 34, borderRadius: 17,
-          background: reading.tint, color: '#0E0E11',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-        }}>
-          <CheckIcon size={16} stroke="#0E0E11" />
-        </div>
+        <div style={{ width: 70 }} />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 24px', position: 'relative' }}>
-        <MoodPicker
-          x={moodX} y={moodY}
-          onChange={(nx, ny) => { setMoodX(nx); setMoodY(ny); }}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 16px', position: 'relative' }}>
+        <SectionLabel>Feeling</SectionLabel>
+        <FeelingCard
           tint={reading.tint}
           feeling={reading.feeling}
           desc={reading.desc}
+          x={moodX} y={moodY}
+          onClick={() => setSheet('mood')}
         />
 
         <SectionLabel>Entry</SectionLabel>
-        <TextEntry value={text} onChange={setText} />
+        <EntryCard text={text} onClick={() => setSheet('text')} />
 
         <SectionLabel hint="Helps reveal mood patterns">Context</SectionLabel>
         <div style={{
@@ -138,9 +133,7 @@ export function JournalEntryEdit() {
         </div>
 
         <SectionLabel>When</SectionLabel>
-        <div style={{
-          display: 'flex', gap: 10, padding: '0 4px',
-        }}>
+        <div style={{ display: 'flex', gap: 10, padding: '0 4px' }}>
           <DateField value={date} onChange={setDate} />
           <TimeField value={time} onChange={setTime} />
         </div>
@@ -157,6 +150,25 @@ export function JournalEntryEdit() {
           boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
         }}>Save changes</div>
       </div>
+
+      {sheet === 'mood' && (
+        <MoodSheet
+          x={moodX} y={moodY}
+          tint={reading.tint}
+          feeling={reading.feeling}
+          desc={reading.desc}
+          onChange={(nx, ny) => { setMoodX(nx); setMoodY(ny); }}
+          onClose={() => setSheet(null)}
+        />
+      )}
+
+      {sheet === 'text' && (
+        <TextSheet
+          value={text}
+          onChange={setText}
+          onClose={() => setSheet(null)}
+        />
+      )}
     </div>
   );
 }
@@ -188,21 +200,146 @@ function SectionLabel({ children, hint }: { children: React.ReactNode; hint?: st
   );
 }
 
-// ─── Mood picker (2D dot grid) ───────────────────────────────────
-function MoodPicker({ x, y, onChange, tint, feeling, desc }: {
+// ─── Summary cards ───────────────────────────────────────────────
+function FeelingCard({ tint, feeling, desc, x, y, onClick }: {
+  tint: string; feeling: string; desc: string;
+  x: number; y: number;
+  onClick: () => void;
+}) {
+  return (
+    <div onClick={onClick} style={{
+      position: 'relative', overflow: 'hidden',
+      background: W.paper, border: `1px solid ${hexWithAlpha(tint, 0.4)}`,
+      borderRadius: 18, padding: '14px 14px',
+      display: 'flex', alignItems: 'center', gap: 14,
+      cursor: 'pointer',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: `radial-gradient(80% 100% at 0% 50%, ${hexWithAlpha(tint, 0.18)}, transparent 70%)`,
+      }} />
+      <MoodFace tint={tint} x={x} y={y} size={56} />
+      <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+        <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em' }}>{feeling}</div>
+        <div style={{ fontSize: 13, color: W.weak, marginTop: 2 }}>{desc}</div>
+      </div>
+      <ChevronRightIcon size={16} stroke={W.weak} />
+    </div>
+  );
+}
+
+function EntryCard({ text, onClick }: { text: string; onClick: () => void }) {
+  const empty = !text.trim();
+  return (
+    <div onClick={onClick} style={{
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 18, padding: '14px 14px',
+      cursor: 'pointer', position: 'relative',
+    }}>
+      <div style={{
+        fontSize: 14, lineHeight: 1.5,
+        color: empty ? W.weak : W.ink,
+        // Show a few lines, with the rest fading off — encourages tap to expand.
+        display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical',
+        overflow: 'hidden', whiteSpace: 'pre-wrap',
+      }}>
+        {empty
+          ? 'Write what\'s on your mind, or tap the mic to speak.'
+          : text}
+      </div>
+      <div style={{
+        marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        color: W.weak, fontSize: 12,
+      }}>
+        <span>Tap to edit</span>
+        <ChevronRightIcon size={14} stroke={W.weak} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Sheet shell ─────────────────────────────────────────────────
+function Sheet({ children, onClose, fullHeight = false }: {
+  children: React.ReactNode;
+  onClose: () => void;
+  fullHeight?: boolean;
+}) {
+  return (
+    <div onClick={onClose} style={{
+      position: 'absolute', inset: 0, zIndex: 60,
+      background: 'rgba(8,9,12,0.55)',
+      backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'flex-end',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%',
+        height: fullHeight ? '92%' : 'auto',
+        background: W.bg,
+        borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.4)',
+        display: 'flex', flexDirection: 'column',
+        position: 'relative',
+      }}>
+        <div style={{
+          width: 40, height: 4, borderRadius: 2,
+          background: W.fill, margin: '10px auto 6px',
+          flexShrink: 0,
+        }} />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── Mood sheet (2D dot grid) ────────────────────────────────────
+function MoodSheet({ x, y, onChange, tint, feeling, desc, onClose }: {
   x: number; y: number;
   onChange: (x: number, y: number) => void;
-  tint: string;
-  feeling: string;
-  desc: string;
+  tint: string; feeling: string; desc: string;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet onClose={onClose}>
+      <TintGlow color={tint} />
+      <div style={{ position: 'relative', padding: '8px 20px 20px', flex: 1, overflowY: 'auto' }}>
+        <div style={{
+          textAlign: 'center', padding: '10px 0 18px',
+        }}>
+          <div style={{ fontSize: 13, color: W.weak, fontWeight: 500, marginBottom: 14 }}>How did you feel</div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <MoodFace tint={tint} x={x} y={y} size={96} />
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>{feeling}</div>
+            <div style={{ fontSize: 13, color: W.weak, marginTop: 4 }}>{desc}</div>
+          </div>
+        </div>
+
+        <MoodGrid x={x} y={y} tint={tint} onChange={onChange} />
+      </div>
+      <div style={{
+        position: 'relative', padding: '10px 16px 22px',
+      }}>
+        <div onClick={onClose} style={{
+          padding: '15px 0', textAlign: 'center',
+          background: tint, color: '#0E0E11',
+          borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+        }}>Done</div>
+      </div>
+    </Sheet>
+  );
+}
+
+function MoodGrid({ x, y, tint, onChange }: {
+  x: number; y: number; tint: string;
+  onChange: (x: number, y: number) => void;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
 
-  // Snap normalised coordinates to nearest dot centre — gives the picker its
-  // satisfying click-into-place feel.
   const snap = (col: number, row: number) => {
     const nx = col / (GRID_COLS - 1);
-    const ny = 1 - row / (GRID_ROWS - 1); // y=0 is top row (high energy)
+    const ny = 1 - row / (GRID_ROWS - 1);
     onChange(nx, ny);
   };
 
@@ -231,76 +368,59 @@ function MoodPicker({ x, y, onChange, tint, feeling, desc }: {
     window.addEventListener('pointerup', up);
   }
 
-  // Selected pixel position within the grid (0..1 relative)
   const selCol = Math.round(x * (GRID_COLS - 1));
   const selRow = Math.round((1 - y) * (GRID_ROWS - 1));
 
   return (
-    <div style={{ padding: '14px 4px 6px' }}>
+    <div style={{
+      position: 'relative',
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 22, padding: '32px 22px 32px',
+      overflow: 'hidden',
+    }}>
       <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 18,
-      }}>
-        <MoodFace tint={tint} x={x} y={y} />
-        <div style={{ textAlign: 'center', lineHeight: 1.2 }}>
-          <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>{feeling}</div>
-          <div style={{ fontSize: 13, color: W.weak, marginTop: 4 }}>{desc}</div>
-        </div>
-      </div>
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: `radial-gradient(circle at ${x * 100}% ${(1 - y) * 100}%, ${hexWithAlpha(tint, 0.22)}, transparent 60%)`,
+        transition: 'background .3s ease',
+      }} />
+      <AxisLabel position="top">High energy</AxisLabel>
+      <AxisLabel position="bottom">Low energy</AxisLabel>
+      <AxisLabel position="left">Sad</AxisLabel>
+      <AxisLabel position="right">Happy</AxisLabel>
 
       <div
+        ref={ref}
+        onPointerDown={onPointerDown}
         style={{
-          position: 'relative',
-          background: W.paper, border: `1px solid ${W.fill}`,
-          borderRadius: 22, padding: '32px 22px 32px',
-          overflow: 'hidden',
+          position: 'relative', width: '100%',
+          aspectRatio: `${GRID_COLS - 1} / ${GRID_ROWS - 1}`,
+          cursor: 'pointer', touchAction: 'none',
         }}
       >
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: `radial-gradient(circle at ${x * 100}% ${(1 - y) * 100}%, ${hexWithAlpha(tint, 0.2)}, transparent 60%)`,
-          transition: 'background .3s ease',
-        }} />
-
-        <AxisLabel position="top">High energy</AxisLabel>
-        <AxisLabel position="bottom">Low energy</AxisLabel>
-        <AxisLabel position="left">Sad</AxisLabel>
-        <AxisLabel position="right">Happy</AxisLabel>
-
-        <div
-          ref={ref}
-          onPointerDown={onPointerDown}
-          style={{
-            position: 'relative', width: '100%',
-            aspectRatio: `${GRID_COLS - 1} / ${GRID_ROWS - 1}`,
-            cursor: 'pointer', touchAction: 'none',
-          }}
-        >
-          {Array.from({ length: GRID_ROWS }).map((_, r) => (
-            Array.from({ length: GRID_COLS }).map((_, c) => {
-              // Distance to selected, used for fading dot size.
-              const dx = c - selCol;
-              const dy = r - selRow;
-              const d = Math.sqrt(dx * dx + dy * dy);
-              const isSel = c === selCol && r === selRow;
-              const size = isSel ? 18 : Math.max(2, 4 - d * 0.4);
-              const opacity = isSel ? 1 : Math.max(0.18, 0.7 - d * 0.12);
-              const left = `${(c / (GRID_COLS - 1)) * 100}%`;
-              const top = `${(r / (GRID_ROWS - 1)) * 100}%`;
-              return (
-                <div key={`${r}-${c}`} style={{
-                  position: 'absolute', left, top,
-                  transform: 'translate(-50%, -50%)',
-                  width: size, height: size, borderRadius: size / 2,
-                  background: isSel ? '#fff' : W.ink,
-                  opacity,
-                  boxShadow: isSel ? `0 0 22px 6px ${hexWithAlpha(tint, 0.6)}` : 'none',
-                  transition: 'width .15s ease, height .15s ease, opacity .15s ease, left .15s ease, top .15s ease, box-shadow .2s ease',
-                  pointerEvents: 'none',
-                }} />
-              );
-            })
-          ))}
-        </div>
+        {Array.from({ length: GRID_ROWS }).map((_, r) => (
+          Array.from({ length: GRID_COLS }).map((_, c) => {
+            const dx = c - selCol;
+            const dy = r - selRow;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            const isSel = c === selCol && r === selRow;
+            const size = isSel ? 18 : Math.max(2, 4 - d * 0.4);
+            const opacity = isSel ? 1 : Math.max(0.18, 0.7 - d * 0.12);
+            const left = `${(c / (GRID_COLS - 1)) * 100}%`;
+            const top = `${(r / (GRID_ROWS - 1)) * 100}%`;
+            return (
+              <div key={`${r}-${c}`} style={{
+                position: 'absolute', left, top,
+                transform: 'translate(-50%, -50%)',
+                width: size, height: size, borderRadius: size / 2,
+                background: isSel ? '#fff' : W.ink,
+                opacity,
+                boxShadow: isSel ? `0 0 22px 6px ${hexWithAlpha(tint, 0.6)}` : 'none',
+                transition: 'width .15s ease, height .15s ease, opacity .15s ease, left .15s ease, top .15s ease, box-shadow .2s ease',
+                pointerEvents: 'none',
+              }} />
+            );
+          })
+        ))}
       </div>
     </div>
   );
@@ -323,22 +443,19 @@ function AxisLabel({ position, children }: {
 }
 
 // ─── Friendly blob face ──────────────────────────────────────────
-function MoodFace({ tint, x, y }: { tint: string; x: number; y: number }) {
-  // Mouth curve: positive = smile, negative = frown, scaled by happy axis.
+function MoodFace({ tint, x, y, size = 96 }: { tint: string; x: number; y: number; size?: number }) {
   const smile = (x - 0.5) * 14;
-  // Eyebrow tilt: scaled by energy axis (high energy = sharp brows, low = sleepy).
   const browTilt = (y - 0.5) * 6;
-  // Eye state: very low energy → closed dashes, otherwise dots.
   const sleepy = y < 0.2;
 
   return (
     <div style={{
-      width: 96, height: 96, position: 'relative',
+      width: size, height: size, position: 'relative',
       filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.35))',
     }}>
-      <svg width="96" height="96" viewBox="0 0 96 96">
+      <svg width={size} height={size} viewBox="0 0 96 96">
         <defs>
-          <radialGradient id="mood-blob" cx="35%" cy="30%" r="80%">
+          <radialGradient id={`mood-blob-${size}`} cx="35%" cy="30%" r="80%">
             <stop offset="0%" stopColor="#FFFCEB" />
             <stop offset="100%" stopColor={tint} />
           </radialGradient>
@@ -349,9 +466,8 @@ function MoodFace({ tint, x, y }: { tint: string; x: number; y: number }) {
              C 88 66 72 90 48 90
              C 24 90 8 66 8 44
              C 8 22 26 6 48 6 Z"
-          fill="url(#mood-blob)"
+          fill={`url(#mood-blob-${size})`}
         />
-        {/* Eyebrows */}
         <path
           d={`M 30 ${36 - browTilt} L 40 ${36 + browTilt * 0.4}`}
           stroke="#0E0E11" strokeWidth="2.5" strokeLinecap="round" fill="none"
@@ -360,7 +476,6 @@ function MoodFace({ tint, x, y }: { tint: string; x: number; y: number }) {
           d={`M 56 ${36 + browTilt * 0.4} L 66 ${36 - browTilt}`}
           stroke="#0E0E11" strokeWidth="2.5" strokeLinecap="round" fill="none"
         />
-        {/* Eyes */}
         {sleepy ? (
           <>
             <path d="M 32 50 Q 36 53 40 50" stroke="#0E0E11" strokeWidth="2.4" strokeLinecap="round" fill="none" />
@@ -372,7 +487,6 @@ function MoodFace({ tint, x, y }: { tint: string; x: number; y: number }) {
             <circle cx="60" cy="48" r="2.6" fill="#0E0E11" />
           </>
         )}
-        {/* Mouth */}
         <path
           d={`M 38 64 Q 48 ${64 + smile} 58 64`}
           stroke="#0E0E11" strokeWidth="2.5" strokeLinecap="round" fill="none"
@@ -382,21 +496,17 @@ function MoodFace({ tint, x, y }: { tint: string; x: number; y: number }) {
   );
 }
 
-// ─── Text entry with voice input ─────────────────────────────────
-function TextEntry({ value, onChange }: {
-  value: string;
-  onChange: (s: string) => void;
+// ─── Text sheet (entry + voice input) ────────────────────────────
+function TextSheet({ value, onChange, onClose }: {
+  value: string; onChange: (s: string) => void; onClose: () => void;
 }) {
   const [recording, setRecording] = useState(false);
   const [interim, setInterim] = useState('');
   const recogRef = useRef<SpeechRecognition | null>(null);
-
   const Ctor = useMemo(() => getRecognitionCtor(), []);
 
   function startVoice() {
     if (!Ctor) {
-      // Fallback for environments without the Web Speech API — offer a brief
-      // recording animation that resolves into a placeholder dictation.
       setRecording(true);
       setInterim('Listening…');
       const t = setTimeout(() => {
@@ -404,7 +514,6 @@ function TextEntry({ value, onChange }: {
         setInterim('');
         onChange(`${value}${value && !value.endsWith(' ') ? ' ' : ''}(Voice input is not supported on this browser — type your entry instead.)`);
       }, 1400);
-      // Cleanup if user toggles off via stop button
       recogRef.current = { stop: () => { clearTimeout(t); setRecording(false); setInterim(''); } } as SpeechRecognition;
       return;
     }
@@ -429,71 +538,89 @@ function TextEntry({ value, onChange }: {
     recogRef.current = rec;
     setRecording(true);
   }
-
-  function stopVoice() {
-    recogRef.current?.stop();
-  }
-
-  // Stop any in-flight session on unmount.
+  function stopVoice() { recogRef.current?.stop(); }
   useEffect(() => () => recogRef.current?.stop(), []);
 
   return (
-    <div style={{
-      position: 'relative',
-      background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 18, padding: '14px 14px 14px',
-      margin: '0 4px',
-    }}>
-      <textarea
-        value={value + (interim ? (value && !value.endsWith(' ') ? ' ' : '') + interim : '')}
-        onChange={(e) => onChange(e.target.value)}
-        rows={5}
-        placeholder="Write what's on your mind, or tap the mic to speak."
-        style={{
-          width: '100%', background: 'transparent', color: W.ink,
-          border: 'none', outline: 'none', resize: 'none',
-          fontSize: 14, lineHeight: 1.5, fontFamily: W.font,
-          padding: 0, paddingRight: 44,
-          minHeight: 96,
-        }}
-      />
-      <div
-        onClick={recording ? stopVoice : startVoice}
-        aria-label={recording ? 'Stop recording' : 'Start voice input'}
-        style={{
-          position: 'absolute', right: 10, bottom: 10,
-          width: 36, height: 36, borderRadius: 18,
-          background: recording ? '#E25C5C' : W.fill,
-          border: `1px solid ${recording ? '#E25C5C' : W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'background .15s ease, border-color .15s ease',
-        }}
-      >
-        {recording
-          ? <StopIcon size={14} stroke="#fff" />
-          : <MicIcon size={16} stroke={W.ink} />}
+    <Sheet onClose={onClose} fullHeight>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '4px 16px 8px',
+      }}>
+        <div onClick={onClose} style={{
+          padding: '6px 14px', borderRadius: 999,
+          background: W.fill, border: `1px solid ${W.veryweak}`,
+          fontSize: 13, color: W.ink, cursor: 'pointer',
+        }}>Cancel</div>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>Entry</div>
+        <div onClick={onClose} style={{
+          padding: '6px 14px', borderRadius: 999,
+          background: W.ink, color: W.bg,
+          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        }}>Done</div>
       </div>
-      {recording && (
-        <div style={{
-          position: 'absolute', left: 14, bottom: 14,
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
+
+      <div style={{ flex: 1, padding: '8px 16px 16px', position: 'relative', overflowY: 'auto' }}>
+        <textarea
+          autoFocus
+          value={value + (interim ? (value && !value.endsWith(' ') ? ' ' : '') + interim : '')}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Write what's on your mind, or tap the mic to speak."
+          style={{
+            width: '100%', height: '100%',
+            background: 'transparent', color: W.ink,
+            border: 'none', outline: 'none', resize: 'none',
+            fontSize: 16, lineHeight: 1.55, fontFamily: W.font,
+            padding: 0, paddingBottom: 80,
+            minHeight: 240, boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      <div style={{
+        position: 'absolute', bottom: 18, left: 0, right: 0,
+        display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14,
+        pointerEvents: 'none',
+      }}>
+        {recording && (
           <div style={{
-            width: 8, height: 8, borderRadius: 4,
-            background: '#E25C5C',
-            animation: 'pulse-rec 1.1s ease-in-out infinite',
-          }} />
-          <div style={{ fontSize: 11, color: W.weak }}>Recording…</div>
-          <style>{`
-            @keyframes pulse-rec {
-              0%, 100% { opacity: 1; transform: scale(1); }
-              50% { opacity: 0.4; transform: scale(0.7); }
-            }
-          `}</style>
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: W.paper, border: `1px solid ${W.fill}`,
+            padding: '8px 14px', borderRadius: 999,
+          }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: 4,
+              background: '#E25C5C',
+              animation: 'pulse-rec 1.1s ease-in-out infinite',
+            }} />
+            <div style={{ fontSize: 12, color: W.weak }}>Recording…</div>
+          </div>
+        )}
+        <div
+          onClick={recording ? stopVoice : startVoice}
+          aria-label={recording ? 'Stop recording' : 'Start voice input'}
+          style={{
+            pointerEvents: 'auto',
+            width: 64, height: 64, borderRadius: 32,
+            background: recording ? '#E25C5C' : W.ink,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+            transition: 'background .15s ease',
+          }}
+        >
+          {recording
+            ? <StopIcon size={20} stroke="#fff" />
+            : <MicIcon size={22} stroke={W.bg} />}
         </div>
-      )}
-    </div>
+      </div>
+      <style>{`
+        @keyframes pulse-rec {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.7); }
+        }
+      `}</style>
+    </Sheet>
   );
 }
 
@@ -576,4 +703,3 @@ function formatWhenLabel(date: string, time: string, fallback: string) {
   if (!date) return fallback;
   return `${formatDate(date)}, ${time}`;
 }
-
