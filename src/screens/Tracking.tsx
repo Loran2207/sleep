@@ -1,20 +1,35 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
   GlyphPlay, GlyphPause, GlyphSliders, GlyphPlus, GlyphChevDn, GlyphTrash,
 } from '../components/icons';
 import { TopPad, VolumeSlider } from '../components/shared';
-import { useMix, useVersion, useSchedules, pickScheduleForDay } from '../state/store';
+import { useMix, useVersion, useSchedules, useSleepMode, useNapDuration, pickScheduleForDay } from '../state/store';
 import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from '../data/sounds';
 
 // ─── Tracking Active ─────────────────────────────────────────────
 export function TrackingActive() {
-  const { state, togglePlay } = useMix();
+  const { state, togglePlay, setAlarm } = useMix();
   const [version] = useVersion();
-  const { list: schedules } = useSchedules();
+  const [mode] = useSleepMode();
+  const [napDuration, setNapDuration] = useNapDuration();
+  const { list: schedules, update: updateSchedule } = useSchedules();
   const todaySchedule = pickScheduleForDay(schedules, 4);
   const timerMin = todaySchedule.timerMin;
+  const [waketimeOpen, setWaketimeOpen] = useState(false);
+  const [timerOpen, setTimerOpen] = useState(false);
+
+  // For nap mode, the alarm is now + duration. Keep alarm in sync if duration
+  // is changed during the session.
+  useEffect(() => {
+    if (mode !== 'nap') return;
+    const d = new Date(Date.now() + napDuration * 60_000);
+    const next = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    if (next !== state.alarm) setAlarm(next);
+    // Only re-run when duration changes — alarm is read-through.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, napDuration]);
   const [seconds, setSeconds] = useState(7 * 3600 + 12 * 60);
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => Math.max(0, s - 60)), 6000);
@@ -59,7 +74,7 @@ export function TrackingActive() {
 
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', padding: '4px 20px', alignItems: 'center' }}>
         <div onClick={() => go('tracking-stop-confirm')} style={{ fontSize: 14, color: '#fff', cursor: 'pointer', opacity: 0.75 }}>End</div>
-        <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Tracking</div>
+        <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>{mode === 'nap' ? 'Napping' : 'Tracking'}</div>
         <div style={{ width: 30 }} />
       </div>
 
@@ -74,30 +89,36 @@ export function TrackingActive() {
           position: 'relative',
         }}>{now}</div>
 
-        <div style={{
-          marginTop: 10, fontSize: 13, opacity: 0.6,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-        }}>
-          <span>Alarm</span>
-          <span style={{
-            color: '#fff', opacity: 0.95,
-            borderBottom: '1px dashed rgba(255,255,255,0.4)',
-            paddingBottom: 1,
-            fontVariantNumeric: 'tabular-nums',
-          }}>{state.alarm}</span>
+        <div
+          onClick={() => setWaketimeOpen(true)}
+          style={{
+            marginTop: 10, padding: '6px 12px', borderRadius: 999,
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            fontSize: 13, color: 'rgba(255,255,255,0.85)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            cursor: 'pointer',
+          }}
+        >
+          <span style={{ opacity: 0.7 }}>{mode === 'nap' ? 'Wakes in' : 'Alarm'}</span>
+          <span style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            {mode === 'nap' ? `${napDuration} min` : state.alarm}
+          </span>
+          <ChevDownTiny />
         </div>
 
-        <div style={{ fontSize: 12, opacity: 0.45, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
-          Wakes you in {h}h {String(m).padStart(2, '0')}m
+        <div style={{ fontSize: 12, opacity: 0.45, marginTop: 8, fontVariantNumeric: 'tabular-nums' }}>
+          {mode === 'nap' ? `Wakes you at ${state.alarm}` : `Wakes you in ${h}h ${String(m).padStart(2, '0')}m`}
         </div>
 
-        {version === 'v2' && (
-          <div style={{
+        {version === 'v2' && mode === 'sleep' && (
+          <div onClick={() => setTimerOpen(true)} style={{
             marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '6px 12px', borderRadius: 999,
             background: 'rgba(255,255,255,0.06)',
             border: '1px solid rgba(255,255,255,0.10)',
             fontSize: 11, color: 'rgba(255,255,255,0.75)',
+            cursor: 'pointer',
           }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -108,9 +129,28 @@ export function TrackingActive() {
             {timerMin
               ? <>Sounds stop in <span style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums', marginLeft: 2 }}>{timerMin} min</span></>
               : <>Sounds play <span style={{ color: '#fff', fontWeight: 500, marginLeft: 2 }}>until alarm</span></>}
+            <ChevDownTiny />
           </div>
         )}
       </div>
+
+      {waketimeOpen && (
+        <WakeTimeSheet
+          mode={mode}
+          alarm={state.alarm}
+          napDuration={napDuration}
+          onSelectAlarm={(t) => { setAlarm(t); setWaketimeOpen(false); }}
+          onSelectDuration={(d) => { setNapDuration(d); setWaketimeOpen(false); }}
+          onClose={() => setWaketimeOpen(false)}
+        />
+      )}
+      {timerOpen && (
+        <TimerSheet
+          minutes={timerMin}
+          onSelect={(min) => { updateSchedule(todaySchedule.id, { timerMin: min }); setTimerOpen(false); }}
+          onClose={() => setTimerOpen(false)}
+        />
+      )}
 
       <div style={{ position: 'relative', padding: '0 20px' }}>
         <div style={{
@@ -459,6 +499,173 @@ function SleepBreathingHalo() {
         })}
       </div>
     </>
+  );
+}
+
+// ─── Tiny chevron used by chips ─────────────────────────────────
+function ChevDownTiny() {
+  return (
+    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+// ─── Wake-time sheet (alarm for sleep, duration for nap) ────────
+function WakeTimeSheet({ mode, alarm, napDuration, onSelectAlarm, onSelectDuration, onClose }: {
+  mode: 'sleep' | 'nap';
+  alarm: string;
+  napDuration: number;
+  onSelectAlarm: (t: string) => void;
+  onSelectDuration: (d: number) => void;
+  onClose: () => void;
+}) {
+  const timeRef = useRef<HTMLInputElement | null>(null);
+  const [draft, setDraft] = useState(alarm);
+  const NAP_OPTIONS = [10, 15, 20, 25, 30, 45, 60, 90];
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'absolute', inset: 0, zIndex: 80,
+      background: 'rgba(8,9,12,0.55)',
+      backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'flex-end',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', background: '#0E1014',
+        borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        padding: '14px 20px 28px',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
+        color: '#fff', fontFamily: W.font,
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: 'none',
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.16)', margin: '0 auto 14px' }} />
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>
+          {mode === 'nap' ? 'Nap duration' : 'Wake-up time'}
+        </div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4, lineHeight: 1.5 }}>
+          {mode === 'nap'
+            ? "Pick how long you'd like to rest."
+            : 'Set the time you want the alarm to ring.'}
+        </div>
+
+        {mode === 'nap' ? (
+          <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            {NAP_OPTIONS.map((min) => {
+              const active = napDuration === min;
+              return (
+                <div key={min} onClick={() => onSelectDuration(min)} style={{
+                  padding: '14px 0', textAlign: 'center', borderRadius: 14,
+                  background: active ? '#fff' : 'rgba(255,255,255,0.06)',
+                  color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+                  border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
+                  fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  fontVariantNumeric: 'tabular-nums',
+                }}>{min} min</div>
+              );
+            })}
+          </div>
+        ) : (
+          <>
+            <style>{`
+              .alarm-time-input {
+                width: 100%; box-sizing: border-box;
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(255,255,255,0.10);
+                border-radius: 18px; padding: 22px 18px; margin-top: 16px;
+                color: #fff; font: inherit; font-family: ${W.font};
+                font-size: 44px; font-weight: 300; letter-spacing: -0.02em;
+                font-variant-numeric: tabular-nums; line-height: 1;
+                outline: none; cursor: pointer; text-align: center;
+                color-scheme: dark; -webkit-appearance: none; appearance: none;
+              }
+              .alarm-time-input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
+            `}</style>
+            <input
+              ref={timeRef}
+              type="time"
+              className="alarm-time-input"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onClick={() => {
+                const el = timeRef.current;
+                if (!el) return;
+                const sp = (el as unknown as { showPicker?: () => void }).showPicker;
+                if (typeof sp === 'function') sp.call(el);
+              }}
+            />
+            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+              <div onClick={onClose} style={{
+                flex: 1, padding: '14px 0', textAlign: 'center',
+                background: 'transparent', color: '#fff',
+                border: '1px solid rgba(255,255,255,0.18)', borderRadius: 999,
+                fontSize: 14, fontWeight: 500, cursor: 'pointer',
+              }}>Cancel</div>
+              <div onClick={() => onSelectAlarm(draft)} style={{
+                flex: 2, padding: '14px 0', textAlign: 'center',
+                background: '#fff', color: '#0E1014',
+                borderRadius: 999, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              }}>Set alarm</div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Timer sheet (sound stop after) ─────────────────────────────
+function TimerSheet({ minutes, onSelect, onClose }: {
+  minutes: number | null;
+  onSelect: (m: number | null) => void;
+  onClose: () => void;
+}) {
+  const TIMER_OPTIONS: { label: string; minutes: number | null }[] = [
+    { label: 'Off', minutes: null },
+    { label: '15 min', minutes: 15 },
+    { label: '30 min', minutes: 30 },
+    { label: '45 min', minutes: 45 },
+    { label: '60 min', minutes: 60 },
+    { label: '90 min', minutes: 90 },
+  ];
+  return (
+    <div onClick={onClose} style={{
+      position: 'absolute', inset: 0, zIndex: 80,
+      background: 'rgba(8,9,12,0.55)',
+      backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'flex-end',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', background: '#0E1014',
+        borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        padding: '14px 20px 28px',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
+        color: '#fff', fontFamily: W.font,
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: 'none',
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.16)', margin: '0 auto 14px' }} />
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>Sleep timer</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4, lineHeight: 1.5 }}>
+          How long the sounds play before fading out.
+        </div>
+        <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {TIMER_OPTIONS.map((opt) => {
+            const active = opt.minutes === minutes;
+            return (
+              <div key={opt.label} onClick={() => onSelect(opt.minutes)} style={{
+                padding: '14px 0', textAlign: 'center', borderRadius: 14,
+                background: active ? '#fff' : 'rgba(255,255,255,0.06)',
+                color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+                border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              }}>{opt.label}</div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
 

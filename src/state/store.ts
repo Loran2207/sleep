@@ -22,6 +22,23 @@ export function useVersion(): [AppVersion, (v: AppVersion) => void] {
   return [v, versionStore.set];
 }
 
+// ─── SLEEP MODE (sleep vs quick nap) ─────────────────────────────
+// In production this would be picked automatically from the time of day —
+// during waking hours only "nap" is offered. The toggle on Wind down lets
+// testers flip between the two without waiting for the clock.
+export type SleepMode = 'sleep' | 'nap';
+const sleepModeStore = createStore<SleepMode>('sleep');
+export function useSleepMode(): [SleepMode, (m: SleepMode) => void] {
+  const v = useSyncExternalStore(sleepModeStore.subscribe, sleepModeStore.get, sleepModeStore.get);
+  return [v, sleepModeStore.set];
+}
+
+const napDurationStore = createStore<number>(30);
+export function useNapDuration(): [number, (n: number) => void] {
+  const v = useSyncExternalStore(napDurationStore.subscribe, napDurationStore.get, napDurationStore.get);
+  return [v, napDurationStore.set];
+}
+
 // ─── HABITS ──────────────────────────────────────────────────────
 import type { ScreenId } from '../tokens';
 
@@ -206,6 +223,7 @@ export function useMix() {
     clearAll: () => mixStore.set((p) => ({ ...p, mix: [] })),
     togglePlay: () => mixStore.set((p) => ({ ...p, playing: !p.playing })),
     setTimer: (min: number | null) => mixStore.set((p) => ({ ...p, timerMin: min })),
+    setAlarm: (alarm: string) => mixStore.set((p) => ({ ...p, alarm })),
   };
 }
 
