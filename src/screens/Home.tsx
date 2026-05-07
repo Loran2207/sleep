@@ -11,7 +11,10 @@ import {
   StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
   type Day,
 } from '../components/shared';
+import { MoodFace } from '../components/MoodFace';
 import { useHabits, useSchedules, useVersion, pickScheduleForDay, type Habit } from '../state/store';
+import { readMood } from '../data/mood';
+import { lookupFactor } from '../data/factors';
 
 const days: Day[] = [
   { dow: 'M', n: 9, mood: 'good', sleep: '7h 12m' },
@@ -540,15 +543,37 @@ function NotesCard({ day }: { day: Day }) {
 }
 
 // ─── HOME v2 ─────────────────────────────────────────────────────
-// Simplified dashboard: bedtime / wake-up hero, single Go-to-sleep
-// button, and the wind-down recommendation cards beneath. Habits
-// move to the dedicated wind-down screen reached via the button.
+// Simplified dashboard: day strip with moods, bedtime hero with
+// a single Go-to-sleep button, past-day summary card with mood
+// face + factors chips, and the wind-down recommendation cards.
 function HomeV2() {
+  const [selected, setSelected] = useState(todayIdx);
+  const sel = days[selected];
+  const isToday = selected === todayIdx;
+
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  const didCenter = useRef(false);
+  useEffect(() => {
+    if (didCenter.current) return;
+    const container = stripRef.current?.firstChild as HTMLDivElement | undefined;
+    const el = stripRef.current?.querySelector<HTMLElement>('[data-selected="true"]');
+    if (container && el) {
+      container.scrollLeft = el.offsetLeft - container.clientWidth / 2 + el.clientWidth / 2;
+      didCenter.current = true;
+    }
+  });
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
       <StickyTopBar />
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
-        <RoutineHeroV2 />
+        <div style={{ paddingTop: 4 }}>
+          <div ref={stripRef}>
+            <DayStrip days={days} todayIdx={todayIdx} selectedIdx={selected} onSelect={setSelected} />
+          </div>
+        </div>
+
+        {isToday ? <RoutineHeroV2 /> : <PastDayCard day={sel} />}
 
         <div style={{ height: 1, background: W.fill, margin: '32px 16px 8px' }} />
 
@@ -570,6 +595,129 @@ function HomeV2() {
       <LiquidGlassNav active="home" />
     </div>
   );
+}
+
+// Mock per-day summary used by the v2 past-day card. Real data would come
+// from the journal entry for that date — for the prototype we map the
+// existing day-strip mood to a 2D position and seed factors deterministically.
+function pastSummary(day: Day) {
+  const mood = day.mood;
+  const positions: Record<string, { x: number; y: number; bed: string; wake: string; sleep: string }> = {
+    great: { x: 0.85, y: 0.55, bed: '22:48', wake: '07:02', sleep: '8h 14m' },
+    good: { x: 0.7, y: 0.4, bed: '23:14', wake: '06:56', sleep: '7h 42m' },
+    meh: { x: 0.5, y: 0.45, bed: '00:12', wake: '07:18', sleep: '6h 02m' },
+    bad: { x: 0.3, y: 0.7, bed: '23:35', wake: '06:40', sleep: '5h 41m' },
+    awful: { x: 0.15, y: 0.5, bed: '01:10', wake: '07:25', sleep: '4h 30m' },
+  };
+  const factorPool = ['coffee-late', 'screens', 'late-dinner', 'stress', 'workout', 'sunlight', 'read', 'alcohol'];
+  const seed = ((day.n || 0) * 7) % factorPool.length;
+  const count = mood === 'great' ? 2 : mood === 'good' ? 2 : mood === 'meh' ? 3 : 3;
+  const factors = Array.from({ length: count }, (_, i) => factorPool[(seed + i) % factorPool.length]);
+  const pos = positions[mood ?? 'meh'];
+  return { ...pos, factors };
+}
+
+function PastDayCard({ day }: { day: Day }) {
+  if (!day.mood) {
+    return (
+      <div style={{ padding: '14px 20px 10px' }}>
+        <div style={{
+          background: W.paper, border: `1px dashed ${W.fill}`,
+          borderRadius: 22, padding: '28px 18px', textAlign: 'center',
+          color: W.weak, fontSize: 13, lineHeight: 1.5,
+        }}>
+          No data for this day yet.
+        </div>
+      </div>
+    );
+  }
+  const summary = pastSummary(day);
+  const reading = readMood(summary.x, summary.y);
+
+  return (
+    <div style={{ padding: '14px 20px 10px' }}>
+      <div style={{
+        position: 'relative', overflow: 'hidden',
+        background: W.paper, border: `1px solid ${hexA(reading.tint, 0.35)}`,
+        borderRadius: 22, padding: '20px 18px 18px',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: `radial-gradient(70% 60% at 80% 0%, ${hexA(reading.tint, 0.22)}, transparent 70%)`,
+        }} />
+
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <MoodFace tint={reading.tint} x={summary.x} y={summary.y} size={72} glow />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>How you felt</div>
+            <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 4 }}>
+              {reading.feeling}
+            </div>
+            <div style={{ fontSize: 13, color: W.weak, marginTop: 2 }}>{reading.desc}</div>
+          </div>
+        </div>
+
+        <div style={{
+          position: 'relative', marginTop: 18, display: 'flex',
+          alignItems: 'flex-start', justifyContent: 'space-around', gap: 12,
+        }}>
+          <PastTimeSlot label="Bed" value={summary.bed} />
+          <div style={{ alignSelf: 'center', textAlign: 'center', minWidth: 60 }}>
+            <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Slept</div>
+            <div style={{
+              fontSize: 14, fontWeight: 600, marginTop: 4,
+              fontVariantNumeric: 'tabular-nums', color: W.ink,
+            }}>{summary.sleep}</div>
+          </div>
+          <PastTimeSlot label="Wake" value={summary.wake} />
+        </div>
+
+        {summary.factors.length > 0 && (
+          <div style={{
+            position: 'relative', marginTop: 18, paddingTop: 14,
+            borderTop: `1px solid ${W.fill}`,
+            display: 'flex', flexWrap: 'wrap', gap: 6,
+          }}>
+            {summary.factors.map((id) => {
+              const f = lookupFactor(id);
+              if (!f) return null;
+              return (
+                <span key={id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '5px 10px', borderRadius: 999,
+                  background: W.fill, border: `1px solid ${W.veryweak}`,
+                  fontSize: 11, color: W.ink,
+                }}>
+                  <HabitGlyph name={f.glyph} size={11} stroke={W.weak} />
+                  {f.label}
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PastTimeSlot({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ fontSize: 11, color: W.weak, fontWeight: 500, marginBottom: 4 }}>{label}</div>
+      <div style={{
+        fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em',
+        fontVariantNumeric: 'tabular-nums', color: W.ink, lineHeight: 1,
+      }}>{value}</div>
+    </div>
+  );
+}
+
+function hexA(hex: string, a: number) {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
 function RoutineHeroV2() {

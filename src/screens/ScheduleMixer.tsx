@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad, VolumeSlider, TimerChip, TimerPicker } from '../components/shared';
+import { TopPad, VolumeSlider } from '../components/shared';
 import {
   GlyphPlus, GlyphChevDn, GlyphTrash,
 } from '../components/icons';
@@ -10,8 +10,7 @@ import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from
 
 // ─── Schedule Mixer (per-preset multi-sound mix) ─────────────────
 export function ScheduleMix() {
-  const { schedule, mix, setVol, removeSound, clearAll, setTimer } = useScheduleMix();
-  const [timerOpen, setTimerOpen] = useState(false);
+  const { schedule, mix, setVol, removeSound, clearAll } = useScheduleMix();
 
   return (
     <div style={{
@@ -45,21 +44,6 @@ export function ScheduleMix() {
           cursor: mix.length === 0 ? 'default' : 'pointer',
         }}>Clear all</div>
       </div>
-
-      <div style={{ position: 'relative', padding: '4px 20px 0', display: 'flex', justifyContent: 'center' }}>
-        <TimerChip
-          minutes={schedule?.timerMin ?? null}
-          onClick={() => setTimerOpen(true)}
-          dark
-        />
-      </div>
-      {timerOpen && (
-        <TimerPicker
-          minutes={schedule?.timerMin ?? null}
-          onSelect={(m) => { setTimer(m); setTimerOpen(false); }}
-          onClose={() => setTimerOpen(false)}
-        />
-      )}
 
       <div style={{ position: 'relative', flex: 1, padding: '16px 20px 20px', overflowY: 'auto' }}>
         {mix.length === 0 ? (

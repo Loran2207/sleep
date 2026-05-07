@@ -103,7 +103,8 @@ export type JournalEntry = {
   time: string;          // HH:MM
   whenLabel: string;     // "Today, 09:12" / "17 December, 23:12"
   text: string;
-  context: string[];     // selected tag ids
+  context: string[];     // legacy free-text tags
+  factors: string[];     // sleep factors from the wake-up survey
 };
 
 const journalStore = createStore<JournalEntry[]>([
@@ -112,24 +113,28 @@ const journalStore = createStore<JournalEntry[]>([
     legacyMood: 'great', date: '2026-02-19', time: '09:12', whenLabel: 'Today, 09:12',
     text: 'Took a morning stroll through Central Park. The air was so fresh and the sun felt amazing. Total connection with nature. Perfect way to start the day, feeling super recharged and ready for anything.',
     context: ['outdoors', 'exercise'],
+    factors: ['sunlight', 'workout'],
   },
   {
     id: 'j-2', moodX: 0.5, moodY: 0.75, feeling: 'Alert', feelingDesc: 'Wired and busy',
     legacyMood: 'meh', date: '2025-12-17', time: '23:12', whenLabel: '17 December, 23:12',
     text: "Big presentation for the new launch next week. Honestly, I'm freaking out a bit! I've been staring at the slides for hours, but that \"what if\" voice won't shut up. Just need to breathe, visualize the win, and remember why I started.",
     context: ['work'],
+    factors: ['stress', 'screens', 'coffee-late'],
   },
   {
     id: 'j-3', moodX: 0.7, moodY: 0.4, feeling: 'Calm', feelingDesc: 'At ease',
     legacyMood: 'good', date: '2025-12-15', time: '21:40', whenLabel: '15 December, 21:40',
     text: "Finally saw the sun after days of rain! It felt like the world was giving me a massive high-five. Just a reminder that the tough bits don't last forever. Things always get better if you just keep going.",
     context: ['outdoors'],
+    factors: ['sunlight', 'read'],
   },
   {
     id: 'j-4', moodX: 0.3, moodY: 0.7, feeling: 'Anxious', feelingDesc: 'Worried',
     legacyMood: 'bad', date: '2025-12-13', time: '22:05', whenLabel: '13 December, 22:05',
     text: "Couldn't fall asleep again. Mind racing. Tried 4-7-8 breathing for ten minutes, helped a bit but still tossed for an hour after. Cutting caffeine after lunch from now on.",
     context: ['bed'],
+    factors: ['coffee-late', 'stress', 'late-dinner'],
   },
 ]);
 
