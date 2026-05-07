@@ -9,7 +9,8 @@ import {
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
 import { lookupSound } from '../data/sounds';
-import { useVersion } from '../state/store';
+import { useVersion, useNightShiftDone } from '../state/store';
+import { CheckIcon, ChevronDownIcon, NightShiftIcon } from './icons';
 
 // Small breathing pad above content. Adds iOS safe-area-inset-top so the
 // system clock doesn't overlap content when the page runs as a PWA on iOS.
@@ -271,7 +272,7 @@ export function Divider() {
 }
 
 // ─── Volume slider (used by mixer screens) ───────────────────────
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 export function VolumeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const setFromEvent = (e: PointerEvent | React.PointerEvent) => {
@@ -394,6 +395,127 @@ export function TimerPicker({ minutes, onSelect, onClose }: {
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Night Shift guide card ──────────────────────────────────────
+// Replaces the old static SettingsCard. Shows step-by-step
+// instructions to enable Night Shift in iOS Settings, plus an
+// "I enabled it" toggle that stores a checked state in the store.
+const NIGHT_SHIFT_STEPS: { title: string; body: string }[] = [
+  { title: 'Open Settings', body: 'Find the Settings app on your phone.' },
+  { title: 'Tap Display & Brightness', body: 'Scroll the list and choose this row.' },
+  { title: 'Open Night Shift', body: "It's near the bottom, just above Auto-Lock." },
+  { title: 'Turn on Scheduled', body: 'Toggle the switch next to "Scheduled".' },
+  { title: 'Pick a warm temperature', body: 'Drag the slider toward "More warm".' },
+];
+
+export function NightShiftGuide() {
+  const [done, setDone] = useNightShiftDone();
+  const [expanded, setExpanded] = useState(false);
+
+  if (done) {
+    return (
+      <div style={{
+        background: W.paper, border: `1px solid ${W.fill}`,
+        borderRadius: 18, padding: 14,
+        display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10,
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 20,
+          background: '#7FE3A1', color: '#0E0E11',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <CheckIcon size={18} stroke="#0E0E11" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Night Shift is on</div>
+          <div style={{ fontSize: 12, color: W.weak, marginTop: 2 }}>Your screen will warm at sunset.</div>
+        </div>
+        <div onClick={() => setDone(false)} style={{
+          fontSize: 12, color: W.weak, cursor: 'pointer',
+          padding: '6px 10px', borderRadius: 999,
+          border: `1px solid ${W.fill}`,
+        }}>Undo</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 18, padding: 14, marginBottom: 10,
+    }}>
+      <div onClick={() => setExpanded((e) => !e)} style={{
+        display: 'flex', alignItems: 'flex-start', gap: 14, cursor: 'pointer',
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 20, background: W.fill,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}><NightShiftIcon size={22} stroke={W.ink} /></div>
+        <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Night Shift</div>
+          <div style={{ fontSize: 13, color: W.weak, marginTop: 4, lineHeight: 1.4 }}>
+            Warms your screen after sunset to protect melatonin. {expanded ? 'Follow the steps below.' : 'Tap to see how.'}
+          </div>
+        </div>
+        <div style={{
+          width: 28, height: 28, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: W.weak,
+          transform: expanded ? 'rotate(180deg)' : 'none',
+          transition: 'transform .18s ease',
+        }}>
+          <ChevronDownIcon size={16} stroke={W.weak} />
+        </div>
+      </div>
+
+      {expanded && (
+        <>
+          <div style={{
+            marginTop: 14, padding: '12px 14px',
+            background: W.fill, border: `1px solid ${W.veryweak}`,
+            borderRadius: 14,
+            fontSize: 12, color: W.weak, lineHeight: 1.5,
+          }}>
+            On top of resting your eyes, Night Shift saves a small slice of battery on iOS.
+          </div>
+
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {NIGHT_SHIFT_STEPS.map((s, i) => (
+              <div key={i} style={{ display: 'flex', gap: 12 }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: 12, flexShrink: 0,
+                  border: `1.5px solid ${W.veryweak}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 12, fontWeight: 600, color: W.ink,
+                  fontVariantNumeric: 'tabular-nums',
+                }}>{i + 1}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: W.ink, lineHeight: 1.3 }}>{s.title}</div>
+                  <div style={{ fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.45 }}>{s.body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <div onClick={() => setExpanded(false)} style={{
+              flex: 1, padding: '12px 0', textAlign: 'center',
+              background: 'transparent', color: W.ink,
+              border: `1px solid ${W.fill}`, borderRadius: 999,
+              fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            }}>Not yet</div>
+            <div onClick={() => { setDone(true); setExpanded(false); }} style={{
+              flex: 2, padding: '12px 0', textAlign: 'center',
+              background: W.ink, color: W.bg,
+              borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}>I enabled it</div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

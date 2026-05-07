@@ -4,6 +4,7 @@ import { go } from '../state/navigation';
 import { TopPad } from '../components/shared';
 import { ChevronRightIcon, HabitGlyph, MicIcon, StopIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
+import { DiaryQuiz, diaryAnsweredCount, DIARY_TOTAL } from '../components/DiaryQuiz';
 import { useEditingJournalId, useJournal } from '../state/store';
 import { readMood } from '../data/mood';
 import { SLEEP_FACTORS, lookupFactor } from '../data/factors';
@@ -39,8 +40,9 @@ export function JournalEntryEdit() {
   const [date, setDate] = useState(entry?.date ?? '');
   const [time, setTime] = useState(entry?.time ?? '');
   const [factors, setFactors] = useState<string[]>(entry?.factors ?? []);
+  const [diary, setDiary] = useState<Record<string, string | string[]>>(entry?.diary ?? {});
 
-  const [sheet, setSheet] = useState<'mood' | 'text' | 'factors' | null>(null);
+  const [sheet, setSheet] = useState<'mood' | 'text' | 'factors' | 'diary' | null>(null);
 
   // Re-sync local state if a different entry is opened.
   useEffect(() => {
@@ -51,6 +53,7 @@ export function JournalEntryEdit() {
     setDate(entry.date);
     setTime(entry.time);
     setFactors(entry.factors);
+    setDiary(entry.diary ?? {});
   }, [entry?.id]);
 
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
@@ -72,6 +75,7 @@ export function JournalEntryEdit() {
       date, time,
       whenLabel: formatWhenLabel(date, time, entry!.whenLabel),
       factors,
+      diary,
     });
     go('journal');
   }
@@ -114,6 +118,9 @@ export function JournalEntryEdit() {
 
         <SectionLabel>Entry</SectionLabel>
         <EntryCard text={text} onClick={() => setSheet('text')} />
+
+        <SectionLabel hint="Quick answers about how the night went.">Sleep diary</SectionLabel>
+        <DiaryCard diary={diary} onClick={() => setSheet('diary')} />
 
         <SectionLabel hint="Anything from last night that may have shaped today.">Last night</SectionLabel>
         <FactorsCard factors={factors} onClick={() => setSheet('factors')} />
@@ -163,7 +170,72 @@ export function JournalEntryEdit() {
           onClose={() => setSheet(null)}
         />
       )}
+
+      {sheet === 'diary' && (
+        <DiarySheet
+          diary={diary}
+          onChange={setDiary}
+          onClose={() => setSheet(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function DiaryCard({ diary, onClick }: {
+  diary: Record<string, string | string[]>;
+  onClick: () => void;
+}) {
+  const answered = diaryAnsweredCount(diary);
+  return (
+    <div onClick={onClick} style={{
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 18, padding: '14px 14px',
+      cursor: 'pointer',
+      display: 'flex', alignItems: 'center', gap: 12,
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: answered ? W.ink : W.weak }}>
+          {answered ? 'Diary filled in' : 'Open the diary'}
+        </div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 3 }}>
+          {answered === 0
+            ? 'A short questionnaire about last night.'
+            : `${answered} of ${DIARY_TOTAL} answered · tap to edit`}
+        </div>
+      </div>
+      <ChevronRightIcon size={14} stroke={W.weak} />
+    </div>
+  );
+}
+
+function DiarySheet({ diary, onChange, onClose }: {
+  diary: Record<string, string | string[]>;
+  onChange: (next: Record<string, string | string[]>) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet onClose={onClose} fullHeight>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '4px 16px 8px',
+      }}>
+        <div onClick={onClose} style={{
+          padding: '6px 14px', borderRadius: 999,
+          background: W.fill, border: `1px solid ${W.veryweak}`,
+          fontSize: 13, color: W.ink, cursor: 'pointer',
+        }}>Cancel</div>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>Sleep diary</div>
+        <div onClick={onClose} style={{
+          padding: '6px 14px', borderRadius: 999,
+          background: W.ink, color: W.bg,
+          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        }}>Done</div>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 24px' }}>
+        <DiaryQuiz diary={diary} onChange={onChange} />
+      </div>
+    </Sheet>
   );
 }
 

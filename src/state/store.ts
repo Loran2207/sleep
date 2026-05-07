@@ -39,6 +39,13 @@ export function useNapDuration(): [number, (n: number) => void] {
   return [v, napDurationStore.set];
 }
 
+// ─── NIGHT SHIFT ENABLED FLAG (Home card) ───────────────────────
+const nightShiftStore = createStore<boolean>(false);
+export function useNightShiftDone(): [boolean, (v: boolean) => void] {
+  const v = useSyncExternalStore(nightShiftStore.subscribe, nightShiftStore.get, nightShiftStore.get);
+  return [v, nightShiftStore.set];
+}
+
 // ─── HABITS ──────────────────────────────────────────────────────
 import type { ScreenId } from '../tokens';
 
@@ -122,6 +129,7 @@ export type JournalEntry = {
   text: string;
   context: string[];     // legacy free-text tags
   factors: string[];     // sleep factors from the wake-up survey
+  diary: Record<string, string | string[]>; // structured sleep-diary answers
 };
 
 const journalStore = createStore<JournalEntry[]>([
@@ -131,6 +139,7 @@ const journalStore = createStore<JournalEntry[]>([
     text: 'Took a morning stroll through Central Park. The air was so fresh and the sun felt amazing. Total connection with nature. Perfect way to start the day, feeling super recharged and ready for anything.',
     context: ['outdoors', 'exercise'],
     factors: ['sunlight', 'workout'],
+    diary: {},
   },
   {
     id: 'j-2', moodX: 0.5, moodY: 0.75, feeling: 'Alert', feelingDesc: 'Wired and busy',
@@ -138,6 +147,7 @@ const journalStore = createStore<JournalEntry[]>([
     text: "Big presentation for the new launch next week. Honestly, I'm freaking out a bit! I've been staring at the slides for hours, but that \"what if\" voice won't shut up. Just need to breathe, visualize the win, and remember why I started.",
     context: ['work'],
     factors: ['stress', 'screens', 'coffee-late'],
+    diary: {},
   },
   {
     id: 'j-3', moodX: 0.7, moodY: 0.4, feeling: 'Calm', feelingDesc: 'At ease',
@@ -145,6 +155,7 @@ const journalStore = createStore<JournalEntry[]>([
     text: "Finally saw the sun after days of rain! It felt like the world was giving me a massive high-five. Just a reminder that the tough bits don't last forever. Things always get better if you just keep going.",
     context: ['outdoors'],
     factors: ['sunlight', 'read'],
+    diary: {},
   },
   {
     id: 'j-4', moodX: 0.3, moodY: 0.7, feeling: 'Anxious', feelingDesc: 'Worried',
@@ -152,6 +163,7 @@ const journalStore = createStore<JournalEntry[]>([
     text: "Couldn't fall asleep again. Mind racing. Tried 4-7-8 breathing for ten minutes, helped a bit but still tossed for an hour after. Cutting caffeine after lunch from now on.",
     context: ['bed'],
     factors: ['coffee-late', 'stress', 'late-dinner'],
+    diary: {},
   },
 ]);
 

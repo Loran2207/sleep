@@ -2,17 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { CheckIcon, HabitGlyph, MicIcon, StopIcon, XIcon } from '../components/icons';
+import { CheckIcon, MicIcon, StopIcon, XIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
+import { DiaryQuiz } from '../components/DiaryQuiz';
 import { useJournal } from '../state/store';
 import { readMood } from '../data/mood';
-import { SLEEP_FACTORS } from '../data/factors';
 
 const GRID_COLS = 9;
 const GRID_ROWS = 7;
 
 type Step = 0 | 1 | 2;
-const STEP_TITLES = ['How do you feel?', 'A note about today', 'Last night was…'];
+const STEP_TITLES = ['How do you feel?', 'A note about today', 'Sleep diary'];
 
 type RecogConstructor = new () => SpeechRecognition;
 type SpeechRecognition = {
@@ -35,12 +35,18 @@ export function WakeupSurvey() {
   const [moodX, setMoodX] = useState(0.7);
   const [moodY, setMoodY] = useState(0.45);
   const [text, setText] = useState('');
-  const [factors, setFactors] = useState<string[]>([]);
+  const [diary, setDiary] = useState<Record<string, string | string[]>>({});
 
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
 
-  function toggleFactor(id: string) {
-    setFactors((f) => f.includes(id) ? f.filter((x) => x !== id) : [...f, id]);
+  // Map the new "factors" answer (Q9) onto the legacy `factors` array so
+  // the existing factor chips on past-day cards keep working.
+  function deriveLegacyFactors(): string[] {
+    const factors = (diary['factors'] as string[] | undefined) ?? [];
+    const map: Record<string, string> = {
+      alcohol: 'alcohol', stress: 'stress', pills: 'late-dinner',
+    };
+    return factors.map((f) => map[f]).filter(Boolean);
   }
 
   function saveAndExit() {
@@ -56,7 +62,8 @@ export function WakeupSurvey() {
       date, time, whenLabel,
       text: text.trim(),
       context: [],
-      factors,
+      factors: deriveLegacyFactors(),
+      diary,
     });
     go('home');
   }
@@ -107,7 +114,7 @@ export function WakeupSurvey() {
           />
         )}
         {step === 1 && <NoteStep value={text} onChange={setText} />}
-        {step === 2 && <FactorsStep factors={factors} onToggle={toggleFactor} />}
+        {step === 2 && <DiaryQuiz diary={diary} onChange={setDiary} />}
       </div>
 
       <div style={{
@@ -197,37 +204,6 @@ function NoteStep({ value, onChange }: { value: string; onChange: (s: string) =>
   );
 }
 
-function FactorsStep({ factors, onToggle }: { factors: string[]; onToggle: (id: string) => void }) {
-  return (
-    <>
-      <div style={{
-        textAlign: 'center', padding: '4px 16px 14px',
-        fontSize: 13, color: W.weak, lineHeight: 1.55,
-      }}>
-        Tap anything that matched last night.
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '0 4px' }}>
-        {SLEEP_FACTORS.map((f) => {
-          const on = factors.includes(f.id);
-          return (
-            <div key={f.id} onClick={() => onToggle(f.id)} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '10px 14px', borderRadius: 999,
-              cursor: 'pointer',
-              background: on ? W.ink : 'transparent',
-              color: on ? W.bg : W.ink,
-              border: `1px solid ${on ? W.ink : W.fill}`,
-              transition: 'background .12s ease, color .12s ease',
-            }}>
-              <HabitGlyph name={f.glyph} size={14} stroke={on ? W.bg : W.weak} />
-              <span style={{ fontSize: 13, fontWeight: 500 }}>{f.label}</span>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-}
 
 function TintGlow({ color }: { color: string }) {
   return (
