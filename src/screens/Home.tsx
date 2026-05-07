@@ -580,12 +580,6 @@ function HomeV2() {
         <div style={{ padding: '0 16px' }}>
           <SectionHeader>Wind down</SectionHeader>
           <SettingsCard
-            icon={<PhoneOffIcon size={22} stroke={W.ink} />}
-            title="Block distracting apps"
-            desc="Social and games go silent 30 min before bedtime, until you wake up"
-            onClick={() => go('routine')}
-          />
-          <SettingsCard
             icon={<NightShiftIcon size={22} stroke={W.ink} />}
             title="Night Shift"
             desc="Please turn on Night Shift in your system settings to warm your screen at sunset and protect melatonin."

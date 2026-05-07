@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { ChevronRightIcon, MicIcon, StopIcon } from '../components/icons';
+import { ChevronRightIcon, HabitGlyph, MicIcon, StopIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
 import { useEditingJournalId, useJournal } from '../state/store';
 import { readMood } from '../data/mood';
+import { SLEEP_FACTORS, lookupFactor } from '../data/factors';
 
 const GRID_COLS = 9;
 const GRID_ROWS = 7;
@@ -37,8 +38,9 @@ export function JournalEntryEdit() {
   const [text, setText] = useState(entry?.text ?? '');
   const [date, setDate] = useState(entry?.date ?? '');
   const [time, setTime] = useState(entry?.time ?? '');
+  const [factors, setFactors] = useState<string[]>(entry?.factors ?? []);
 
-  const [sheet, setSheet] = useState<'mood' | 'text' | null>(null);
+  const [sheet, setSheet] = useState<'mood' | 'text' | 'factors' | null>(null);
 
   // Re-sync local state if a different entry is opened.
   useEffect(() => {
@@ -48,6 +50,7 @@ export function JournalEntryEdit() {
     setText(entry.text);
     setDate(entry.date);
     setTime(entry.time);
+    setFactors(entry.factors);
   }, [entry?.id]);
 
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
@@ -68,8 +71,13 @@ export function JournalEntryEdit() {
       text: text.trim(),
       date, time,
       whenLabel: formatWhenLabel(date, time, entry!.whenLabel),
+      factors,
     });
     go('journal');
+  }
+
+  function toggleFactor(id: string) {
+    setFactors((f) => f.includes(id) ? f.filter((x) => x !== id) : [...f, id]);
   }
 
   return (
@@ -106,6 +114,9 @@ export function JournalEntryEdit() {
 
         <SectionLabel>Entry</SectionLabel>
         <EntryCard text={text} onClick={() => setSheet('text')} />
+
+        <SectionLabel hint="Anything from last night that may have shaped today.">Last night</SectionLabel>
+        <FactorsCard factors={factors} onClick={() => setSheet('factors')} />
 
         <SectionLabel>When</SectionLabel>
         <div style={{ display: 'flex', gap: 10, padding: '0 4px' }}>
@@ -144,7 +155,117 @@ export function JournalEntryEdit() {
           onClose={() => setSheet(null)}
         />
       )}
+
+      {sheet === 'factors' && (
+        <FactorsSheet
+          factors={factors}
+          onToggle={toggleFactor}
+          onClose={() => setSheet(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function FactorsCard({ factors, onClick }: { factors: string[]; onClick: () => void }) {
+  return (
+    <div onClick={onClick} style={{
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 18, padding: '14px 14px',
+      cursor: 'pointer',
+    }}>
+      {factors.length === 0 ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          color: W.weak, fontSize: 14,
+        }}>
+          <span>Add details</span>
+          <ChevronRightIcon size={14} stroke={W.weak} />
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {factors.map((id) => {
+              const f = lookupFactor(id);
+              if (!f) return null;
+              return (
+                <span key={id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 10px', borderRadius: 999,
+                  background: W.fill, border: `1px solid ${W.veryweak}`,
+                  fontSize: 12, color: W.ink,
+                }}>
+                  <HabitGlyph name={f.glyph} size={12} stroke={W.weak} />
+                  {f.label}
+                </span>
+              );
+            })}
+          </div>
+          <div style={{
+            marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            color: W.weak, fontSize: 12,
+          }}>
+            <span>Tap to edit</span>
+            <ChevronRightIcon size={14} stroke={W.weak} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function FactorsSheet({ factors, onToggle, onClose }: {
+  factors: string[];
+  onToggle: (id: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet onClose={onClose}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '4px 16px 8px',
+      }}>
+        <div onClick={onClose} style={{
+          padding: '6px 14px', borderRadius: 999,
+          background: W.fill, border: `1px solid ${W.veryweak}`,
+          fontSize: 13, color: W.ink, cursor: 'pointer',
+        }}>Cancel</div>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>Last night</div>
+        <div onClick={onClose} style={{
+          padding: '6px 14px', borderRadius: 999,
+          background: W.ink, color: W.bg,
+          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        }}>Done</div>
+      </div>
+      <div style={{
+        padding: '8px 20px 24px',
+        fontSize: 13, color: W.weak, lineHeight: 1.5,
+      }}>
+        Tap anything that matched last night.
+      </div>
+      <div style={{
+        padding: '0 16px 20px',
+        display: 'flex', flexWrap: 'wrap', gap: 8,
+      }}>
+        {SLEEP_FACTORS.map((f) => {
+          const on = factors.includes(f.id);
+          return (
+            <div key={f.id} onClick={() => onToggle(f.id)} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 14px', borderRadius: 999,
+              cursor: 'pointer',
+              background: on ? W.ink : 'transparent',
+              color: on ? W.bg : W.ink,
+              border: `1px solid ${on ? W.ink : W.fill}`,
+              transition: 'background .12s ease, color .12s ease',
+            }}>
+              <HabitGlyph name={f.glyph} size={14} stroke={on ? W.bg : W.weak} />
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{f.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </Sheet>
   );
 }
 

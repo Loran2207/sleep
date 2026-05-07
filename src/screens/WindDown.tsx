@@ -200,7 +200,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function SoundsGlyphStack({ ids }: { ids: string[] }) {
-  const display = ids.slice(0, 2).map((id) => lookupSound(id)).filter(Boolean);
+  const all = ids.map((id) => lookupSound(id)).filter(Boolean);
+  const display = all.slice(0, 3);
+  const overflow = all.length - display.length;
+
   if (display.length === 0) {
     return (
       <div style={{
@@ -212,26 +215,45 @@ function SoundsGlyphStack({ ids }: { ids: string[] }) {
       }}>♪</div>
     );
   }
+
+  // Solid offset stack — each tile uses an opaque background that matches
+  // the surrounding card (#1A1B1F is the card colour with a tiny lift) so
+  // overlapping doesn't smear the semi-transparent layers.
+  const TILE = 44;
+  const STEP = 22;
+  const width = TILE + (display.length - 1) * STEP + (overflow > 0 ? STEP : 0);
+
   return (
-    <div style={{
-      position: 'relative', width: display.length === 1 ? 44 : 60, height: 44,
-      flexShrink: 0,
-    }}>
+    <div style={{ position: 'relative', width, height: TILE, flexShrink: 0 }}>
       {display.map((s, i) => {
         const Glyph = s!.Glyph;
+        const last = i === display.length - 1 && overflow === 0;
         return (
           <div key={s!.id} style={{
-            position: 'absolute', top: 0, left: i * 16,
-            width: 44, height: 44, borderRadius: 14,
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.16)',
+            position: 'absolute', top: 0, left: i * STEP,
+            width: TILE, height: TILE, borderRadius: 14,
+            background: '#1F2128',
+            border: `2px solid ${last ? 'rgba(255,255,255,0.18)' : '#0E1014'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: i,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
           }}>
             <Glyph size={20} stroke="#fff" />
           </div>
         );
       })}
+      {overflow > 0 && (
+        <div style={{
+          position: 'absolute', top: 0, left: display.length * STEP,
+          width: TILE, height: TILE, borderRadius: 14,
+          background: '#1F2128',
+          border: '2px solid rgba(255,255,255,0.18)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: display.length,
+          fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)',
+          fontVariantNumeric: 'tabular-nums',
+        }}>+{overflow}</div>
+      )}
     </div>
   );
 }
