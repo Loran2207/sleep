@@ -4,14 +4,17 @@ import { go } from '../state/navigation';
 import {
   GlyphPlay, GlyphPause, GlyphSliders, GlyphPlus, GlyphChevDn, GlyphTrash,
 } from '../components/icons';
-import { TopPad, VolumeSlider, TimerChip, TimerPicker } from '../components/shared';
-import { useMix, useVersion } from '../state/store';
+import { TopPad, VolumeSlider } from '../components/shared';
+import { useMix, useVersion, useSchedules, pickScheduleForDay } from '../state/store';
 import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from '../data/sounds';
 
 // ─── Tracking Active ─────────────────────────────────────────────
 export function TrackingActive() {
   const { state, togglePlay } = useMix();
   const [version] = useVersion();
+  const { list: schedules } = useSchedules();
+  const todaySchedule = pickScheduleForDay(schedules, 4);
+  const timerMin = todaySchedule.timerMin;
   const [seconds, setSeconds] = useState(7 * 3600 + 12 * 60);
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => Math.max(0, s - 60)), 6000);
@@ -87,6 +90,26 @@ export function TrackingActive() {
         <div style={{ fontSize: 12, opacity: 0.45, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
           Wakes you in {h}h {String(m).padStart(2, '0')}m
         </div>
+
+        {version === 'v2' && (
+          <div style={{
+            marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '6px 12px', borderRadius: 999,
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            fontSize: 11, color: 'rgba(255,255,255,0.75)',
+          }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="13" r="8" />
+              <path d="M9 2h6" />
+              <path d="M12 9v4l3 2" />
+            </svg>
+            {timerMin
+              ? <>Sounds stop in <span style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums', marginLeft: 2 }}>{timerMin} min</span></>
+              : <>Sounds play <span style={{ color: '#fff', fontWeight: 500, marginLeft: 2 }}>until alarm</span></>}
+          </div>
+        )}
       </div>
 
       <div style={{ position: 'relative', padding: '0 20px' }}>
@@ -147,8 +170,7 @@ export function TrackingActive() {
 
 // ─── Tracking Mixer ─────────────────────────────────────────────
 export function TrackingMixer() {
-  const { state, setVol, removeSound, clearAll, togglePlay, setTimer } = useMix();
-  const [timerOpen, setTimerOpen] = useState(false);
+  const { state, setVol, removeSound, clearAll, togglePlay } = useMix();
 
   return (
     <div style={{
@@ -177,21 +199,6 @@ export function TrackingMixer() {
           cursor: state.mix.length === 0 ? 'default' : 'pointer',
         }}>Clear all</div>
       </div>
-
-      <div style={{ position: 'relative', padding: '4px 20px 0', display: 'flex', justifyContent: 'center' }}>
-        <TimerChip
-          minutes={state.timerMin}
-          onClick={() => setTimerOpen(true)}
-          dark
-        />
-      </div>
-      {timerOpen && (
-        <TimerPicker
-          minutes={state.timerMin}
-          onSelect={(m) => { setTimer(m); setTimerOpen(false); }}
-          onClose={() => setTimerOpen(false)}
-        />
-      )}
 
       <div style={{ position: 'relative', flex: 1, padding: '16px 20px 20px', overflowY: 'auto' }}>
         {state.mix.length === 0 ? (
@@ -457,6 +464,8 @@ function SleepBreathingHalo() {
 
 // ─── Stop confirm ───────────────────────────────────────────────
 export function TrackingStopConfirm() {
+  const [version] = useVersion();
+  const endTo: ScreenIdLike = version === 'v2' ? 'wakeup-survey' : 'home';
   return (
     <div style={{ height: '100%', background: 'rgba(0,0,0,0.55)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', fontFamily: W.font, color: W.ink }}>
       <div style={{
@@ -467,14 +476,16 @@ export function TrackingStopConfirm() {
         <div style={{ padding: '0 24px', textAlign: 'center' }}>
           <div style={{ fontSize: 18, fontWeight: 700 }}>Stop tracking?</div>
           <div style={{ fontSize: 13, color: W.weak, marginTop: 8, lineHeight: 1.5 }}>
-            Your sleep session will end and the alarm will be cancelled.
+            {version === 'v2'
+              ? "We'll ask you a few quick questions about how you slept."
+              : 'Your sleep session will end and the alarm will be cancelled.'}
           </div>
         </div>
         <div style={{ padding: '20px 16px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div onClick={() => go('home')} style={{
+          <div onClick={() => go(endTo)} style={{
             padding: '14px 0', textAlign: 'center', background: W.ink, color: W.paper,
             borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-          }}>End session</div>
+          }}>{version === 'v2' ? 'End & log' : 'End session'}</div>
           <div onClick={() => go('tracking-active')} style={{
             padding: '14px 0', textAlign: 'center', border: `1.5px solid ${W.veryweak}`,
             borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer',
@@ -484,3 +495,5 @@ export function TrackingStopConfirm() {
     </div>
   );
 }
+
+type ScreenIdLike = 'home' | 'wakeup-survey';

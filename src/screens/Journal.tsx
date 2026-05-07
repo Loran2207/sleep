@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { StickyTopBar, DayStrip, LiquidGlassNav, type Day } from '../components/shared';
-import { MoodBlob } from '../components/icons';
+import { HabitGlyph, MoodBlob } from '../components/icons';
 import { useEditingJournalId, useJournal, type JournalEntry } from '../state/store';
+import { lookupFactor } from '../data/factors';
 
 const days: Day[] = [
   { dow: 'M', n: 9, mood: 'good' },
@@ -108,14 +109,37 @@ function EntryRow({ entry, isLast, onClick }: {
           marginTop: entry.text ? 12 : 0,
           background: W.fill, border: `1px solid ${W.veryweak}`,
           borderRadius: 14, padding: '12px 14px',
-          display: 'flex', alignItems: 'center', gap: 12,
           cursor: 'pointer',
         }}>
-          <MoodBlob type={entry.legacyMood} size={32} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: W.ink }}>{entry.feeling}</div>
-            <div style={{ fontSize: 12, color: W.weak, marginTop: 2 }}>{entry.whenLabel}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <MoodBlob type={entry.legacyMood} size={32} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: W.ink }}>{entry.feeling}</div>
+              <div style={{ fontSize: 12, color: W.weak, marginTop: 2 }}>{entry.whenLabel}</div>
+            </div>
           </div>
+          {entry.factors.length > 0 && (
+            <div style={{
+              marginTop: 10, paddingTop: 10, borderTop: `1px solid ${W.veryweak}`,
+              display: 'flex', flexWrap: 'wrap', gap: 5,
+            }}>
+              {entry.factors.map((id) => {
+                const f = lookupFactor(id);
+                if (!f) return null;
+                return (
+                  <span key={id} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '4px 8px', borderRadius: 999,
+                    background: 'transparent', border: `1px solid ${W.veryweak}`,
+                    fontSize: 11, color: W.ink,
+                  }}>
+                    <HabitGlyph name={f.glyph} size={11} stroke={W.weak} />
+                    {f.label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
