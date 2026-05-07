@@ -9,6 +9,7 @@ import {
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
 import { lookupSound } from '../data/sounds';
+import { useVersion } from '../state/store';
 
 // Small breathing pad above content. Adds iOS safe-area-inset-top so the
 // system clock doesn't overlap content when the page runs as a PWA on iOS.
@@ -188,7 +189,7 @@ export function DayStrip({
 
 // ─── Top app bar ─────────────────────────────────────────────────
 // Used on every primary navigated screen. Logo on the left,
-// circular profile button on the right.
+// version toggle in the middle, circular profile button on the right.
 export function StickyTopBar() {
   return (
     <div style={{
@@ -199,21 +200,47 @@ export function StickyTopBar() {
       <TopPad />
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '6px 18px 12px',
+        padding: '6px 18px 12px', gap: 12,
       }}>
         <div style={{
           fontSize: 22, fontWeight: 600, letterSpacing: -0.5,
           fontFamily: '"Times New Roman", Georgia, serif',
           fontStyle: 'italic', color: W.ink,
         }}>night</div>
+        <VersionChip />
         <div onClick={() => go('profile')} aria-label="Profile" style={{
           width: 34, height: 34, borderRadius: 17,
           background: W.fill, border: `1px solid ${W.veryweak}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer',
-          fontSize: 13, fontWeight: 600, color: W.ink,
+          fontSize: 13, fontWeight: 600, color: W.ink, flexShrink: 0,
         }}>A</div>
       </div>
+    </div>
+  );
+}
+
+function VersionChip() {
+  const [v, setV] = useVersion();
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center',
+      background: W.fill, border: `1px solid ${W.veryweak}`,
+      borderRadius: 999, padding: 2, gap: 2,
+    }}>
+      {(['v1', 'v2'] as const).map((id) => {
+        const active = v === id;
+        return (
+          <div key={id} onClick={() => setV(id)} style={{
+            padding: '4px 11px', borderRadius: 999,
+            fontSize: 11, fontWeight: 600, cursor: 'pointer',
+            background: active ? W.ink : 'transparent',
+            color: active ? W.bg : W.weak,
+            transition: 'background .12s ease, color .12s ease',
+            fontVariantNumeric: 'tabular-nums', letterSpacing: 0.2,
+          }}>{id}</div>
+        );
+      })}
     </div>
   );
 }
@@ -279,6 +306,92 @@ export function VolumeSlider({ value, onChange }: { value: number; onChange: (v:
         width: 16, height: 16, borderRadius: 8, background: '#fff',
         boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
       }} />
+    </div>
+  );
+}
+
+// ─── Sleep timer chip + picker (used by both mixers) ─────────────
+const TIMER_OPTIONS: { label: string; minutes: number | null }[] = [
+  { label: 'Off', minutes: null },
+  { label: '15 min', minutes: 15 },
+  { label: '30 min', minutes: 30 },
+  { label: '45 min', minutes: 45 },
+  { label: '60 min', minutes: 60 },
+  { label: '90 min', minutes: 90 },
+];
+
+export function TimerChip({ minutes, onClick, dark = false }: {
+  minutes: number | null;
+  onClick: () => void;
+  dark?: boolean;
+}) {
+  const label = minutes ? `Timer · ${minutes} min` : 'Timer · off';
+  return (
+    <div onClick={onClick} style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
+      fontSize: 12, fontWeight: 500,
+      background: dark ? 'rgba(255,255,255,0.08)' : W.fill,
+      color: dark ? 'rgba(255,255,255,0.85)' : W.ink,
+      border: `1px solid ${dark ? 'rgba(255,255,255,0.12)' : W.veryweak}`,
+    }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="13" r="8" />
+        <path d="M9 2h6" />
+        <path d="M12 9v4l3 2" />
+      </svg>
+      {label}
+    </div>
+  );
+}
+
+export function TimerPicker({ minutes, onSelect, onClose }: {
+  minutes: number | null;
+  onSelect: (m: number | null) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div onClick={onClose} style={{
+      position: 'absolute', inset: 0, zIndex: 70,
+      background: 'rgba(8,9,12,0.55)',
+      backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'flex-end',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', background: W.bg,
+        borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        padding: '14px 20px 24px',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.45)',
+        color: W.ink, fontFamily: W.font,
+      }}>
+        <div style={{
+          width: 40, height: 4, borderRadius: 2,
+          background: W.fill, margin: '0 auto 14px',
+        }} />
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>Sleep timer</div>
+        <div style={{ fontSize: 13, color: W.weak, marginTop: 4, lineHeight: 1.5 }}>
+          How long the sounds play before fading out.
+        </div>
+
+        <div style={{
+          marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+        }}>
+          {TIMER_OPTIONS.map((opt) => {
+            const active = opt.minutes === minutes;
+            return (
+              <div key={opt.label} onClick={() => onSelect(opt.minutes)} style={{
+                padding: '14px 0', textAlign: 'center', borderRadius: 14,
+                background: active ? W.ink : W.paper,
+                color: active ? W.bg : W.ink,
+                border: `1px solid ${active ? W.ink : W.fill}`,
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                transition: 'background .12s ease, color .12s ease',
+              }}>{opt.label}</div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

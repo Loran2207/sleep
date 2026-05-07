@@ -11,7 +11,7 @@ import {
   StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
   type Day,
 } from '../components/shared';
-import { useHabits, useSchedules, pickScheduleForDay, type Habit } from '../state/store';
+import { useHabits, useSchedules, useVersion, pickScheduleForDay, type Habit } from '../state/store';
 
 const days: Day[] = [
   { dow: 'M', n: 9, mood: 'good', sleep: '7h 12m' },
@@ -32,6 +32,12 @@ const days: Day[] = [
 const todayIdx = 10;
 
 export function Home() {
+  const [version] = useVersion();
+  if (version === 'v2') return <HomeV2 />;
+  return <HomeV1 />;
+}
+
+function HomeV1() {
   const [selected, setSelected] = useState(todayIdx);
   const sel = days[selected];
   const isToday = selected === todayIdx;
@@ -529,6 +535,81 @@ function NotesCard({ day }: { day: Day }) {
           {text || <span style={{ color: W.weak }}>Add a note about how you slept…</span>}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── HOME v2 ─────────────────────────────────────────────────────
+// Simplified dashboard: bedtime / wake-up hero, single Go-to-sleep
+// button, and the wind-down recommendation cards beneath. Habits
+// move to the dedicated wind-down screen reached via the button.
+function HomeV2() {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
+      <StickyTopBar />
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
+        <RoutineHeroV2 />
+
+        <div style={{ height: 1, background: W.fill, margin: '32px 16px 8px' }} />
+
+        <div style={{ padding: '0 16px' }}>
+          <SectionHeader>Wind down</SectionHeader>
+          <SettingsCard
+            icon={<PhoneOffIcon size={22} stroke={W.ink} />}
+            title="Block distracting apps"
+            desc="Social and games go silent 30 min before bedtime, until you wake up"
+            onClick={() => go('routine')}
+          />
+          <SettingsCard
+            icon={<NightShiftIcon size={22} stroke={W.ink} />}
+            title="Night Shift"
+            desc="Please turn on Night Shift in your system settings to warm your screen at sunset and protect melatonin."
+          />
+        </div>
+      </div>
+      <LiquidGlassNav active="home" />
+    </div>
+  );
+}
+
+function RoutineHeroV2() {
+  const { list: schedules } = useSchedules();
+  const todaySchedule = pickScheduleForDay(schedules, 4);
+  const countdown = '4h 12m';
+  const sleepEst = '8h 30m';
+
+  const fmt = (h: number, m: number) =>
+    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+  return (
+    <div style={{ padding: '14px 20px 10px', color: W.ink, fontFamily: W.font }}>
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 28,
+      }}>
+        <TimeSlot
+          label="Bedtime"
+          time={fmt(todaySchedule.bedHour, todaySchedule.bedMinute)}
+          on
+          caption={<>in <span style={{ color: W.ink, fontWeight: 600 }}>{countdown}</span></>}
+        />
+        <EditScheduleButton />
+        <TimeSlot
+          label="Wake up"
+          time={fmt(todaySchedule.wakeHour, todaySchedule.wakeMinute)}
+          on
+          caption={<>sleep ~ <span style={{ color: W.ink, fontWeight: 600 }}>{sleepEst}</span></>}
+        />
+      </div>
+
+      <div style={{ marginTop: 26 }}>
+        <div onClick={() => go('wind-down')} style={{
+          padding: '20px 0', textAlign: 'center',
+          background: W.ink, color: W.bg, borderRadius: 999,
+          fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em',
+          cursor: 'pointer',
+          boxShadow: '0 8px 22px rgba(0,0,0,0.22)',
+        }}>Go to sleep</div>
+      </div>
     </div>
   );
 }

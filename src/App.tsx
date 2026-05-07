@@ -17,6 +17,7 @@ import { HabitLibrary, RoutineCheckIn } from './screens/HabitsScreens';
 import { PracticeIntro, PracticeSession, PracticeComplete } from './screens/Practice';
 import { Journal } from './screens/Journal';
 import { JournalEntryEdit } from './screens/JournalEntry';
+import { WindDown } from './screens/WindDown';
 import { StubScreen } from './screens/Stub';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
@@ -41,6 +42,7 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'practice-intro': () => <PracticeIntro />,
   'practice-session': () => <PracticeSession />,
   'practice-complete': () => <PracticeComplete />,
+  'wind-down': () => <WindDown />,
   'analytics': () => <StubScreen title="Analytics" hint="Charts and trends will live here. Coming soon." />,
   'journal': () => <Journal />,
   'journal-entry': () => <JournalEntryEdit />,
