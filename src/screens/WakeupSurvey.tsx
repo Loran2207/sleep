@@ -2,17 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { CheckIcon, MicIcon, StopIcon, XIcon } from '../components/icons';
+import { CheckIcon, ChevronLeftIcon, MicIcon, StopIcon, XIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
-import { DiaryQuiz } from '../components/DiaryQuiz';
+import { DiaryOptions, DiaryPrompt } from '../components/DiaryQuiz';
 import { useJournal } from '../state/store';
 import { readMood } from '../data/mood';
+import { DIARY_QUESTIONS } from '../data/diary';
 
 const GRID_COLS = 9;
 const GRID_ROWS = 7;
 
-type Step = 0 | 1 | 2;
-const STEP_TITLES = ['How do you feel?', 'A note about today', 'Sleep diary'];
+type Step = 'mood' | 'note' | 'diary';
 
 type RecogConstructor = new () => SpeechRecognition;
 type SpeechRecognition = {
@@ -29,18 +29,31 @@ function getRecognitionCtor(): RecogConstructor | null {
 
 export function WakeupSurvey() {
   const { add } = useJournal();
-  const [step, setStep] = useState<Step>(0);
+  const [step, setStep] = useState<Step>('mood');
+  const [diaryIdx, setDiaryIdx] = useState(0);
 
-  // Defaults — gentle morning baseline
   const [moodX, setMoodX] = useState(0.7);
   const [moodY, setMoodY] = useState(0.45);
   const [text, setText] = useState('');
   const [diary, setDiary] = useState<Record<string, string | string[]>>({});
 
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
+  const diaryTotal = DIARY_QUESTIONS.length;
+  const onLastDiary = step === 'diary' && diaryIdx === diaryTotal - 1;
+  const stepIdx = step === 'mood' ? 0 : step === 'note' ? 1 : 2;
+  const stepTitle = step === 'mood'
+    ? 'How do you feel?'
+    : step === 'note'
+      ? 'A note about today'
+      : 'Sleep diary';
+  const stepIntro = step === 'mood'
+    ? 'Pick anywhere on the grid.'
+    : step === 'note'
+      ? 'Tap the mic and tell us how you feel — or skip.'
+      : `Question ${diaryIdx + 1} of ${diaryTotal}`;
 
-  // Map the new "factors" answer (Q9) onto the legacy `factors` array so
-  // the existing factor chips on past-day cards keep working.
+  // Map the new "factors" answer onto the legacy `factors` array so the
+  // existing factor chips on past-day cards keep working.
   function deriveLegacyFactors(): string[] {
     const factors = (diary['factors'] as string[] | undefined) ?? [];
     const map: Record<string, string> = {
@@ -49,7 +62,7 @@ export function WakeupSurvey() {
     return factors.map((f) => map[f]).filter(Boolean);
   }
 
-  function saveAndExit() {
+  function save() {
     const now = new Date();
     const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -68,6 +81,36 @@ export function WakeupSurvey() {
     go('home');
   }
 
+  function next() {
+    if (step === 'mood') setStep('note');
+    else if (step === 'note') setStep('diary');
+    else if (step === 'diary') {
+      if (diaryIdx < diaryTotal - 1) setDiaryIdx(diaryIdx + 1);
+      else save();
+    }
+  }
+
+  function back() {
+    if (step === 'note') setStep('mood');
+    else if (step === 'diary') {
+      if (diaryIdx > 0) setDiaryIdx(diaryIdx - 1);
+      else setStep('note');
+    }
+  }
+
+  const canGoBack = step !== 'mood';
+
+  function setSingle(qId: string, value: string) {
+    setDiary((d) => ({ ...d, [qId]: d[qId] === value ? '' : value }));
+  }
+  function toggleMulti(qId: string, value: string) {
+    setDiary((d) => {
+      const cur = (d[qId] as string[] | undefined) ?? [];
+      const next = cur.includes(value) ? cur.filter((x) => x !== value) : [...cur, value];
+      return { ...d, [qId]: next };
+    });
+  }
+
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
@@ -81,15 +124,16 @@ export function WakeupSurvey() {
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '6px 14px', height: 48, flexShrink: 0,
       }}>
-        <div onClick={() => go('home')} aria-label="Close" style={{
-          width: 36, height: 36, borderRadius: 18,
-          background: W.fill, border: `1px solid ${W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: W.ink,
-        }}>
-          <XIcon size={14} stroke={W.ink} />
-        </div>
-        <StepDots current={step} total={3} />
+        {canGoBack ? (
+          <div onClick={back} aria-label="Back" style={topBtnStyle}>
+            <ChevronLeftIcon size={16} stroke={W.ink} />
+          </div>
+        ) : (
+          <div onClick={() => go('home')} aria-label="Close" style={topBtnStyle}>
+            <XIcon size={14} stroke={W.ink} />
+          </div>
+        )}
+        <StepDots current={stepIdx} total={3} />
         <div style={{ width: 36 }} />
       </div>
 
@@ -100,11 +144,26 @@ export function WakeupSurvey() {
         <div style={{
           fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em',
           marginTop: 6, lineHeight: 1.25,
-        }}>{STEP_TITLES[step]}</div>
+        }}>{stepTitle}</div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 4 }}>{stepIntro}</div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 16px', position: 'relative' }}>
-        {step === 0 && (
+      {step === 'diary' && (
+        <div style={{ position: 'relative', padding: '4px 22px 8px' }}>
+          <div style={{
+            height: 3, borderRadius: 2, background: W.fill, overflow: 'hidden',
+          }}>
+            <div style={{
+              width: `${((diaryIdx + 1) / diaryTotal) * 100}%`,
+              height: '100%', background: W.ink,
+              transition: 'width .2s ease',
+            }} />
+          </div>
+        </div>
+      )}
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 16px', position: 'relative' }}>
+        {step === 'mood' && (
           <MoodStep
             moodX={moodX} moodY={moodY}
             onChange={(nx, ny) => { setMoodX(nx); setMoodY(ny); }}
@@ -113,46 +172,61 @@ export function WakeupSurvey() {
             desc={reading.desc}
           />
         )}
-        {step === 1 && <NoteStep value={text} onChange={setText} />}
-        {step === 2 && <DiaryQuiz diary={diary} onChange={setDiary} />}
+        {step === 'note' && <NoteStep value={text} onChange={setText} />}
+        {step === 'diary' && (
+          <DiarySlide
+            question={DIARY_QUESTIONS[diaryIdx]}
+            value={diary[DIARY_QUESTIONS[diaryIdx].id]}
+            onSingle={(v) => setSingle(DIARY_QUESTIONS[diaryIdx].id, v)}
+            onMulti={(v) => toggleMulti(DIARY_QUESTIONS[diaryIdx].id, v)}
+          />
+        )}
       </div>
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
         background: 'linear-gradient(to top, rgba(14,14,17,0.95) 60%, transparent)',
-        display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        {step === 1 && (
-          <div onClick={() => setStep(2)} style={{
-            flex: 1, padding: '16px 0', textAlign: 'center',
-            background: 'transparent', color: W.ink,
-            border: `1px solid ${W.fill}`, borderRadius: 999,
-            fontSize: 14, fontWeight: 500, cursor: 'pointer',
-          }}>Skip</div>
-        )}
-        {step < 2 ? (
-          <div onClick={() => setStep((s) => Math.min(2, s + 1) as Step)} style={{
-            flex: 2, padding: '16px 0', textAlign: 'center',
-            background: reading.tint, color: '#0E0E11',
-            borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
-            boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
-          }}>Continue</div>
-        ) : (
-          <div onClick={saveAndExit} style={{
-            flex: 1, padding: '16px 0', textAlign: 'center',
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {step === 'note' && (
+            <div onClick={next} style={skipBtnStyle}>Skip</div>
+          )}
+          <div onClick={next} style={{
+            flex: step === 'note' ? 2 : 1,
+            padding: '16px 0', textAlign: 'center',
             background: reading.tint, color: '#0E0E11',
             borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
             boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
-            <CheckIcon size={14} stroke="#0E0E11" />
-            Save & finish
+            {onLastDiary && <CheckIcon size={14} stroke="#0E0E11" />}
+            {onLastDiary ? 'Save & finish' : 'Continue'}
           </div>
+        </div>
+        {step === 'diary' && !onLastDiary && (
+          <div onClick={save} style={{
+            marginTop: 10, padding: '10px 0', textAlign: 'center',
+            color: W.weak, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+          }}>Skip all</div>
         )}
       </div>
     </div>
   );
 }
+
+const topBtnStyle: React.CSSProperties = {
+  width: 36, height: 36, borderRadius: 18,
+  background: W.fill, border: `1px solid ${W.veryweak}`,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  cursor: 'pointer', color: W.ink,
+};
+
+const skipBtnStyle: React.CSSProperties = {
+  flex: 1, padding: '16px 0', textAlign: 'center',
+  background: 'transparent', color: W.ink,
+  border: `1px solid ${W.fill}`, borderRadius: 999,
+  fontSize: 14, fontWeight: 500, cursor: 'pointer',
+};
 
 function StepDots({ current, total }: { current: number; total: number }) {
   return (
@@ -191,19 +265,28 @@ function MoodStep({ moodX, moodY, onChange, tint, feeling, desc }: {
 }
 
 function NoteStep({ value, onChange }: { value: string; onChange: (s: string) => void }) {
-  return (
-    <>
-      <div style={{
-        textAlign: 'center', padding: '4px 16px 16px',
-        fontSize: 13, color: W.weak, lineHeight: 1.55,
-      }}>
-        Tap the mic and tell us how you feel — or skip.
-      </div>
-      <VoiceTextField value={value} onChange={onChange} />
-    </>
-  );
+  return <VoiceTextField value={value} onChange={onChange} />;
 }
 
+function DiarySlide({ question, value, onSingle, onMulti }: {
+  question: typeof DIARY_QUESTIONS[number];
+  value: string | string[] | undefined;
+  onSingle: (id: string) => void;
+  onMulti: (id: string) => void;
+}) {
+  return (
+    <div style={{ padding: '12px 4px 8px' }}>
+      <DiaryPrompt>{question.prompt}</DiaryPrompt>
+      <DiaryOptions question={question} value={value} onSingle={onSingle} onMulti={onMulti} />
+      {question.multi && (
+        <div style={{
+          marginTop: 12, padding: '0 4px',
+          fontSize: 11, color: W.weak,
+        }}>Pick anything that applies — or none.</div>
+      )}
+    </div>
+  );
+}
 
 function TintGlow({ color }: { color: string }) {
   return (

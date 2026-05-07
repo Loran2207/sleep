@@ -25,6 +25,7 @@ export type ScreenId =
   | 'routine'
   | 'habit-library'
   | 'routine-checkin'
+  | 'night-shift-guide'
   | 'sleep-schedule'
   | 'schedule-mix'
   | 'schedule-sounds'
