@@ -32,41 +32,44 @@ export function CourseList() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
-      <StickyTopBar />
-      <div style={{
-        position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(160deg, #1A1A1F 0%, #232328 55%, #2C2C32 100%)',
-        color: '#fff',
-        padding: '20px 20px 28px',
-      }}>
+      {/* Top bar bg matches the banner top so the seam disappears.  */}
+      <StickyTopBar background="#1A1A1F" />
+
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
         <div style={{
-          position: 'absolute', top: -60, right: -60, width: 220, height: 220,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 65%)',
-          pointerEvents: 'none',
-        }} />
+          position: 'relative', overflow: 'hidden',
+          background: 'linear-gradient(160deg, #1A1A1F 0%, #232328 55%, #2C2C32 100%)',
+          color: '#fff',
+          padding: '8px 20px 28px',
+        }}>
+          <div style={{
+            position: 'absolute', top: -60, right: -60, width: 220, height: 220,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 65%)',
+            pointerEvents: 'none',
+          }} />
 
-        <div style={{ position: 'relative' }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Course · 12 lessons</div>
-          <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.1, marginTop: 6 }}>The Science<br/>of Sleep</div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 10, lineHeight: 1.45, maxWidth: 320 }}>
-            Short, evidence-based lessons on why sleep matters and how to make yours better.
+          <div style={{ position: 'relative' }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Course · 12 lessons</div>
+            <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.1, marginTop: 6 }}>The Science<br/>of Sleep</div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 10, lineHeight: 1.45, maxWidth: 320 }}>
+              Short, evidence-based lessons on why sleep matters and how to make yours better.
+            </div>
+          </div>
+
+          <div style={{ marginTop: 22, position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 6 }}>
+              <span>{done} of {total} done · ~18 min left</span>
+              <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: '#fff' }}>{pct}%</span>
+            </div>
+            <div style={{ height: 4, background: 'rgba(255,255,255,0.14)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: '#fff' }} />
+            </div>
           </div>
         </div>
 
-        <div style={{ marginTop: 22, position: 'relative' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 6 }}>
-            <span>{done} of {total} done · ~18 min left</span>
-            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: '#fff' }}>{pct}%</span>
-          </div>
-          <div style={{ height: 4, background: 'rgba(255,255,255,0.14)', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ width: `${pct}%`, height: '100%', background: '#fff' }} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px 130px' }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: W.weak, padding: '0 6px 12px' }}>Lessons</div>
+        <div style={{ padding: '20px 16px 0' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: W.weak, padding: '0 6px 12px' }}>Lessons</div>
         {lessons.map((l, i) => {
           const isLocked = l.state === 'locked';
           const isDone = l.state === 'done';
@@ -130,6 +133,7 @@ export function CourseList() {
             </div>
           );
         })}
+        </div>
       </div>
       <LiquidGlassNav active="course" />
     </div>

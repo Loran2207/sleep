@@ -190,11 +190,13 @@ export function DayStrip({
 // ─── Top app bar ─────────────────────────────────────────────────
 // Used on every primary navigated screen. Logo on the left,
 // version toggle in the middle, circular profile button on the right.
-export function StickyTopBar() {
+// `background` lets a screen blend the bar with its own banner — e.g.,
+// Course paints it the same colour as the gradient banner top.
+export function StickyTopBar({ background }: { background?: string } = {}) {
   return (
     <div style={{
       flexShrink: 0,
-      background: W.bg,
+      background: background ?? W.bg,
       position: 'relative', zIndex: 10,
     }}>
       <TopPad />
