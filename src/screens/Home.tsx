@@ -9,7 +9,7 @@ import {
 } from '../components/icons';
 import {
   StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
-  NightShiftGuide,
+  NightShiftCard,
   type Day,
 } from '../components/shared';
 import { MoodFace } from '../components/MoodFace';
@@ -580,7 +580,7 @@ function HomeV2() {
 
         <div style={{ padding: '0 16px' }}>
           <SectionHeader>Wind down</SectionHeader>
-          <NightShiftGuide />
+          <NightShiftCard />
         </div>
       </div>
       <LiquidGlassNav active="home" />

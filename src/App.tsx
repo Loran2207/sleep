@@ -19,6 +19,7 @@ import { Journal } from './screens/Journal';
 import { JournalEntryEdit } from './screens/JournalEntry';
 import { WindDown } from './screens/WindDown';
 import { WakeupSurvey } from './screens/WakeupSurvey';
+import { NightShiftGuide } from './screens/NightShiftGuide';
 import { StubScreen } from './screens/Stub';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
@@ -45,6 +46,7 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'practice-complete': () => <PracticeComplete />,
   'wind-down': () => <WindDown />,
   'wakeup-survey': () => <WakeupSurvey />,
+  'night-shift-guide': () => <NightShiftGuide />,
   'analytics': () => <StubScreen title="Analytics" hint="Charts and trends will live here. Coming soon." />,
   'journal': () => <Journal />,
   'journal-entry': () => <JournalEntryEdit />,
