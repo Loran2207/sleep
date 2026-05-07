@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { W } from '../tokens';
-import { go } from '../state/navigation';
+import { go, back, replace } from '../state/navigation';
 import { TopPad, HeaderBar } from '../components/shared';
 import { CheckIcon } from '../components/icons';
 import { usePracticeCycles } from '../state/store';
@@ -41,7 +41,7 @@ export function PracticeIntro() {
       }} />
 
       <TopPad />
-      <HeaderBar title="Breathe to sleep" onBack={() => go('home')} />
+      <HeaderBar title="Breathe to sleep" onBack={() => back()} />
 
       <div style={{ flex: 1, padding: '0 22px 24px', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28, textAlign: 'center' }}>
@@ -83,7 +83,7 @@ export function PracticeIntro() {
         </div>
 
         <div>
-          <div onClick={() => { setStoredCycles(cycles); go('practice-session'); }}
+          <div onClick={() => { setStoredCycles(cycles); replace('practice-session'); }}
             style={{
               padding: '18px 0', textAlign: 'center',
               background: W.ink, color: W.bg, borderRadius: 999,
@@ -125,7 +125,7 @@ function PracticeLearn({ onContinue, backLabel = 'Got it', hideStartCopy = false
       }} />
 
       <TopPad />
-      <HeaderBar title="Breathe to sleep" onBack={() => go('home')} />
+      <HeaderBar title="Breathe to sleep" onBack={() => back()} />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 22px 24px', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
         <div style={{ paddingTop: 4 }}>
@@ -230,7 +230,7 @@ export function PracticeSession() {
       const nextPhase = (phaseIdx + 1) % phases.length;
       if (nextPhase === 0) {
         if (cycle >= targetCycles) {
-          go('practice-complete');
+          replace('practice-complete');
           return;
         }
         setCycle((c) => c + 1);
@@ -264,7 +264,7 @@ export function PracticeSession() {
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 20px' }}>
-        <div onClick={() => go('practice-intro')} style={{ fontSize: 13, color: W.ink, opacity: 0.75, cursor: 'pointer' }}>End</div>
+        <div onClick={() => back()} style={{ fontSize: 13, color: W.ink, opacity: 0.75, cursor: 'pointer' }}>End</div>
         <div style={{ fontSize: 12, fontWeight: 500, color: W.weak }}>4-7-8 Breathing</div>
         <div style={{ fontSize: 13, color: W.weak, fontVariantNumeric: 'tabular-nums', minWidth: 38, textAlign: 'right' }}>
           {cycle}/{targetCycles}
@@ -357,7 +357,7 @@ export function PracticeSession() {
           border: `1px solid ${W.fill}`,
           fontSize: 14, fontWeight: 500, cursor: 'pointer',
         }}>{paused ? 'Resume' : 'Pause'}</div>
-        <div onClick={() => go('practice-complete')} style={{
+        <div onClick={() => replace('practice-complete')} style={{
           flex: 1, padding: '14px 0', textAlign: 'center', borderRadius: 999,
           background: W.ink, color: W.bg,
           fontSize: 14, fontWeight: 600, cursor: 'pointer',
@@ -484,12 +484,12 @@ export function PracticeComplete() {
 
         <div style={{ flex: 1, minHeight: 16 }} />
 
-        <div onClick={() => go('home')} style={{
+        <div onClick={() => back()} style={{
           marginTop: 22, padding: '18px 0', textAlign: 'center',
           background: W.ink, color: W.bg, borderRadius: 999,
           fontSize: 15, fontWeight: 600, cursor: 'pointer',
         }}>Done</div>
-        <div onClick={() => go('practice-session')} style={{
+        <div onClick={() => replace('practice-session')} style={{
           marginTop: 10, padding: '14px 0', textAlign: 'center',
           fontSize: 13, color: W.weak, cursor: 'pointer',
         }}>One more round</div>

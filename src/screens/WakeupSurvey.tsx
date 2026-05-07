@@ -11,16 +11,15 @@ import { SLEEP_FACTORS } from '../data/factors';
 const GRID_COLS = 9;
 const GRID_ROWS = 7;
 
+type Step = 0 | 1 | 2;
+const STEP_TITLES = ['How do you feel?', 'A note about today', 'Last night was…'];
+
 type RecogConstructor = new () => SpeechRecognition;
 type SpeechRecognition = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
+  continuous: boolean; interimResults: boolean; lang: string;
   onresult: ((e: { resultIndex: number; results: { isFinal: boolean; 0: { transcript: string } }[] & { length: number } }) => void) | null;
-  onend: (() => void) | null;
-  onerror: ((e: unknown) => void) | null;
-  start: () => void;
-  stop: () => void;
+  onend: (() => void) | null; onerror: ((e: unknown) => void) | null;
+  start: () => void; stop: () => void;
 };
 
 function getRecognitionCtor(): RecogConstructor | null {
@@ -30,7 +29,9 @@ function getRecognitionCtor(): RecogConstructor | null {
 
 export function WakeupSurvey() {
   const { add } = useJournal();
-  // Default to a "good" morning starting point — slightly happy, mid energy.
+  const [step, setStep] = useState<Step>(0);
+
+  // Defaults — gentle morning baseline
   const [moodX, setMoodX] = useState(0.7);
   const [moodY, setMoodY] = useState(0.45);
   const [text, setText] = useState('');
@@ -42,13 +43,11 @@ export function WakeupSurvey() {
     setFactors((f) => f.includes(id) ? f.filter((x) => x !== id) : [...f, id]);
   }
 
-  function save() {
+  function saveAndExit() {
     const now = new Date();
     const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const whenLabel = `Today, ${time}`;
-    void months;
     add({
       moodX, moodY,
       feeling: reading.feeling,
@@ -75,7 +74,7 @@ export function WakeupSurvey() {
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '6px 14px', height: 48, flexShrink: 0,
       }}>
-        <div onClick={() => go('home')} aria-label="Skip" style={{
+        <div onClick={() => go('home')} aria-label="Close" style={{
           width: 36, height: 36, borderRadius: 18,
           background: W.fill, border: `1px solid ${W.veryweak}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -83,66 +82,150 @@ export function WakeupSurvey() {
         }}>
           <XIcon size={14} stroke={W.ink} />
         </div>
-        <div style={{ fontSize: 15, fontWeight: 600 }}>Good morning</div>
+        <StepDots current={step} total={3} />
         <div style={{ width: 36 }} />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 16px', position: 'relative' }}>
+      <div style={{
+        position: 'relative', textAlign: 'center', padding: '12px 22px 8px',
+      }}>
+        <div style={{ fontSize: 13, color: W.weak, fontWeight: 500 }}>Good morning</div>
         <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
-          padding: '8px 0 10px',
-        }}>
-          <MoodFace tint={reading.tint} x={moodX} y={moodY} size={104} glow />
-          <div style={{ textAlign: 'center', lineHeight: 1.2 }}>
-            <div style={{ fontSize: 13, color: W.weak, fontWeight: 500 }}>How do you feel?</div>
-            <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 6 }}>{reading.feeling}</div>
-            <div style={{ fontSize: 13, color: W.weak, marginTop: 4 }}>{reading.desc}</div>
-          </div>
-        </div>
+          fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em',
+          marginTop: 6, lineHeight: 1.25,
+        }}>{STEP_TITLES[step]}</div>
+      </div>
 
-        <MoodGrid x={moodX} y={moodY} tint={reading.tint} onChange={(nx, ny) => { setMoodX(nx); setMoodY(ny); }} />
-
-        <SectionLabel hint="Tap anything that matched last night.">Last night</SectionLabel>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '0 4px' }}>
-          {SLEEP_FACTORS.map((f) => {
-            const on = factors.includes(f.id);
-            return (
-              <div key={f.id} onClick={() => toggleFactor(f.id)} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '8px 12px', borderRadius: 999,
-                cursor: 'pointer',
-                background: on ? W.ink : 'transparent',
-                color: on ? W.bg : W.ink,
-                border: `1px solid ${on ? W.ink : W.fill}`,
-                transition: 'background .12s ease, color .12s ease',
-              }}>
-                <HabitGlyph name={f.glyph} size={14} stroke={on ? W.bg : W.weak} />
-                <span style={{ fontSize: 13, fontWeight: 500 }}>{f.label}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        <SectionLabel hint="Optional. Tap the mic to speak.">Notes</SectionLabel>
-        <VoiceTextField value={text} onChange={setText} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 16px', position: 'relative' }}>
+        {step === 0 && (
+          <MoodStep
+            moodX={moodX} moodY={moodY}
+            onChange={(nx, ny) => { setMoodX(nx); setMoodY(ny); }}
+            tint={reading.tint}
+            feeling={reading.feeling}
+            desc={reading.desc}
+          />
+        )}
+        {step === 1 && <NoteStep value={text} onChange={setText} />}
+        {step === 2 && <FactorsStep factors={factors} onToggle={toggleFactor} />}
       </div>
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
         background: 'linear-gradient(to top, rgba(14,14,17,0.95) 60%, transparent)',
+        display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <div onClick={save} style={{
-          padding: '16px 0', textAlign: 'center',
-          background: reading.tint, color: '#0E0E11',
-          borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
-          boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
-          <CheckIcon size={14} stroke="#0E0E11" />
-          Save & finish
-        </div>
+        {step === 1 && (
+          <div onClick={() => setStep(2)} style={{
+            flex: 1, padding: '16px 0', textAlign: 'center',
+            background: 'transparent', color: W.ink,
+            border: `1px solid ${W.fill}`, borderRadius: 999,
+            fontSize: 14, fontWeight: 500, cursor: 'pointer',
+          }}>Skip</div>
+        )}
+        {step < 2 ? (
+          <div onClick={() => setStep((s) => Math.min(2, s + 1) as Step)} style={{
+            flex: 2, padding: '16px 0', textAlign: 'center',
+            background: reading.tint, color: '#0E0E11',
+            borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+            boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+          }}>Continue</div>
+        ) : (
+          <div onClick={saveAndExit} style={{
+            flex: 1, padding: '16px 0', textAlign: 'center',
+            background: reading.tint, color: '#0E0E11',
+            borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+            boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <CheckIcon size={14} stroke="#0E0E11" />
+            Save & finish
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function StepDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div style={{ display: 'flex', gap: 6 }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <div key={i} style={{
+          width: i === current ? 22 : 6, height: 6, borderRadius: 3,
+          background: i <= current ? W.ink : W.fill,
+          transition: 'width .2s ease, background .2s ease',
+        }} />
+      ))}
+    </div>
+  );
+}
+
+function MoodStep({ moodX, moodY, onChange, tint, feeling, desc }: {
+  moodX: number; moodY: number;
+  onChange: (x: number, y: number) => void;
+  tint: string; feeling: string; desc: string;
+}) {
+  return (
+    <>
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+        padding: '8px 0 14px',
+      }}>
+        <MoodFace tint={tint} x={moodX} y={moodY} size={104} glow />
+        <div style={{ textAlign: 'center', lineHeight: 1.2 }}>
+          <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>{feeling}</div>
+          <div style={{ fontSize: 13, color: W.weak, marginTop: 4 }}>{desc}</div>
+        </div>
+      </div>
+      <MoodGrid x={moodX} y={moodY} tint={tint} onChange={onChange} />
+    </>
+  );
+}
+
+function NoteStep({ value, onChange }: { value: string; onChange: (s: string) => void }) {
+  return (
+    <>
+      <div style={{
+        textAlign: 'center', padding: '4px 16px 16px',
+        fontSize: 13, color: W.weak, lineHeight: 1.55,
+      }}>
+        Tap the mic and tell us how you feel — or skip.
+      </div>
+      <VoiceTextField value={value} onChange={onChange} />
+    </>
+  );
+}
+
+function FactorsStep({ factors, onToggle }: { factors: string[]; onToggle: (id: string) => void }) {
+  return (
+    <>
+      <div style={{
+        textAlign: 'center', padding: '4px 16px 14px',
+        fontSize: 13, color: W.weak, lineHeight: 1.55,
+      }}>
+        Tap anything that matched last night.
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '0 4px' }}>
+        {SLEEP_FACTORS.map((f) => {
+          const on = factors.includes(f.id);
+          return (
+            <div key={f.id} onClick={() => onToggle(f.id)} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 14px', borderRadius: 999,
+              cursor: 'pointer',
+              background: on ? W.ink : 'transparent',
+              color: on ? W.bg : W.ink,
+              border: `1px solid ${on ? W.ink : W.fill}`,
+              transition: 'background .12s ease, color .12s ease',
+            }}>
+              <HabitGlyph name={f.glyph} size={14} stroke={on ? W.bg : W.weak} />
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{f.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -162,15 +245,6 @@ function hexWithAlpha(hex: string, a: number) {
   const g = parseInt(c.slice(2, 4), 16);
   const b = parseInt(c.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
-function SectionLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
-  return (
-    <div style={{ padding: '20px 4px 8px' }}>
-      <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{children}</div>
-      {hint && <div style={{ fontSize: 11, color: W.veryweak, marginTop: 2 }}>{hint}</div>}
-    </div>
-  );
 }
 
 function MoodGrid({ x, y, tint, onChange }: {
@@ -212,7 +286,7 @@ function MoodGrid({ x, y, tint, onChange }: {
   const selRow = Math.round((1 - y) * (GRID_ROWS - 1));
 
   return (
-    <div style={{ marginTop: 18 }}>
+    <div style={{ marginTop: 14 }}>
       <div style={{
         position: 'relative',
         background: W.paper, border: `1px solid ${W.fill}`,
@@ -294,9 +368,7 @@ function VoiceTextField({ value, onChange }: { value: string; onChange: (s: stri
       return;
     }
     const rec = new Ctor();
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.lang = 'en-US';
+    rec.continuous = true; rec.interimResults = true; rec.lang = 'en-US';
     let finalText = value;
     rec.onresult = (e) => {
       let it = '';
@@ -327,25 +399,26 @@ function VoiceTextField({ value, onChange }: { value: string; onChange: (s: stri
       <textarea
         value={value + (interim ? (value && !value.endsWith(' ') ? ' ' : '') + interim : '')}
         onChange={(e) => onChange(e.target.value)}
-        rows={4}
+        rows={5}
+        autoFocus
         placeholder="One thing about how you slept…"
         style={{
           width: '100%', background: 'transparent', color: W.ink,
           border: 'none', outline: 'none', resize: 'none',
-          fontSize: 14, lineHeight: 1.5, fontFamily: W.font,
-          padding: 0, paddingRight: 44, minHeight: 80,
+          fontSize: 15, lineHeight: 1.5, fontFamily: W.font,
+          padding: 0, paddingRight: 44, minHeight: 110,
           boxSizing: 'border-box',
         }}
       />
       <div onClick={recording ? stopVoice : startVoice} aria-label={recording ? 'Stop' : 'Start voice input'} style={{
         position: 'absolute', right: 10, bottom: 10,
-        width: 36, height: 36, borderRadius: 18,
+        width: 40, height: 40, borderRadius: 20,
         background: recording ? '#E25C5C' : W.fill,
         border: `1px solid ${recording ? '#E25C5C' : W.veryweak}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'pointer',
       }}>
-        {recording ? <StopIcon size={14} stroke="#fff" /> : <MicIcon size={16} stroke={W.ink} />}
+        {recording ? <StopIcon size={14} stroke="#fff" /> : <MicIcon size={18} stroke={W.ink} />}
       </div>
       {recording && (
         <div style={{ position: 'absolute', left: 14, bottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
