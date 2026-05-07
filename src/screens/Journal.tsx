@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad, DayStrip, LiquidGlassNav, type Day } from '../components/shared';
+import { StickyTopBar, DayStrip, LiquidGlassNav, type Day } from '../components/shared';
 import { MoodBlob } from '../components/icons';
 import { useEditingJournalId, useJournal, type JournalEntry } from '../state/store';
 
@@ -50,7 +50,7 @@ export function Journal() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
-      <TopPad />
+      <StickyTopBar />
 
       <div style={{ paddingTop: 4 }}>
         <div ref={stripRef}>

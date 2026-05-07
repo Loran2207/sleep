@@ -83,6 +83,14 @@ export function ProfileFilled({ size = 24, fill = '#fff' }: FilledProps) {
     </svg>
   );
 }
+export function CourseFilled({ size = 24, fill = '#fff' }: FilledProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}>
+      <path d="M2.5 9.5 11.5 5.4a.9.9 0 0 1 .9 0l9 4.1a.6.6 0 0 1 0 1.1l-9 4.1a.9.9 0 0 1-.9 0L2.5 10.6a.6.6 0 0 1 0-1.1z"/>
+      <path d="M6.5 11.6v3.4c0 .8.5 1.5 1.3 1.8 1.3.6 2.7.9 4.2.9s2.9-.3 4.2-.9c.8-.3 1.3-1 1.3-1.8v-3.4l-5.1 2.3a.9.9 0 0 1-.7 0z"/>
+    </svg>
+  );
+}
 
 // ─── Habit glyphs ────────────────────────────────────────────────
 import type { HabitGlyphName } from '../state/store';

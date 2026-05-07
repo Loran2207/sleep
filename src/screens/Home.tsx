@@ -4,11 +4,11 @@ import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { startTracking } from '../state/tracking';
 import {
-  CheckIcon, ChevronRightIcon, NightShiftIcon, PhoneOffIcon, PencilIcon, PlusIcon,
+  CheckIcon, NightShiftIcon, PhoneOffIcon, PencilIcon, PlusIcon,
   PlayIcon, TrashIcon, WindIcon, HabitGlyph,
 } from '../components/icons';
 import {
-  TopPad, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
+  StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
   type Day,
 } from '../components/shared';
 import { useHabits, useSchedules, pickScheduleForDay, type Habit } from '../state/store';
@@ -50,7 +50,7 @@ export function Home() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
-      <TopPad />
+      <StickyTopBar />
 
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
         <div style={{ paddingTop: 4 }}>
@@ -88,9 +88,6 @@ export function Home() {
             title="Night Shift"
             desc="Please turn on Night Shift in your system settings to warm your screen at sunset and protect melatonin."
           />
-
-          <SectionHeader style={{ marginTop: 24 }}>Continue learning</SectionHeader>
-          <CourseCard onClick={() => go('course')} />
         </div>
       </div>
 
@@ -532,63 +529,6 @@ function NotesCard({ day }: { day: Day }) {
           {text || <span style={{ color: W.weak }}>Add a note about how you slept…</span>}
         </div>
       )}
-    </div>
-  );
-}
-
-// Course card on Home
-function CourseCard({ onClick }: { onClick: () => void }) {
-  const total = 12;
-  const done = 2;
-  const pct = Math.round((done / total) * 100);
-  return (
-    <div onClick={onClick} style={{
-      borderRadius: 22, padding: '20px 20px 18px', cursor: 'pointer',
-      position: 'relative', overflow: 'hidden',
-      background: 'linear-gradient(135deg, #1A1A1F 0%, #232328 60%, #2C2C32 100%)',
-      border: '1px solid rgba(255,255,255,0.06)',
-      boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-      display: 'flex', flexDirection: 'column', gap: 14,
-    }}>
-      <div style={{
-        position: 'absolute', top: -40, right: -40, width: 160, height: 160,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 65%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Course</div>
-          <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: '#fff', marginTop: 4, lineHeight: 1.15 }}>The Science of Sleep</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>12 lessons · 28 min total</div>
-        </div>
-      </div>
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 6 }}>
-          <span>{done} of {total} done</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>{pct}%</span>
-        </div>
-        <div style={{ height: 4, background: 'rgba(255,255,255,0.12)', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{ width: `${pct}%`, height: '100%', background: '#fff' }} />
-        </div>
-      </div>
-      <div style={{
-        marginTop: 4, padding: '14px 16px', borderRadius: 14,
-        background: '#fff', color: '#0E0E11',
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 18, background: '#0E0E11',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}><PlayIcon size={14} stroke="#fff" /></div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 11, color: '#6A6A72' }}>Continue · Lesson 3 · 2 min</div>
-          <div style={{ fontSize: 14, fontWeight: 600, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Sleep pressure & circadian rhythm
-          </div>
-        </div>
-        <ChevronRightIcon size={16} stroke="#0E0E11" />
-      </div>
     </div>
   );
 }
