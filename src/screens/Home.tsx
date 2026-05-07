@@ -9,6 +9,7 @@ import {
 } from '../components/icons';
 import {
   StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
+  NightShiftGuide,
   type Day,
 } from '../components/shared';
 import { MoodFace } from '../components/MoodFace';
@@ -579,11 +580,7 @@ function HomeV2() {
 
         <div style={{ padding: '0 16px' }}>
           <SectionHeader>Wind down</SectionHeader>
-          <SettingsCard
-            icon={<NightShiftIcon size={22} stroke={W.ink} />}
-            title="Night Shift"
-            desc="Please turn on Night Shift in your system settings to warm your screen at sunset and protect melatonin."
-          />
+          <NightShiftGuide />
         </div>
       </div>
       <LiquidGlassNav active="home" />
