@@ -4,13 +4,14 @@ import { go } from '../state/navigation';
 import {
   GlyphPlay, GlyphPause, GlyphSliders, GlyphPlus, GlyphChevDn, GlyphTrash,
 } from '../components/icons';
-import { TopPad, VolumeSlider } from '../components/shared';
-import { useMix } from '../state/store';
+import { TopPad, VolumeSlider, TimerChip, TimerPicker } from '../components/shared';
+import { useMix, useVersion } from '../state/store';
 import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from '../data/sounds';
 
 // ─── Tracking Active ─────────────────────────────────────────────
 export function TrackingActive() {
   const { state, togglePlay } = useMix();
+  const [version] = useVersion();
   const [seconds, setSeconds] = useState(7 * 3600 + 12 * 60);
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => Math.max(0, s - 60)), 6000);
@@ -63,9 +64,11 @@ export function TrackingActive() {
         position: 'relative', flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', padding: '8px 20px 12px', textAlign: 'center',
       }}>
+        {version === 'v2' && <SleepBreathingHalo />}
         <div style={{
           fontSize: 88, fontWeight: 200, letterSpacing: -3,
           fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+          position: 'relative',
         }}>{now}</div>
 
         <div style={{
@@ -144,7 +147,8 @@ export function TrackingActive() {
 
 // ─── Tracking Mixer ─────────────────────────────────────────────
 export function TrackingMixer() {
-  const { state, setVol, removeSound, clearAll, togglePlay } = useMix();
+  const { state, setVol, removeSound, clearAll, togglePlay, setTimer } = useMix();
+  const [timerOpen, setTimerOpen] = useState(false);
 
   return (
     <div style={{
@@ -173,6 +177,21 @@ export function TrackingMixer() {
           cursor: state.mix.length === 0 ? 'default' : 'pointer',
         }}>Clear all</div>
       </div>
+
+      <div style={{ position: 'relative', padding: '4px 20px 0', display: 'flex', justifyContent: 'center' }}>
+        <TimerChip
+          minutes={state.timerMin}
+          onClick={() => setTimerOpen(true)}
+          dark
+        />
+      </div>
+      {timerOpen && (
+        <TimerPicker
+          minutes={state.timerMin}
+          onSelect={(m) => { setTimer(m); setTimerOpen(false); }}
+          onClose={() => setTimerOpen(false)}
+        />
+      )}
 
       <div style={{ position: 'relative', flex: 1, padding: '16px 20px 20px', overflowY: 'auto' }}>
         {state.mix.length === 0 ? (
@@ -378,6 +397,61 @@ export function TrackingSounds() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── v2: breathing halo behind the clock ────────────────────────
+// Three concentric soft rings that breathe in / out at a slow pace,
+// plus a few drifting particles. Pure CSS — no runtime cost beyond
+// the keyframe animation.
+function SleepBreathingHalo() {
+  return (
+    <>
+      <style>{`
+        @keyframes sleep-breathe {
+          0%, 100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.45; }
+          50%      { transform: translate(-50%, -50%) scale(1.15); opacity: 0.05; }
+        }
+        @keyframes sleep-drift {
+          0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+          20%  { opacity: 0.7; }
+          100% { transform: translate(0, -90px) scale(0.6); opacity: 0; }
+        }
+      `}</style>
+      <div style={{
+        position: 'absolute', left: '50%', top: '50%',
+        width: 320, height: 320,
+        pointerEvents: 'none',
+      }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{
+            position: 'absolute', left: '50%', top: '50%',
+            width: 220 + i * 70, height: 220 + i * 70,
+            borderRadius: '50%',
+            border: '1px solid rgba(255,255,255,0.18)',
+            animation: `sleep-breathe 7.5s ease-in-out infinite`,
+            animationDelay: `${i * 1.6}s`,
+          }} />
+        ))}
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden',
+      }}>
+        {Array.from({ length: 6 }).map((_, i) => {
+          const left = 18 + (i * 13) % 70;
+          const delay = i * 1.4;
+          return (
+            <div key={i} style={{
+              position: 'absolute', left: `${left}%`, top: '70%',
+              width: 3, height: 3, borderRadius: 2,
+              background: 'rgba(255,255,255,0.55)',
+              animation: `sleep-drift 9s ease-in-out infinite`,
+              animationDelay: `${delay}s`,
+            }} />
+          );
+        })}
+      </div>
+    </>
   );
 }
 

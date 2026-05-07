@@ -33,6 +33,7 @@ export type ScreenId =
   | 'practice-intro'
   | 'practice-session'
   | 'practice-complete'
+  | 'wind-down'
   | 'analytics'
   | 'journal'
   | 'journal-entry'

@@ -14,6 +14,14 @@ function createStore<T>(initial: T) {
   };
 }
 
+// ─── APP VERSION (v1 / v2 toggle in the header) ──────────────────
+export type AppVersion = 'v1' | 'v2';
+const versionStore = createStore<AppVersion>('v1');
+export function useVersion(): [AppVersion, (v: AppVersion) => void] {
+  const v = useSyncExternalStore(versionStore.subscribe, versionStore.get, versionStore.get);
+  return [v, versionStore.set];
+}
+
 // ─── HABITS ──────────────────────────────────────────────────────
 import type { ScreenId } from '../tokens';
 
@@ -163,7 +171,7 @@ export function usePracticeCycles(): [number, (n: number) => void] {
 
 // ─── SOUND MIX (active tracking) ─────────────────────────────────
 export type MixSound = { id: string; vol: number };
-export type MixState = { mix: MixSound[]; playing: boolean; alarm: string };
+export type MixState = { mix: MixSound[]; playing: boolean; alarm: string; timerMin: number | null };
 
 const mixStore = createStore<MixState>({
   mix: [
@@ -173,6 +181,7 @@ const mixStore = createStore<MixState>({
   ],
   playing: true,
   alarm: '07:00',
+  timerMin: null,
 });
 
 export function useMix() {
@@ -191,6 +200,7 @@ export function useMix() {
         : { ...p, mix: [...p.mix, { id, vol: 0.55 }] }),
     clearAll: () => mixStore.set((p) => ({ ...p, mix: [] })),
     togglePlay: () => mixStore.set((p) => ({ ...p, playing: !p.playing })),
+    setTimer: (min: number | null) => mixStore.set((p) => ({ ...p, timerMin: min })),
   };
 }
 
@@ -204,11 +214,12 @@ export type Schedule = {
   wakeHour: number;
   wakeMinute: number;
   sounds: MixSound[];      // sounds that play while falling asleep
+  timerMin: number | null; // how long the sounds stay on, null = until alarm
 };
 
 const schedulesStore = createStore<Schedule[]>([
-  { id: 'weekdays', name: 'Weekdays', days: [1, 2, 3, 4, 5], bedHour: 22, bedMinute: 30, wakeHour: 6, wakeMinute: 30, sounds: [{ id: 'rain', vol: 0.65 }, { id: 'chimes', vol: 0.45 }] },
-  { id: 'weekends', name: 'Weekends', days: [0, 6], bedHour: 0, bedMinute: 0, wakeHour: 8, wakeMinute: 30, sounds: [{ id: 'chimes', vol: 0.55 }] },
+  { id: 'weekdays', name: 'Weekdays', days: [1, 2, 3, 4, 5], bedHour: 22, bedMinute: 30, wakeHour: 6, wakeMinute: 30, sounds: [{ id: 'rain', vol: 0.65 }, { id: 'chimes', vol: 0.45 }], timerMin: 30 },
+  { id: 'weekends', name: 'Weekends', days: [0, 6], bedHour: 0, bedMinute: 0, wakeHour: 8, wakeMinute: 30, sounds: [{ id: 'chimes', vol: 0.55 }], timerMin: null },
 ]);
 
 export function useSchedules() {
@@ -249,6 +260,7 @@ export function useScheduleMix() {
         ? { ...s, sounds: s.sounds.filter((x) => x.id !== sid) }
         : { ...s, sounds: [...s.sounds, { id: sid, vol: 0.55 }] }),
     clearAll: () => mutate((s) => ({ ...s, sounds: [] })),
+    setTimer: (min: number | null) => mutate((s) => ({ ...s, timerMin: min })),
   };
 }
 
