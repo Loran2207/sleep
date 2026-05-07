@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { W } from '../tokens';
-import { go, back, replace } from '../state/navigation';
+import { back, replace } from '../state/navigation';
 import { TopPad, HeaderBar } from '../components/shared';
 import { CheckIcon } from '../components/icons';
 import { usePracticeCycles } from '../state/store';
