@@ -1,7 +1,7 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad, LiquidGlassNav } from '../components/shared';
-import { CheckIcon, ChevronLeftIcon, LockIcon, PlayIcon } from '../components/icons';
+import { LiquidGlassNav, StickyTopBar } from '../components/shared';
+import { CheckIcon, LockIcon, PlayIcon } from '../components/icons';
 import { useCurrentLesson } from '../state/store';
 
 type LessonState = 'done' | 'available' | 'locked';
@@ -32,11 +32,12 @@ export function CourseList() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
+      <StickyTopBar />
       <div style={{
         position: 'relative', overflow: 'hidden',
         background: 'linear-gradient(160deg, #1A1A1F 0%, #232328 55%, #2C2C32 100%)',
         color: '#fff',
-        padding: '0 20px 28px',
+        padding: '20px 20px 28px',
       }}>
         <div style={{
           position: 'absolute', top: -60, right: -60, width: 220, height: 220,
@@ -44,19 +45,8 @@ export function CourseList() {
           background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 65%)',
           pointerEvents: 'none',
         }} />
-        <TopPad />
-        <div style={{ height: 44, display: 'flex', alignItems: 'center' }}>
-          <button onClick={() => go('home')} aria-label="Back" style={{
-            width: 36, height: 36, borderRadius: 18, border: 'none',
-            background: 'rgba(255,255,255,0.12)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', padding: 0,
-          }}>
-            <ChevronLeftIcon size={18} stroke="#fff" />
-          </button>
-        </div>
 
-        <div style={{ marginTop: 8, position: 'relative' }}>
+        <div style={{ position: 'relative' }}>
           <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)' }}>Course · 12 lessons</div>
           <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.1, marginTop: 6 }}>The Science<br/>of Sleep</div>
           <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 10, lineHeight: 1.45, maxWidth: 320 }}>
@@ -141,7 +131,7 @@ export function CourseList() {
           );
         })}
       </div>
-      <LiquidGlassNav active="home" />
+      <LiquidGlassNav active="course" />
     </div>
   );
 }

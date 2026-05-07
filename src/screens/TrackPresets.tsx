@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { W } from '../tokens';
 import { startTracking } from '../state/tracking';
 import { BoltIcon, MoonGlyphIcon } from '../components/icons';
-import { TopPad, LiquidGlassNav } from '../components/shared';
+import { StickyTopBar, LiquidGlassNav } from '../components/shared';
 import { usePresets, type Preset } from '../state/store';
 
 export function TrackPresets() {
@@ -23,7 +23,7 @@ export function TrackPresets() {
       height: '100%', display: 'flex', flexDirection: 'column',
       background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative',
     }}>
-      <TopPad />
+      <StickyTopBar />
 
       <div style={{ padding: '18px 20px 10px' }}>
         <div style={{
