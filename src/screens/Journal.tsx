@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { StickyTopBar, DayStrip, LiquidGlassNav, type Day } from '../components/shared';
-import { HabitGlyph, MoodBlob } from '../components/icons';
+import { HabitGlyph } from '../components/icons';
+import { MoodFace } from '../components/MoodFace';
 import { useEditingJournalId, useJournal, type JournalEntry } from '../state/store';
 import { lookupFactor } from '../data/factors';
+import { readMood } from '../data/mood';
 
 const days: Day[] = [
   { dow: 'M', n: 9, mood: 'good' },
@@ -86,6 +88,7 @@ function EntryRow({ entry, isLast, onClick }: {
   onClick: () => void;
 }) {
   const c = moodColor[entry.legacyMood] || W.weak;
+  const tint = readMood(entry.moodX, entry.moodY).tint;
   return (
     <div style={{ display: 'flex', gap: 14, position: 'relative' }}>
       <div style={{ width: 12, position: 'relative', flexShrink: 0 }}>
@@ -112,7 +115,7 @@ function EntryRow({ entry, isLast, onClick }: {
           cursor: 'pointer',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <MoodBlob type={entry.legacyMood} size={32} />
+            <MoodFace x={entry.moodX} y={entry.moodY} tint={tint} size={32} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: W.ink }}>{entry.feeling}</div>
               <div style={{ fontSize: 12, color: W.weak, marginTop: 2 }}>{entry.whenLabel}</div>
