@@ -5,13 +5,12 @@ import {
   GlyphPlay, GlyphPause, GlyphSliders, GlyphPlus, GlyphChevDn, GlyphTrash,
 } from '../components/icons';
 import { TopPad, VolumeSlider } from '../components/shared';
-import { useMix, useVersion, useSchedules, useSleepMode, useNapDuration, pickScheduleForDay } from '../state/store';
+import { useMix, useSchedules, useSleepMode, useNapDuration, pickScheduleForDay } from '../state/store';
 import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from '../data/sounds';
 
 // ─── Tracking Active ─────────────────────────────────────────────
 export function TrackingActive() {
   const { state, togglePlay, setAlarm } = useMix();
-  const [version] = useVersion();
   const [mode] = useSleepMode();
   const [napDuration, setNapDuration] = useNapDuration();
   const { list: schedules, update: updateSchedule } = useSchedules();
@@ -82,7 +81,7 @@ export function TrackingActive() {
         position: 'relative', flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', padding: '8px 20px 12px', textAlign: 'center',
       }}>
-        {version === 'v2' && <SleepBreathingHalo />}
+        <SleepBreathingHalo />
         <div style={{
           fontSize: 88, fontWeight: 200, letterSpacing: -3,
           fontVariantNumeric: 'tabular-nums', lineHeight: 1,
@@ -111,7 +110,7 @@ export function TrackingActive() {
           {mode === 'nap' ? `Wakes you at ${state.alarm}` : `Wakes you in ${h}h ${String(m).padStart(2, '0')}m`}
         </div>
 
-        {version === 'v2' && mode === 'sleep' && (
+        {mode === 'sleep' && (
           <div onClick={() => setTimerOpen(true)} style={{
             marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '6px 12px', borderRadius: 999,
@@ -671,8 +670,6 @@ function TimerSheet({ minutes, onSelect, onClose }: {
 
 // ─── Stop confirm ───────────────────────────────────────────────
 export function TrackingStopConfirm() {
-  const [version] = useVersion();
-  const endTo: ScreenIdLike = version === 'v2' ? 'wakeup-survey' : 'home';
   return (
     <div style={{ height: '100%', background: 'rgba(0,0,0,0.55)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', fontFamily: W.font, color: W.ink }}>
       <div style={{
@@ -683,16 +680,14 @@ export function TrackingStopConfirm() {
         <div style={{ padding: '0 24px', textAlign: 'center' }}>
           <div style={{ fontSize: 18, fontWeight: 700 }}>Stop tracking?</div>
           <div style={{ fontSize: 13, color: W.weak, marginTop: 8, lineHeight: 1.5 }}>
-            {version === 'v2'
-              ? "We'll ask you a few quick questions about how you slept."
-              : 'Your sleep session will end and the alarm will be cancelled.'}
+            We'll ask you a few quick questions about how you slept.
           </div>
         </div>
         <div style={{ padding: '20px 16px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div onClick={() => go(endTo)} style={{
+          <div onClick={() => go('wakeup-survey')} style={{
             padding: '14px 0', textAlign: 'center', background: W.ink, color: W.paper,
             borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-          }}>{version === 'v2' ? 'End & log' : 'End session'}</div>
+          }}>End & log</div>
           <div onClick={() => go('tracking-active')} style={{
             padding: '14px 0', textAlign: 'center', border: `1.5px solid ${W.veryweak}`,
             borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer',
@@ -702,5 +697,3 @@ export function TrackingStopConfirm() {
     </div>
   );
 }
-
-type ScreenIdLike = 'home' | 'wakeup-survey';

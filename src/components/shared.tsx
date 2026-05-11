@@ -9,7 +9,7 @@ import {
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
 import { lookupSound } from '../data/sounds';
-import { useVersion, useNightShiftDone } from '../state/store';
+import { useNightShiftDone } from '../state/store';
 import { CheckIcon, NightShiftIcon } from './icons';
 
 // Small breathing pad above content. Adds iOS safe-area-inset-top so the
@@ -190,9 +190,9 @@ export function DayStrip({
 
 // ─── Top app bar ─────────────────────────────────────────────────
 // Used on every primary navigated screen. Logo on the left,
-// version toggle in the middle, circular profile button on the right.
-// `background` lets a screen blend the bar with its own banner — e.g.,
-// Course paints it the same colour as the gradient banner top.
+// circular profile button on the right. `background` lets a
+// screen blend the bar with its own banner — e.g., Course paints
+// it the same colour as the gradient banner top.
 export function StickyTopBar({ background }: { background?: string } = {}) {
   return (
     <div style={{
@@ -210,7 +210,6 @@ export function StickyTopBar({ background }: { background?: string } = {}) {
           fontFamily: '"Times New Roman", Georgia, serif',
           fontStyle: 'italic', color: W.ink,
         }}>night</div>
-        <VersionChip />
         <div onClick={() => go('profile')} aria-label="Profile" style={{
           width: 34, height: 34, borderRadius: 17,
           background: W.fill, border: `1px solid ${W.veryweak}`,
@@ -219,31 +218,6 @@ export function StickyTopBar({ background }: { background?: string } = {}) {
           fontSize: 13, fontWeight: 600, color: W.ink, flexShrink: 0,
         }}>A</div>
       </div>
-    </div>
-  );
-}
-
-function VersionChip() {
-  const [v, setV] = useVersion();
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center',
-      background: W.fill, border: `1px solid ${W.veryweak}`,
-      borderRadius: 999, padding: 2, gap: 2,
-    }}>
-      {(['v1', 'v2'] as const).map((id) => {
-        const active = v === id;
-        return (
-          <div key={id} onClick={() => setV(id)} style={{
-            padding: '4px 11px', borderRadius: 999,
-            fontSize: 11, fontWeight: 600, cursor: 'pointer',
-            background: active ? W.ink : 'transparent',
-            color: active ? W.bg : W.weak,
-            transition: 'background .12s ease, color .12s ease',
-            fontVariantNumeric: 'tabular-nums', letterSpacing: 0.2,
-          }}>{id}</div>
-        );
-      })}
     </div>
   );
 }
