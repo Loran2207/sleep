@@ -90,14 +90,29 @@ export const DIARY_QUESTIONS: DiaryQuestion[] = [
   },
   {
     id: 'factors',
-    prompt: 'Anything that may have affected your sleep?',
+    prompt: 'What may have hurt your sleep?',
     multi: true,
     options: [
       { id: 'none', label: 'Nothing' },
+      { id: 'caffeine-late', label: 'Caffeine after 3pm' },
       { id: 'alcohol', label: 'Alcohol' },
+      { id: 'late-dinner', label: 'Late dinner' },
+      { id: 'screens', label: 'Screens before bed' },
       { id: 'pills', label: 'Sleeping pills' },
       { id: 'stress', label: 'Stress' },
+      { id: 'long-nap', label: 'Long nap yesterday' },
       { id: 'other', label: 'Something else' },
+    ],
+  },
+  {
+    id: 'helpers',
+    prompt: 'What helped tonight?',
+    multi: true,
+    options: [
+      { id: 'none', label: 'Nothing in particular' },
+      { id: 'sunlight', label: 'Morning sunlight' },
+      { id: 'read', label: 'Read before bed' },
+      { id: 'wind-down', label: 'Wind-down routine' },
     ],
   },
 ];

@@ -1,12 +1,11 @@
-import { useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { startTracking } from '../state/tracking';
 import { TopPad } from '../components/shared';
-import { ChevronLeftIcon, ChevronRightIcon, HabitGlyph, PlayIcon } from '../components/icons';
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, HabitGlyph, PlayIcon } from '../components/icons';
 import {
   useEditingScheduleId, useSchedules, useSleepMode, useNapDuration,
-  useMix, pickScheduleForDay,
+  useMix, useWindDownStep, usePracticeDone, pickScheduleForDay,
 } from '../state/store';
 import { lookupSound } from '../data/sounds';
 
@@ -31,7 +30,7 @@ function napWakeTime(durationMin: number) {
 
 export function WindDown() {
   const [mode, setMode] = useSleepMode();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useWindDownStep();
 
   function handleBack() {
     if (mode === 'sleep' && step === 2) setStep(1);
@@ -127,6 +126,7 @@ function RoutineStep({ onContinue }: { onContinue: () => void }) {
   const todaySchedule = pickScheduleForDay(schedules, 4);
   const bedtime = fmt(todaySchedule.bedHour, todaySchedule.bedMinute);
   const wake = fmt(todaySchedule.wakeHour, todaySchedule.wakeMinute);
+  const [practiceDone] = usePracticeDone();
 
   return (
     <>
@@ -142,11 +142,41 @@ function RoutineStep({ onContinue }: { onContinue: () => void }) {
 
       <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
         <SectionTitle>Practice</SectionTitle>
-        <div onClick={() => go('practice-intro')} style={cardStyle}>
-          <div style={iconBoxStyle}><HabitGlyph name="breath" size={20} stroke="#fff" /></div>
+        <div onClick={() => go('practice-intro')} style={{
+          ...cardStyle,
+          border: practiceDone
+            ? '1px solid rgba(127, 227, 161, 0.45)'
+            : '1px solid rgba(255,255,255,0.08)',
+        }}>
+          <div style={{
+            ...iconBoxStyle,
+            background: practiceDone ? '#7FE3A1' : iconBoxStyle.background,
+            border: practiceDone ? '1px solid #7FE3A1' : iconBoxStyle.border,
+          }}>
+            {practiceDone
+              ? <CheckIcon size={20} stroke="#0E1014" />
+              : <HabitGlyph name="breath" size={20} stroke="#fff" />}
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>4-7-8 breathing</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>Inhale 4s · hold 7s · exhale 8s</div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              fontSize: 15, fontWeight: 600, lineHeight: 1.2,
+            }}>
+              4-7-8 breathing
+              {practiceDone && (
+                <span style={{
+                  fontSize: 10, fontWeight: 600,
+                  padding: '2px 7px', borderRadius: 999,
+                  background: 'rgba(127,227,161,0.18)',
+                  color: '#7FE3A1',
+                  border: '1px solid rgba(127,227,161,0.35)',
+                  letterSpacing: 0.2,
+                }}>Done</span>
+              )}
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>
+              {practiceDone ? 'Tap to redo' : 'Inhale 4s · hold 7s · exhale 8s'}
+            </div>
           </div>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', marginRight: 4 }}>~3 min</div>
           <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
@@ -175,10 +205,12 @@ function RoutineStep({ onContinue }: { onContinue: () => void }) {
           borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
           boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
         }}>Continue</div>
-        <div onClick={onContinue} style={{
-          marginTop: 10, padding: '10px 0', textAlign: 'center',
-          color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-        }}>Skip practice</div>
+        {!practiceDone && (
+          <div onClick={onContinue} style={{
+            marginTop: 10, padding: '10px 0', textAlign: 'center',
+            color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+          }}>Skip practice</div>
+        )}
       </div>
     </>
   );
