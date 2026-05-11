@@ -3,7 +3,7 @@ import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
   HomeFilled, AnalyticsFilled, JournalFilled, CourseFilled,
-  ChevronRightIcon, MoodBlob,
+  ChevronRightIcon,
   type IconProps,
 } from './icons';
 import type { ScreenId } from '../tokens';
@@ -11,6 +11,8 @@ import type { MoodType } from './icons';
 import { lookupSound } from '../data/sounds';
 import { useNightShiftDone } from '../state/store';
 import { CheckIcon, NightShiftIcon } from './icons';
+import { MoodFace } from './MoodFace';
+import { moodToPosition } from '../data/mood';
 
 // Small breathing pad above content. Adds iOS safe-area-inset-top so the
 // system clock doesn't overlap content when the page runs as a PWA on iOS.
@@ -179,13 +181,28 @@ export function DayStrip({
             <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', height: 28 }}>
               {isToday
                 ? <div style={{ width: 8, height: 8, borderRadius: 4, background: W.ink, marginTop: 10 }} />
-                : <MoodBlob type={isFuture ? null : (d.mood ?? null)} size={28} />}
+                : <DayMoodIcon mood={isFuture ? null : (d.mood ?? null)} />}
             </div>
           </div>
         );
       })}
     </div>
   );
+}
+
+// Renders the day-strip mood marker with the same blob face used in
+// the mood dialog, just scaled down. A null mood draws a dashed ring.
+function DayMoodIcon({ mood }: { mood: MoodType }) {
+  if (!mood) {
+    return (
+      <div style={{
+        width: 28, height: 28, borderRadius: 14,
+        border: '1.5px dashed #3A3A40',
+      }} />
+    );
+  }
+  const { x, y, tint } = moodToPosition(mood);
+  return <MoodFace x={x} y={y} tint={tint} size={28} />;
 }
 
 // ─── Top app bar ─────────────────────────────────────────────────

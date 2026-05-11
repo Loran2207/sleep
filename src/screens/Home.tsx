@@ -11,7 +11,7 @@ import {
   type Day,
 } from '../components/shared';
 import { MoodFace } from '../components/MoodFace';
-import { useSchedules, pickScheduleForDay } from '../state/store';
+import { useSchedules, useWindDownStep, usePracticeDone, pickScheduleForDay } from '../state/store';
 import { readMood } from '../data/mood';
 import { lookupFactor } from '../data/factors';
 
@@ -85,6 +85,14 @@ function RoutineHero() {
   const todaySchedule = pickScheduleForDay(schedules, 4);
   const countdown = '4h 12m';
   const sleepEst = '8h 30m';
+  const [, setStep] = useWindDownStep();
+  const [, setPracticeDone] = usePracticeDone();
+
+  function startWindDown() {
+    setStep(1);
+    setPracticeDone(false);
+    go('wind-down');
+  }
 
   const fmt = (h: number, m: number) =>
     `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
@@ -108,7 +116,7 @@ function RoutineHero() {
       </div>
 
       <div style={{ marginTop: 26 }}>
-        <div onClick={() => go('wind-down')} style={{
+        <div onClick={startWindDown} style={{
           padding: '20px 0', textAlign: 'center',
           background: W.ink, color: W.bg, borderRadius: 999,
           fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em',
@@ -177,6 +185,9 @@ function pastSummary(day: Day) {
   const seed = ((day.n || 0) * 7) % factorPool.length;
   const count = mood === 'great' ? 2 : mood === 'good' ? 2 : mood === 'meh' ? 3 : 3;
   const factors = Array.from({ length: count }, (_, i) => factorPool[(seed + i) % factorPool.length]);
+  // Show breathing practice on days the user "likely" did it — every
+  // other day in the mock. On a real backend this would be a logged event.
+  if ((day.n || 0) % 2 === 0) factors.push('practice');
   const pos = positions[mood ?? 'meh'];
   return { ...pos, factors };
 }

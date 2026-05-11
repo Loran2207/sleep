@@ -5,8 +5,9 @@ import { TopPad } from '../components/shared';
 import { CheckIcon, ChevronLeftIcon, MicIcon, StopIcon, XIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
 import { DiaryQuiz } from '../components/DiaryQuiz';
-import { useJournal } from '../state/store';
+import { useJournal, usePracticeDone } from '../state/store';
 import { readMood } from '../data/mood';
+import { factorsFromDiary } from '../data/factors';
 
 const GRID_COLS = 9;
 const GRID_ROWS = 7;
@@ -41,6 +42,7 @@ const STEP_INTRO: Record<Step, string> = {
 export function WakeupSurvey() {
   const { add } = useJournal();
   const [step, setStep] = useState<Step>('mood');
+  const [practiceDone] = usePracticeDone();
 
   const [moodX, setMoodX] = useState(0.7);
   const [moodY, setMoodY] = useState(0.45);
@@ -50,14 +52,6 @@ export function WakeupSurvey() {
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
   const stepIdx = STEP_ORDER.indexOf(step);
   const isLast = step === 'diary';
-
-  function deriveLegacyFactors(): string[] {
-    const factors = (diary['factors'] as string[] | undefined) ?? [];
-    const map: Record<string, string> = {
-      alcohol: 'alcohol', stress: 'stress', pills: 'late-dinner',
-    };
-    return factors.map((f) => map[f]).filter(Boolean);
-  }
 
   function save() {
     const now = new Date();
@@ -72,7 +66,7 @@ export function WakeupSurvey() {
       date, time, whenLabel,
       text: text.trim(),
       context: [],
-      factors: deriveLegacyFactors(),
+      factors: factorsFromDiary(diary, { practiceDone }),
       diary,
     });
     go('home');

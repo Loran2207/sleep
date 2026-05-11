@@ -32,6 +32,22 @@ export function readMood(x: number, y: number): MoodReading {
   return { feeling: 'Calm', desc: 'At ease', tint: '#7FB6E3', legacyMood: 'good' };
 }
 
+// Maps a coarse legacy mood category onto a 2D mood-grid position
+// (and its tint). Used to draw the same MoodFace blob anywhere the
+// app only stores the legacy mood (day strip, past-day card).
+export type LegacyMood = 'great' | 'good' | 'meh' | 'bad' | 'awful';
+export function moodToPosition(mood: LegacyMood): { x: number; y: number; tint: string } {
+  const map: Record<LegacyMood, { x: number; y: number }> = {
+    great: { x: 0.85, y: 0.55 },
+    good:  { x: 0.7,  y: 0.4 },
+    meh:   { x: 0.5,  y: 0.45 },
+    bad:   { x: 0.3,  y: 0.7 },
+    awful: { x: 0.15, y: 0.5 },
+  };
+  const pos = map[mood];
+  return { ...pos, tint: readMood(pos.x, pos.y).tint };
+}
+
 export const CONTEXT_TAGS: { id: string; label: string }[] = [
   { id: 'work', label: 'work' },
   { id: 'study', label: 'study' },

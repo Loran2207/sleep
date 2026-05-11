@@ -31,6 +31,22 @@ export function useNapDuration(): [number, (n: number) => void] {
   return [v, napDurationStore.set];
 }
 
+// ─── WIND-DOWN STATE ────────────────────────────────────────────
+// Current step (1 = routine / breathing, 2 = sounds + timer) and a
+// flag the practice flow flips on completion. Both reset when the
+// user taps "Go to sleep" from Home, so each evening starts fresh.
+const windDownStepStore = createStore<1 | 2>(1);
+export function useWindDownStep(): [1 | 2, (s: 1 | 2) => void] {
+  const v = useSyncExternalStore(windDownStepStore.subscribe, windDownStepStore.get, windDownStepStore.get);
+  return [v, windDownStepStore.set];
+}
+
+const practiceDoneStore = createStore<boolean>(false);
+export function usePracticeDone(): [boolean, (v: boolean) => void] {
+  const v = useSyncExternalStore(practiceDoneStore.subscribe, practiceDoneStore.get, practiceDoneStore.get);
+  return [v, practiceDoneStore.set];
+}
+
 // ─── NIGHT SHIFT ENABLED FLAG (Home card) ───────────────────────
 const nightShiftStore = createStore<boolean>(false);
 export function useNightShiftDone(): [boolean, (v: boolean) => void] {

@@ -3,7 +3,7 @@ import { W } from '../tokens';
 import { back, replace } from '../state/navigation';
 import { TopPad, HeaderBar } from '../components/shared';
 import { CheckIcon } from '../components/icons';
-import { usePracticeCycles } from '../state/store';
+import { usePracticeCycles, usePracticeDone, useWindDownStep } from '../state/store';
 
 export function PracticeIntro() {
   const [seen, setSeen] = useState<boolean>(() => {
@@ -371,9 +371,20 @@ export function PracticeComplete() {
   const [feeling, setFeeling] = useState<string | null>(null);
   const [saveToJournal, setSaveToJournal] = useState(true);
   const [cycles] = usePracticeCycles();
+  const [, setPracticeDone] = usePracticeDone();
+  const [, setWindStep] = useWindDownStep();
   const seconds = cycles * 19;
   const mm = Math.floor(seconds / 60);
   const ss = String(seconds % 60).padStart(2, '0');
+
+  // Mark practice as done so Wind down's Step 1 lands on the music
+  // step (and shows the "Done" badge) when the user returns.
+  useEffect(() => {
+    setPracticeDone(true);
+    setWindStep(2);
+    // Only on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{
