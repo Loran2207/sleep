@@ -199,17 +199,30 @@ function RoutineStep({ onContinue }: { onContinue: () => void }) {
         padding: '12px 16px 24px', position: 'relative',
         background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
       }}>
-        <div onClick={onContinue} style={{
-          padding: '18px 0', textAlign: 'center',
-          background: '#fff', color: '#0E1014',
-          borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
-        }}>Continue</div>
-        {!practiceDone && (
+        {practiceDone ? (
           <div onClick={onContinue} style={{
-            marginTop: 10, padding: '10px 0', textAlign: 'center',
-            color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-          }}>Skip practice</div>
+            padding: '18px 0', textAlign: 'center',
+            background: '#fff', color: '#0E1014',
+            borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+          }}>Continue to sounds</div>
+        ) : (
+          <>
+            <div onClick={() => go('practice-intro')} style={{
+              padding: '18px 0', textAlign: 'center',
+              background: '#fff', color: '#0E1014',
+              borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            }}>
+              <PlayIcon size={13} stroke="#0E1014" />
+              Start practice
+            </div>
+            <div onClick={onContinue} style={{
+              marginTop: 10, padding: '10px 0', textAlign: 'center',
+              color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            }}>Skip practice</div>
+          </>
         )}
       </div>
     </>
