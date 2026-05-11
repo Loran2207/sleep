@@ -1,9 +1,11 @@
 import { W } from '../tokens';
 import { CheckIcon } from './icons';
-import { DIARY_QUESTIONS, type DiaryOption, type DiaryQuestion } from '../data/diary';
+import { DIARY_QUESTIONS, type DiaryQuestion } from '../data/diary';
 
-// Reusable sleep-diary quiz used by the journal entry editor.
-// Renders every question on a single scrollable page.
+// Reusable sleep-diary quiz. Each question shows its prompt and a vertical
+// list of full-width option rows (radio for single-select, checkbox for
+// multi-select). The vertical list reads better than wrapping chips, and
+// the design feels native to iOS settings.
 export function DiaryQuiz({ diary, onChange }: {
   diary: Record<string, string | string[]>;
   onChange: (next: Record<string, string | string[]>) => void;
@@ -18,60 +20,109 @@ export function DiaryQuiz({ diary, onChange }: {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 22, paddingBottom: 12 }}>
-      {DIARY_QUESTIONS.map((q) => (
-        <div key={q.id}>
-          <DiaryPrompt>{q.prompt}</DiaryPrompt>
-          <DiaryOptions
-            question={q}
-            value={diary[q.id]}
-            onSingle={(v) => setSingle(q.id, v)}
-            onMulti={(v) => toggleMulti(q.id, v)}
-          />
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {DIARY_QUESTIONS.map((q, i) => (
+        <DiaryGroup
+          key={q.id}
+          index={i + 1}
+          question={q}
+          value={diary[q.id]}
+          onSingle={(v) => setSingle(q.id, v)}
+          onMulti={(v) => toggleMulti(q.id, v)}
+        />
       ))}
     </div>
   );
 }
 
-export function DiaryOptions({ question, value, onSingle, onMulti }: {
+export function DiaryGroup({ index, question, value, onSingle, onMulti }: {
+  index?: number;
   question: DiaryQuestion;
   value: string | string[] | undefined;
   onSingle: (id: string) => void;
   onMulti: (id: string) => void;
 }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 4px' }}>
-      {question.options.map((opt) => {
-        const on = question.multi
-          ? Array.isArray(value) && (value as string[]).includes(opt.id)
-          : value === opt.id;
-        return (
-          <DiaryChip
-            key={opt.id}
-            option={opt}
-            on={on}
-            onClick={() => question.multi ? onMulti(opt.id) : onSingle(opt.id)}
-          />
-        );
-      })}
+    <div>
+      <DiaryPrompt index={index}>{question.prompt}</DiaryPrompt>
+      <div style={{
+        background: W.paper,
+        border: `1px solid ${W.fill}`,
+        borderRadius: 16,
+        overflow: 'hidden',
+      }}>
+        {question.options.map((opt, i) => {
+          const isLast = i === question.options.length - 1;
+          const on = question.multi
+            ? Array.isArray(value) && (value as string[]).includes(opt.id)
+            : value === opt.id;
+          return (
+            <DiaryRow
+              key={opt.id}
+              label={opt.label}
+              on={on}
+              multi={!!question.multi}
+              isLast={isLast}
+              onClick={() => question.multi ? onMulti(opt.id) : onSingle(opt.id)}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function DiaryChip({ option, on, onClick }: { option: DiaryOption; on: boolean; onClick: () => void }) {
+function DiaryRow({ label, on, multi, isLast, onClick }: {
+  label: string; on: boolean; multi: boolean; isLast: boolean; onClick: () => void;
+}) {
   return (
     <div onClick={onClick} style={{
-      display: 'inline-flex', alignItems: 'center', gap: 8,
-      padding: '9px 14px', borderRadius: 999,
+      padding: '14px 16px',
+      borderBottom: isLast ? 'none' : `1px solid ${W.fill}`,
+      display: 'flex', alignItems: 'center', gap: 12,
       cursor: 'pointer',
-      background: on ? W.ink : 'transparent',
-      color: on ? W.bg : W.ink,
-      border: `1px solid ${on ? W.ink : W.fill}`,
-      transition: 'background .12s ease, color .12s ease',
+      transition: 'background .12s ease',
     }}>
-      {on && <CheckIcon size={12} stroke={W.bg} />}
-      <span style={{ fontSize: 13, fontWeight: 500 }}>{option.label}</span>
+      <div style={{
+        flex: 1, minWidth: 0,
+        fontSize: 14, fontWeight: on ? 500 : 400,
+        color: on ? W.ink : W.ink,
+        lineHeight: 1.35,
+      }}>{label}</div>
+      <SelectIndicator on={on} multi={multi} />
+    </div>
+  );
+}
+
+function SelectIndicator({ on, multi }: { on: boolean; multi: boolean }) {
+  if (multi) {
+    return (
+      <div style={{
+        width: 20, height: 20, borderRadius: 5,
+        border: `1.5px solid ${on ? W.ink : W.veryweak}`,
+        background: on ? W.ink : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+        transition: 'background .12s ease, border-color .12s ease',
+      }}>
+        {on && <CheckIcon size={12} stroke={W.bg} />}
+      </div>
+    );
+  }
+  return (
+    <div style={{
+      width: 20, height: 20, borderRadius: 10,
+      border: `1.5px solid ${on ? W.ink : W.veryweak}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0,
+      transition: 'border-color .12s ease',
+    }}>
+      {on && (
+        <div style={{
+          width: 10, height: 10, borderRadius: 5, background: W.ink,
+          transition: 'background .12s ease',
+        }} />
+      )}
     </div>
   );
 }
@@ -92,11 +143,18 @@ export function diaryAnsweredCount(diary: Record<string, string | string[]>): nu
 
 export const DIARY_TOTAL = DIARY_QUESTIONS.length;
 
-export function DiaryPrompt({ children }: { children: React.ReactNode }) {
+export function DiaryPrompt({ index, children }: { index?: number; children: React.ReactNode }) {
   return (
-    <div style={{
-      fontSize: 14, fontWeight: 600, color: W.ink,
-      padding: '0 4px 10px', lineHeight: 1.35,
-    }}>{children}</div>
+    <div style={{ padding: '0 4px 10px' }}>
+      {index !== undefined && (
+        <div style={{
+          fontSize: 11, color: W.weak, fontWeight: 500,
+          marginBottom: 4, fontVariantNumeric: 'tabular-nums',
+        }}>Question {index}</div>
+      )}
+      <div style={{
+        fontSize: 15, fontWeight: 600, color: W.ink, lineHeight: 1.35,
+      }}>{children}</div>
+    </div>
   );
 }

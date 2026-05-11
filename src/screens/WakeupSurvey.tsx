@@ -4,10 +4,9 @@ import { go } from '../state/navigation';
 import { TopPad } from '../components/shared';
 import { CheckIcon, ChevronLeftIcon, MicIcon, StopIcon, XIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
-import { DiaryOptions, DiaryPrompt } from '../components/DiaryQuiz';
+import { DiaryQuiz } from '../components/DiaryQuiz';
 import { useJournal } from '../state/store';
 import { readMood } from '../data/mood';
-import { DIARY_QUESTIONS } from '../data/diary';
 
 const GRID_COLS = 9;
 const GRID_ROWS = 7;
@@ -27,10 +26,21 @@ function getRecognitionCtor(): RecogConstructor | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
+const STEP_ORDER: Step[] = ['mood', 'note', 'diary'];
+const STEP_TITLE: Record<Step, string> = {
+  mood: 'How do you feel?',
+  note: 'A note about today',
+  diary: 'Sleep diary',
+};
+const STEP_INTRO: Record<Step, string> = {
+  mood: 'Pick anywhere on the grid.',
+  note: 'Tap the mic and tell us — or skip.',
+  diary: 'Take a moment to log how the night went.',
+};
+
 export function WakeupSurvey() {
   const { add } = useJournal();
   const [step, setStep] = useState<Step>('mood');
-  const [diaryIdx, setDiaryIdx] = useState(0);
 
   const [moodX, setMoodX] = useState(0.7);
   const [moodY, setMoodY] = useState(0.45);
@@ -38,22 +48,9 @@ export function WakeupSurvey() {
   const [diary, setDiary] = useState<Record<string, string | string[]>>({});
 
   const reading = useMemo(() => readMood(moodX, moodY), [moodX, moodY]);
-  const diaryTotal = DIARY_QUESTIONS.length;
-  const onLastDiary = step === 'diary' && diaryIdx === diaryTotal - 1;
-  const stepIdx = step === 'mood' ? 0 : step === 'note' ? 1 : 2;
-  const stepTitle = step === 'mood'
-    ? 'How do you feel?'
-    : step === 'note'
-      ? 'A note about today'
-      : 'Sleep diary';
-  const stepIntro = step === 'mood'
-    ? 'Pick anywhere on the grid.'
-    : step === 'note'
-      ? 'Tap the mic and tell us how you feel — or skip.'
-      : `Question ${diaryIdx + 1} of ${diaryTotal}`;
+  const stepIdx = STEP_ORDER.indexOf(step);
+  const isLast = step === 'diary';
 
-  // Map the new "factors" answer onto the legacy `factors` array so the
-  // existing factor chips on past-day cards keep working.
   function deriveLegacyFactors(): string[] {
     const factors = (diary['factors'] as string[] | undefined) ?? [];
     const map: Record<string, string> = {
@@ -82,34 +79,15 @@ export function WakeupSurvey() {
   }
 
   function next() {
-    if (step === 'mood') setStep('note');
-    else if (step === 'note') setStep('diary');
-    else if (step === 'diary') {
-      if (diaryIdx < diaryTotal - 1) setDiaryIdx(diaryIdx + 1);
-      else save();
-    }
+    if (isLast) { save(); return; }
+    setStep(STEP_ORDER[stepIdx + 1]);
   }
-
   function back() {
-    if (step === 'note') setStep('mood');
-    else if (step === 'diary') {
-      if (diaryIdx > 0) setDiaryIdx(diaryIdx - 1);
-      else setStep('note');
-    }
+    if (stepIdx === 0) return;
+    setStep(STEP_ORDER[stepIdx - 1]);
   }
 
-  const canGoBack = step !== 'mood';
-
-  function setSingle(qId: string, value: string) {
-    setDiary((d) => ({ ...d, [qId]: d[qId] === value ? '' : value }));
-  }
-  function toggleMulti(qId: string, value: string) {
-    setDiary((d) => {
-      const cur = (d[qId] as string[] | undefined) ?? [];
-      const next = cur.includes(value) ? cur.filter((x) => x !== value) : [...cur, value];
-      return { ...d, [qId]: next };
-    });
-  }
+  const canGoBack = stepIdx > 0;
 
   return (
     <div style={{
@@ -133,7 +111,7 @@ export function WakeupSurvey() {
             <XIcon size={14} stroke={W.ink} />
           </div>
         )}
-        <StepDots current={stepIdx} total={3} />
+        <StepDots current={stepIdx} total={STEP_ORDER.length} />
         <div style={{ width: 36 }} />
       </div>
 
@@ -144,23 +122,9 @@ export function WakeupSurvey() {
         <div style={{
           fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em',
           marginTop: 6, lineHeight: 1.25,
-        }}>{stepTitle}</div>
-        <div style={{ fontSize: 12, color: W.weak, marginTop: 4 }}>{stepIntro}</div>
+        }}>{STEP_TITLE[step]}</div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 4 }}>{STEP_INTRO[step]}</div>
       </div>
-
-      {step === 'diary' && (
-        <div style={{ position: 'relative', padding: '4px 22px 8px' }}>
-          <div style={{
-            height: 3, borderRadius: 2, background: W.fill, overflow: 'hidden',
-          }}>
-            <div style={{
-              width: `${((diaryIdx + 1) / diaryTotal) * 100}%`,
-              height: '100%', background: W.ink,
-              transition: 'width .2s ease',
-            }} />
-          </div>
-        </div>
-      )}
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 16px', position: 'relative' }}>
         {step === 'mood' && (
@@ -174,12 +138,9 @@ export function WakeupSurvey() {
         )}
         {step === 'note' && <NoteStep value={text} onChange={setText} />}
         {step === 'diary' && (
-          <DiarySlide
-            question={DIARY_QUESTIONS[diaryIdx]}
-            value={diary[DIARY_QUESTIONS[diaryIdx].id]}
-            onSingle={(v) => setSingle(DIARY_QUESTIONS[diaryIdx].id, v)}
-            onMulti={(v) => toggleMulti(DIARY_QUESTIONS[diaryIdx].id, v)}
-          />
+          <div style={{ padding: '4px 0 12px' }}>
+            <DiaryQuiz diary={diary} onChange={setDiary} />
+          </div>
         )}
       </div>
 
@@ -199,11 +160,11 @@ export function WakeupSurvey() {
             boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
-            {onLastDiary && <CheckIcon size={14} stroke="#0E0E11" />}
-            {onLastDiary ? 'Save & finish' : 'Continue'}
+            {isLast && <CheckIcon size={14} stroke="#0E0E11" />}
+            {isLast ? 'Save & finish' : 'Continue'}
           </div>
         </div>
-        {step === 'diary' && !onLastDiary && (
+        {step === 'diary' && (
           <div onClick={save} style={{
             marginTop: 10, padding: '10px 0', textAlign: 'center',
             color: W.weak, fontSize: 13, fontWeight: 500, cursor: 'pointer',
@@ -266,26 +227,6 @@ function MoodStep({ moodX, moodY, onChange, tint, feeling, desc }: {
 
 function NoteStep({ value, onChange }: { value: string; onChange: (s: string) => void }) {
   return <VoiceTextField value={value} onChange={onChange} />;
-}
-
-function DiarySlide({ question, value, onSingle, onMulti }: {
-  question: typeof DIARY_QUESTIONS[number];
-  value: string | string[] | undefined;
-  onSingle: (id: string) => void;
-  onMulti: (id: string) => void;
-}) {
-  return (
-    <div style={{ padding: '12px 4px 8px' }}>
-      <DiaryPrompt>{question.prompt}</DiaryPrompt>
-      <DiaryOptions question={question} value={value} onSingle={onSingle} onMulti={onMulti} />
-      {question.multi && (
-        <div style={{
-          marginTop: 12, padding: '0 4px',
-          fontSize: 11, color: W.weak,
-        }}>Pick anything that applies — or none.</div>
-      )}
-    </div>
-  );
 }
 
 function TintGlow({ color }: { color: string }) {

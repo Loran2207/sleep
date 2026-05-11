@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { startTracking } from '../state/tracking';
@@ -30,6 +31,18 @@ function napWakeTime(durationMin: number) {
 
 export function WindDown() {
   const [mode, setMode] = useSleepMode();
+  const [step, setStep] = useState<1 | 2>(1);
+
+  function handleBack() {
+    if (mode === 'sleep' && step === 2) setStep(1);
+    else go('home');
+  }
+
+  function switchMode(m: 'sleep' | 'nap') {
+    setMode(m);
+    setStep(1);
+  }
+
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
@@ -40,7 +53,7 @@ export function WindDown() {
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 14px', height: 44 }}>
-        <button onClick={() => go('home')} aria-label="Back" style={{
+        <button onClick={handleBack} aria-label="Back" style={{
           width: 36, height: 36, borderRadius: 18, border: 'none',
           background: 'rgba(255,255,255,0.08)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -48,10 +61,23 @@ export function WindDown() {
         }}>
           <ChevronLeftIcon size={18} stroke="#fff" />
         </button>
-        <ModeToggle mode={mode} onChange={setMode} />
+        <ModeToggle mode={mode} onChange={switchMode} />
       </div>
 
-      {mode === 'sleep' ? <SleepBody /> : <NapBody />}
+      {mode === 'sleep' ? (
+        step === 1
+          ? <RoutineStep onContinue={() => setStep(2)} />
+          : <SoundsStep />
+      ) : <NapBody />}
+
+      {mode === 'sleep' && (
+        <div style={{
+          position: 'absolute', top: 56, left: 0, right: 0,
+          display: 'flex', justifyContent: 'center', pointerEvents: 'none',
+        }}>
+          <StepDots current={step - 1} total={2} />
+        </div>
+      )}
     </div>
   );
 }
@@ -81,14 +107,90 @@ function ModeToggle({ mode, onChange }: { mode: 'sleep' | 'nap'; onChange: (m: '
   );
 }
 
-// ─── Sleep mode body (full bedtime / mix / timer flow) ───────────
-function SleepBody() {
+function StepDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div style={{ display: 'flex', gap: 6 }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <div key={i} style={{
+          width: i === current ? 20 : 6, height: 5, borderRadius: 3,
+          background: i <= current ? '#fff' : 'rgba(255,255,255,0.18)',
+          transition: 'width .2s ease, background .2s ease',
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ─── Step 1 — your routine (just the breathing practice) ─────────
+function RoutineStep({ onContinue }: { onContinue: () => void }) {
+  const { list: schedules } = useSchedules();
+  const todaySchedule = pickScheduleForDay(schedules, 4);
+  const bedtime = fmt(todaySchedule.bedHour, todaySchedule.bedMinute);
+  const wake = fmt(todaySchedule.wakeHour, todaySchedule.wakeMinute);
+
+  return (
+    <>
+      <div style={{ position: 'relative', padding: '32px 22px 8px' }}>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Step 1 of 2</div>
+        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15, marginTop: 6 }}>
+          Your routine
+        </div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 8, lineHeight: 1.5 }}>
+          Take a breath before bed. Bed at <strong style={{ color: '#fff', fontWeight: 600 }}>{bedtime}</strong>, wake at <strong style={{ color: '#fff', fontWeight: 600 }}>{wake}</strong>.
+        </div>
+      </div>
+
+      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
+        <SectionTitle>Practice</SectionTitle>
+        <div onClick={() => go('practice-intro')} style={cardStyle}>
+          <div style={iconBoxStyle}><HabitGlyph name="breath" size={20} stroke="#fff" /></div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>4-7-8 breathing</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>Inhale 4s · hold 7s · exhale 8s</div>
+          </div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', marginRight: 4 }}>~3 min</div>
+          <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
+        </div>
+
+        <div style={{
+          marginTop: 14, padding: '14px 14px',
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 16,
+          display: 'flex', alignItems: 'center', gap: 10,
+          fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.45,
+        }}>
+          <HabitGlyph name="bulb" size={16} stroke="rgba(255,255,255,0.7)" />
+          <span>Slow exhales activate the parasympathetic nervous system and drop your heart rate.</span>
+        </div>
+      </div>
+
+      <div style={{
+        padding: '12px 16px 24px', position: 'relative',
+        background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
+      }}>
+        <div onClick={onContinue} style={{
+          padding: '18px 0', textAlign: 'center',
+          background: '#fff', color: '#0E1014',
+          borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+        }}>Continue</div>
+        <div onClick={onContinue} style={{
+          marginTop: 10, padding: '10px 0', textAlign: 'center',
+          color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+        }}>Skip practice</div>
+      </div>
+    </>
+  );
+}
+
+// ─── Step 2 — sounds + timer ─────────────────────────────────────
+function SoundsStep() {
   const { list: schedules, update } = useSchedules();
   const todaySchedule = pickScheduleForDay(schedules, 4);
   const [, setEditingId] = useEditingScheduleId();
   const { setAlarm } = useMix();
 
-  const bedtime = fmt(todaySchedule.bedHour, todaySchedule.bedMinute);
   const wake = fmt(todaySchedule.wakeHour, todaySchedule.wakeMinute);
 
   const soundCount = todaySchedule.sounds.length;
@@ -106,36 +208,24 @@ function SleepBody() {
     update(todaySchedule.id, { timerMin: min });
   }
   function startSleepTracking() {
-    // Sync the wake-up alarm with tonight's schedule before entering tracking.
     setAlarm(wake);
     startTracking();
   }
 
   return (
     <>
-      <div style={{ position: 'relative', padding: '20px 22px 8px' }}>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Wind down</div>
+      <div style={{ position: 'relative', padding: '32px 22px 8px' }}>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Step 2 of 2</div>
         <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15, marginTop: 6 }}>
-          A breath, then bed.
+          Sounds & timer
         </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 8, lineHeight: 1.5 }}>
-          Bed at <strong style={{ color: '#fff', fontWeight: 600 }}>{bedtime}</strong>, wake at <strong style={{ color: '#fff', fontWeight: 600 }}>{wake}</strong>.
+          Pick what plays while you fall asleep.
         </div>
       </div>
 
       <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
-        <SectionTitle>Practice</SectionTitle>
-        <div onClick={() => go('practice-intro')} style={cardStyle}>
-          <div style={iconBoxStyle}><HabitGlyph name="breath" size={20} stroke="#fff" /></div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>4-7-8 breathing</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>Inhale 4s · hold 7s · exhale 8s</div>
-          </div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', marginRight: 4 }}>~3 min</div>
-          <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
-        </div>
-
-        <SectionTitle>Sounds</SectionTitle>
+        <SectionTitle>Mix</SectionTitle>
         <div onClick={openMix} style={cardStyle}>
           <SoundsGlyphStack ids={todaySchedule.sounds.map((s) => s.id)} />
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -177,12 +267,26 @@ function SleepBody() {
         </div>
       </div>
 
-      <CTA label="Start tracking" onClick={startSleepTracking} />
+      <div style={{
+        padding: '12px 16px 24px', position: 'relative',
+        background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
+      }}>
+        <div onClick={startSleepTracking} style={{
+          padding: '18px 0', textAlign: 'center',
+          background: '#fff', color: '#0E1014',
+          borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        }}>
+          <PlayIcon size={14} stroke="#0E1014" />
+          Start tracking
+        </div>
+      </div>
     </>
   );
 }
 
-// ─── Nap mode body ───────────────────────────────────────────────
+// ─── Nap mode body (unchanged single screen) ─────────────────────
 function NapBody() {
   const [duration, setDuration] = useNapDuration();
   const { setAlarm } = useMix();
@@ -252,28 +356,22 @@ function NapBody() {
         </div>
       </div>
 
-      <CTA label={`Start nap · ${duration} min`} onClick={startNap} />
-    </>
-  );
-}
-
-function CTA({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <div style={{
-      padding: '12px 16px 28px', position: 'relative',
-      background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
-    }}>
-      <div onClick={onClick} style={{
-        padding: '18px 0', textAlign: 'center',
-        background: '#fff', color: '#0E1014',
-        borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+      <div style={{
+        padding: '12px 16px 24px', position: 'relative',
+        background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
       }}>
-        <PlayIcon size={14} stroke="#0E1014" />
-        {label}
+        <div onClick={startNap} style={{
+          padding: '18px 0', textAlign: 'center',
+          background: '#fff', color: '#0E1014',
+          borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        }}>
+          <PlayIcon size={14} stroke="#0E1014" />
+          Start nap · {duration} min
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

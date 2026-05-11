@@ -14,14 +14,6 @@ function createStore<T>(initial: T) {
   };
 }
 
-// ─── APP VERSION (v1 / v2 toggle in the header) ──────────────────
-export type AppVersion = 'v1' | 'v2';
-const versionStore = createStore<AppVersion>('v1');
-export function useVersion(): [AppVersion, (v: AppVersion) => void] {
-  const v = useSyncExternalStore(versionStore.subscribe, versionStore.get, versionStore.get);
-  return [v, versionStore.set];
-}
-
 // ─── SLEEP MODE (sleep vs quick nap) ─────────────────────────────
 // In production this would be picked automatically from the time of day —
 // during waking hours only "nap" is offered. The toggle on Wind down lets
