@@ -7,6 +7,7 @@ import { MoodFace } from '../components/MoodFace';
 import { useEditingJournalId, useJournal, type JournalEntry } from '../state/store';
 import { lookupFactor } from '../data/factors';
 import { readMood } from '../data/mood';
+import { dayToDate, dayLabel } from './Home';
 
 const days: Day[] = [
   { dow: 'M', n: 9, mood: 'good' },
@@ -31,10 +32,11 @@ const moodColor: Record<string, string> = {
 };
 
 export function Journal() {
-  const { list } = useJournal();
+  const { list, add } = useJournal();
   const [, setEditingId] = useEditingJournalId();
   const [selected, setSelected] = useState(todayIdx);
   const stripRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const didCenter = useRef(false);
   useEffect(() => {
     if (didCenter.current) return;
@@ -46,8 +48,45 @@ export function Journal() {
     }
   });
 
+  const selectedDay = days[selected];
+  const selectedDate = dayToDate(selectedDay.n);
+  const selectedEntry = list.find((e) => e.date === selectedDate);
+  const isPast = selected <= todayIdx;
+  const showMissing = isPast && !selectedEntry;
+
+  // Scroll the timeline when the user picks a day in the strip. If the day
+  // has an entry, scroll it into view; if it's missing, jump to top so the
+  // "fill in" card is visible.
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    if (selectedEntry) {
+      const target = root.querySelector<HTMLElement>(`[data-entry-id="${selectedEntry.id}"]`);
+      if (target) {
+        const y = target.offsetTop - 12;
+        root.scrollTo({ top: y, behavior: 'smooth' });
+        return;
+      }
+    }
+    root.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [selected, selectedEntry?.id]);
+
   function openEntry(id: string) {
     setEditingId(id);
+    go('journal-entry');
+  }
+
+  function fillInDay(day: Day) {
+    const date = dayToDate(day.n);
+    const stub = add({
+      moodX: 0.5, moodY: 0.5,
+      feeling: 'Neutral', feelingDesc: 'Just here',
+      legacyMood: 'meh',
+      date, time: '08:00',
+      whenLabel: `${dayLabel(day.n)}, 08:00`,
+      text: '', context: [], factors: [], diary: {},
+    });
+    setEditingId(stub.id);
     go('journal-entry');
   }
 
@@ -61,16 +100,20 @@ export function Journal() {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px 130px', WebkitOverflowScrolling: 'touch' }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 20px 130px', WebkitOverflowScrolling: 'touch' }}>
+        {showMissing && (
+          <MissingDayInline day={selectedDay} onFill={() => fillInDay(selectedDay)} />
+        )}
         {list.map((e, i) => (
-          <EntryRow
-            key={e.id}
-            entry={e}
-            isLast={i === list.length - 1}
-            onClick={() => openEntry(e.id)}
-          />
+          <div key={e.id} data-entry-id={e.id}>
+            <EntryRow
+              entry={e}
+              isLast={i === list.length - 1}
+              onClick={() => openEntry(e.id)}
+            />
+          </div>
         ))}
-        {list.length === 0 && (
+        {list.length === 0 && !showMissing && (
           <div style={{
             padding: '40px 20px', textAlign: 'center', color: W.weak, fontSize: 13,
           }}>No entries yet.</div>
@@ -78,6 +121,41 @@ export function Journal() {
       </div>
 
       <LiquidGlassNav active="journal" />
+    </div>
+  );
+}
+
+function MissingDayInline({ day, onFill }: { day: Day; onFill: () => void }) {
+  const isToday = day.n === days[todayIdx].n;
+  return (
+    <div style={{
+      marginBottom: 18,
+      background: W.paper, border: `1px dashed ${W.veryweak}`,
+      borderRadius: 18, padding: '16px 16px',
+      display: 'flex', alignItems: 'center', gap: 14,
+    }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 22,
+        background: W.fill, border: `1px solid ${W.veryweak}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 20, fontWeight: 600, color: W.weak,
+        flexShrink: 0, lineHeight: 1,
+      }}>?</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: W.ink, marginTop: 2 }}>
+          {isToday ? 'No entry yet for today' : 'Nothing logged for this day'}
+        </div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 2, lineHeight: 1.4 }}>
+          Add how you slept, your mood, anything from the night.
+        </div>
+      </div>
+      <div onClick={onFill} style={{
+        padding: '8px 12px', borderRadius: 999,
+        background: W.ink, color: W.bg,
+        fontSize: 12, fontWeight: 600, cursor: 'pointer',
+        flexShrink: 0,
+      }}>Fill in</div>
     </div>
   );
 }

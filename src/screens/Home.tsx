@@ -11,7 +11,7 @@ import {
   type Day,
 } from '../components/shared';
 import { MoodFace } from '../components/MoodFace';
-import { useSchedules, useWindDownStep, usePracticeDone, pickScheduleForDay } from '../state/store';
+import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useJournal, pickScheduleForDay } from '../state/store';
 import { readMood } from '../data/mood';
 import { lookupFactor } from '../data/factors';
 
@@ -19,7 +19,8 @@ const days: Day[] = [
   { dow: 'M', n: 9, mood: 'good', sleep: '7h 12m' },
   { dow: 'T', n: 10, mood: 'meh', sleep: '6h 02m' },
   { dow: 'W', n: 11, mood: 'great', sleep: '7h 48m' },
-  { dow: 'T', n: 12, mood: 'good', sleep: '7h 04m' },
+  // n=12 left blank to demonstrate the "missed day" state.
+  { dow: 'T', n: 12, mood: null, sleep: null },
   { dow: 'F', n: 13, mood: 'bad', sleep: '5h 41m' },
   { dow: 'S', n: 14, mood: 'great', sleep: '8h 12m' },
   { dow: 'S', n: 15, mood: 'good', sleep: '7h 30m' },
@@ -32,6 +33,12 @@ const days: Day[] = [
   { dow: 'S', n: 22, mood: null, sleep: null },
 ];
 const todayIdx = 10;
+
+// Maps a calendar day number into a journal date for the mock month.
+// Real app would use proper date math.
+export const dayToDate = (n: number) => `2026-02-${String(n).padStart(2, '0')}`;
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+export const dayLabel = (n: number) => `${MONTHS_SHORT[1]} ${n}`;
 
 export function Home() {
   const [selected, setSelected] = useState(todayIdx);
@@ -192,19 +199,66 @@ function pastSummary(day: Day) {
   return { ...pos, factors };
 }
 
-function PastDayCard({ day }: { day: Day }) {
-  if (!day.mood) {
-    return (
-      <div style={{ padding: '14px 20px 10px' }}>
+function MissedDayCard({ day }: { day: Day }) {
+  const { list, add } = useJournal();
+  const [, setEditingId] = useEditingJournalId();
+  const date = dayToDate(day.n);
+  const existing = list.find((e) => e.date === date);
+
+  function fillIn() {
+    let id = existing?.id;
+    if (!id) {
+      const stub = add({
+        moodX: 0.5, moodY: 0.5,
+        feeling: 'Neutral', feelingDesc: 'Just here',
+        legacyMood: 'meh',
+        date, time: '08:00',
+        whenLabel: `${dayLabel(day.n)}, 08:00`,
+        text: '', context: [], factors: [], diary: {},
+      });
+      id = stub.id;
+    }
+    setEditingId(id);
+    go('journal-entry');
+  }
+
+  return (
+    <div style={{ padding: '14px 20px 10px' }}>
+      <div style={{
+        background: W.paper, border: `1px dashed ${W.veryweak}`,
+        borderRadius: 22, padding: '24px 18px 22px',
+        display: 'flex', alignItems: 'center', gap: 16,
+      }}>
         <div style={{
-          background: W.paper, border: `1px dashed ${W.fill}`,
-          borderRadius: 22, padding: '28px 18px', textAlign: 'center',
-          color: W.weak, fontSize: 13, lineHeight: 1.5,
-        }}>
-          No data for this day yet.
+          width: 56, height: 56, borderRadius: 28,
+          background: W.fill, border: `1px solid ${W.veryweak}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 26, fontWeight: 600, color: W.weak,
+          flexShrink: 0, lineHeight: 1,
+        }}>?</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
+          <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 2 }}>
+            Missed this day
+          </div>
+          <div style={{ fontSize: 12, color: W.weak, marginTop: 4, lineHeight: 1.45 }}>
+            How did you sleep? Fill it in if you remember.
+          </div>
+          <div onClick={fillIn} style={{
+            display: 'inline-block', marginTop: 12,
+            padding: '8px 14px', borderRadius: 999,
+            background: W.ink, color: W.bg,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}>Fill in</div>
         </div>
       </div>
-    );
+    </div>
+  );
+}
+
+function PastDayCard({ day }: { day: Day }) {
+  if (!day.mood) {
+    return <MissedDayCard day={day} />;
   }
   const summary = pastSummary(day);
   const reading = readMood(summary.x, summary.y);

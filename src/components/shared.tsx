@@ -181,7 +181,7 @@ export function DayStrip({
             <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', height: 28 }}>
               {isToday
                 ? <div style={{ width: 8, height: 8, borderRadius: 4, background: W.ink, marginTop: 10 }} />
-                : <DayMoodIcon mood={isFuture ? null : (d.mood ?? null)} />}
+                : <DayMoodIcon mood={d.mood ?? null} isFuture={isFuture} />}
             </div>
           </div>
         );
@@ -190,15 +190,27 @@ export function DayStrip({
   );
 }
 
-// Renders the day-strip mood marker with the same blob face used in
-// the mood dialog, just scaled down. A null mood draws a dashed ring.
-function DayMoodIcon({ mood }: { mood: MoodType }) {
+// Renders the day-strip mood marker. Past day with no mood becomes a
+// soft "?" pill — the user missed logging that day and can fill in
+// later. Future days stay a plain dashed ring.
+function DayMoodIcon({ mood, isFuture }: { mood: MoodType; isFuture: boolean }) {
   if (!mood) {
+    if (isFuture) {
+      return (
+        <div style={{
+          width: 28, height: 28, borderRadius: 14,
+          border: '1.5px dashed #3A3A40',
+        }} />
+      );
+    }
     return (
       <div style={{
         width: 28, height: 28, borderRadius: 14,
-        border: '1.5px dashed #3A3A40',
-      }} />
+        background: W.fill, border: `1px solid ${W.veryweak}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: W.weak, fontSize: 13, fontWeight: 600,
+        fontFamily: W.font, lineHeight: 1,
+      }}>?</div>
     );
   }
   const { x, y, tint } = moodToPosition(mood);
