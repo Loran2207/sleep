@@ -56,6 +56,23 @@ export function TrackingActive() {
     return () => clearInterval(t);
   }, []);
 
+  const [alarmRinging, setAlarmRinging] = useState(false);
+  if (alarmRinging) {
+    return (
+      <AlarmRinging
+        alarmTime={state.alarm}
+        onStop={() => { setAlarmRinging(false); go('wakeup-survey'); }}
+        onSnooze={() => {
+          setAlarmRinging(false);
+          // Push the alarm 9 minutes ahead.
+          const [h, m] = state.alarm.split(':').map(Number);
+          const total = (h * 60 + m + 9) % (24 * 60);
+          setAlarm(`${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`);
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
@@ -202,6 +219,10 @@ export function TrackingActive() {
           color: 'rgba(255,255,255,0.85)',
           fontSize: 13, cursor: 'pointer',
         }}>Quit tracking</div>
+        <div onClick={() => setAlarmRinging(true)} style={{
+          fontSize: 11, color: 'rgba(255,255,255,0.4)', cursor: 'pointer',
+          padding: '4px 10px',
+        }}>Test · ring alarm</div>
       </div>
     </div>
   );
@@ -441,6 +462,97 @@ export function TrackingSounds() {
         }}>
           <GlyphSliders size={14} stroke="currentColor" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Alarm ringing screen ───────────────────────────────────────
+// Apple-style minimal: full-bleed dark canvas, a slow pulse around
+// the time, the alarm time dominant, a small label, then a white
+// "Stop" button and a quieter "Snooze 9 min" link beneath.
+function AlarmRinging({ alarmTime, onStop, onSnooze }: {
+  alarmTime: string;
+  onStop: () => void;
+  onSnooze: () => void;
+}) {
+  const today = new Date();
+  const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today.getDay()];
+  return (
+    <div style={{
+      height: '100%', display: 'flex', flexDirection: 'column',
+      background: '#0E1014', color: '#fff', fontFamily: W.font,
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <style>{`
+        @keyframes alarm-pulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.55; }
+          50%      { transform: translate(-50%, -50%) scale(1.18); opacity: 0; }
+        }
+      `}</style>
+      <div style={{ position: 'absolute', inset: 0, background: `
+        radial-gradient(60% 40% at 50% 22%, rgba(255,196,120,0.10), transparent 70%),
+        radial-gradient(1px 1px at 18% 28%, rgba(255,255,255,0.45), transparent 50%),
+        radial-gradient(1px 1px at 78% 18%, rgba(255,255,255,0.4), transparent 50%),
+        radial-gradient(1px 1px at 50% 60%, rgba(255,255,255,0.3), transparent 50%),
+        radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.3), transparent 50%)`,
+      }} />
+      <TopPad />
+
+      <div style={{
+        position: 'relative', textAlign: 'center', padding: '20px 20px 0',
+        fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)',
+        letterSpacing: 0.2,
+      }}>Alarm</div>
+
+      <div style={{
+        position: 'relative', flex: 1, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+      }}>
+        {/* Three pulsing rings */}
+        <div style={{
+          position: 'absolute', left: '50%', top: '50%',
+          width: 320, height: 320, pointerEvents: 'none',
+        }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{
+              position: 'absolute', left: '50%', top: '50%',
+              width: 220 + i * 60, height: 220 + i * 60,
+              borderRadius: '50%',
+              border: '1px solid rgba(255,196,120,0.45)',
+              animation: 'alarm-pulse 2.4s ease-out infinite',
+              animationDelay: `${i * 0.6}s`,
+            }} />
+          ))}
+        </div>
+
+        <div style={{
+          position: 'relative',
+          fontSize: 96, fontWeight: 200, letterSpacing: -3,
+          fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+        }}>{alarmTime}</div>
+        <div style={{
+          position: 'relative', marginTop: 10,
+          fontSize: 13, color: 'rgba(255,255,255,0.6)',
+        }}>{dayName}</div>
+      </div>
+
+      <div style={{
+        position: 'relative', padding: '16px 24px 36px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+      }}>
+        <div onClick={onStop} style={{
+          width: '100%', maxWidth: 320,
+          padding: '18px 0', textAlign: 'center',
+          background: '#fff', color: '#0E1014',
+          borderRadius: 999, fontSize: 16, fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+        }}>Stop</div>
+        <div onClick={onSnooze} style={{
+          fontSize: 14, color: 'rgba(255,255,255,0.7)',
+          cursor: 'pointer', padding: '6px 14px',
+        }}>Snooze · 9 min</div>
       </div>
     </div>
   );
