@@ -3,7 +3,7 @@ import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { TopPad, LiquidGlassNav } from '../components/shared';
 import {
-  CheckIcon, ChevronRightIcon, MoonIcon, BellIcon, MusicIcon,
+  CheckIcon, ChevronRightIcon, MoonIcon, BellIcon,
   NightShiftIcon, PhoneOffIcon, ProfileFilled,
 } from '../components/icons';
 import {
@@ -44,13 +44,6 @@ export function Profile() {
             title="Schedule"
             value={`${schedules.length} preset${schedules.length === 1 ? '' : 's'}`}
             onClick={() => go('sleep-schedule')}
-          />
-          <Divider />
-          <Row
-            icon={<MusicIcon size={18} stroke={W.ink} />}
-            title="Sounds catalog"
-            value=""
-            onClick={() => go('sounds')}
           />
         </Group>
 
