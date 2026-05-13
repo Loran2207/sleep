@@ -94,13 +94,13 @@ function ScheduleCard({ schedule, subtitle, onChange, onOpenMix }: {
   return (
     <div style={{
       background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 22, padding: '18px',
+      borderRadius: 20, padding: 16,
     }}>
       <style>{`
         .sched-time {
           background: transparent; border: none; outline: none;
           color: ${W.ink}; font: inherit; font-family: ${W.font};
-          font-size: 30px; font-weight: 600; letter-spacing: -0.02em;
+          font-size: 26px; font-weight: 600; letter-spacing: -0.02em;
           font-variant-numeric: tabular-nums; line-height: 1;
           padding: 0; margin: 0; cursor: pointer;
           color-scheme: dark; -webkit-appearance: none; appearance: none;
@@ -115,41 +115,42 @@ function ScheduleCard({ schedule, subtitle, onChange, onOpenMix }: {
       )}
 
       <div style={{
-        marginTop: 16,
-        display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 10,
+        marginTop: 14,
+        display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 8,
       }}>
         <TimeField label="Bedtime" value={bedStr} onChange={setBed} />
-        <div style={{ textAlign: 'center', minWidth: 56 }}>
+        <div style={{ textAlign: 'center', minWidth: 44, padding: '0 4px' }}>
           <ArrowRightTinyIcon size={14} stroke={W.weak} />
-          <div style={{ fontSize: 12, color: W.weak, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{dur}</div>
+          <div style={{ fontSize: 11, color: W.weak, marginTop: 4, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{dur}</div>
         </div>
         <TimeField label="Wake up" value={wakeStr} onChange={setWake} />
       </div>
 
       <div style={{
-        marginTop: 16, padding: '10px 12px',
+        marginTop: 14, padding: '10px 12px',
         background: W.fill, border: `1px solid ${W.veryweak}`,
         borderRadius: 14,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+        display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: 13,
+          background: onTarget ? 'rgba(127,227,161,0.18)' : W.bg,
+          border: `1px solid ${onTarget ? 'rgba(127,227,161,0.45)' : W.veryweak}`,
+          color: onTarget ? '#7FE3A1' : W.weak,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 700, flexShrink: 0,
+          fontVariantNumeric: 'tabular-nums',
+        }}>{goal}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: W.ink, lineHeight: 1.2 }}>Sleep goal</div>
           <div style={{
-            width: 26, height: 26, borderRadius: 13,
-            background: onTarget ? 'rgba(127,227,161,0.18)' : W.bg,
-            border: `1px solid ${onTarget ? 'rgba(127,227,161,0.45)' : W.veryweak}`,
-            color: onTarget ? '#7FE3A1' : W.weak,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11, fontWeight: 700, fontFamily: W.font,
-            fontVariantNumeric: 'tabular-nums',
-          }}>{goal}</div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: W.ink, lineHeight: 1.2 }}>Sleep goal · {goal}h</div>
-            <div style={{ fontSize: 11, color: onTarget ? '#7FE3A1' : W.weak, marginTop: 2 }}>{deltaLabel}</div>
-          </div>
+            fontSize: 11, color: onTarget ? '#7FE3A1' : W.weak, marginTop: 2,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>{deltaLabel}</div>
         </div>
       </div>
 
-      <div style={{ height: 1, background: W.fill, margin: '16px -18px 14px' }} />
+      <div style={{ height: 1, background: W.fill, margin: '14px -16px 12px' }} />
 
       <MixPlate sounds={schedule.sounds.map((s) => s.id)} onClick={onOpenMix} />
 
@@ -191,15 +192,15 @@ function TimeField({ label, value, onChange }: {
     else el.focus();
   };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 0 }}>
       <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{label}</div>
       <div
         onClick={open}
         style={{
-          padding: '8px 14px', borderRadius: 14,
+          width: '100%', padding: '8px 10px', borderRadius: 12,
           background: W.fill, border: `1px solid ${W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          cursor: 'pointer', minWidth: 116,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          cursor: 'pointer', boxSizing: 'border-box',
         }}
       >
         <input
