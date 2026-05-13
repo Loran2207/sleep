@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { W } from '../tokens';
-import { go, back } from '../state/navigation';
-import { TopPad, HeaderBar, LiquidGlassNav } from '../components/shared';
+import { go } from '../state/navigation';
+import { TopPad, LiquidGlassNav } from '../components/shared';
 import {
   CheckIcon, ChevronRightIcon, MoonIcon, BellIcon, MusicIcon,
   NightShiftIcon, PhoneOffIcon, ProfileFilled,
@@ -24,7 +24,6 @@ export function Profile() {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
       <TopPad />
-      <HeaderBar title="Profile" onBack={() => back()} />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 130px' }}>
         <ProfileHero />
