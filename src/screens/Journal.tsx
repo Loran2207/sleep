@@ -7,25 +7,7 @@ import { MoodFace } from '../components/MoodFace';
 import { useEditingJournalId, useJournal, type JournalEntry } from '../state/store';
 import { lookupFactor } from '../data/factors';
 import { readMood } from '../data/mood';
-import { dayToDate, dayLabel } from './Home';
-
-const days: Day[] = [
-  { dow: 'M', n: 9, mood: 'good' },
-  { dow: 'T', n: 10, mood: 'meh' },
-  { dow: 'W', n: 11, mood: 'great' },
-  { dow: 'T', n: 12, mood: 'good' },
-  { dow: 'F', n: 13, mood: 'bad' },
-  { dow: 'S', n: 14, mood: 'great' },
-  { dow: 'S', n: 15, mood: 'good' },
-  { dow: 'M', n: 16, mood: 'meh' },
-  { dow: 'T', n: 17, mood: 'good' },
-  { dow: 'W', n: 18, mood: 'bad' },
-  { dow: 'T', n: 19, mood: null },
-  { dow: 'F', n: 20, mood: null },
-  { dow: 'S', n: 21, mood: null },
-  { dow: 'S', n: 22, mood: null },
-];
-const todayIdx = 10;
+import { DAYS as days, TODAY_IDX as todayIdx, dayToDate, dayLabel } from '../data/days';
 
 const moodColor: Record<string, string> = {
   great: '#7FE3A1', good: '#9BE3B8', meh: '#E5E067', bad: '#E59A6F', awful: '#E57070',
