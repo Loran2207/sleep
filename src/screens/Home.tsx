@@ -11,7 +11,7 @@ import {
   type Day,
 } from '../components/shared';
 import { MoodFace } from '../components/MoodFace';
-import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useJournal, pickScheduleForDay } from '../state/store';
+import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useEditingScheduleId, useJournal, pickScheduleForDay } from '../state/store';
 import { readMood } from '../data/mood';
 import { lookupFactor } from '../data/factors';
 
@@ -158,12 +158,20 @@ function TimeSlot({ label, time, caption }: {
 }
 
 function EditScheduleButton() {
+  const { list: schedules } = useSchedules();
+  const [, setEditingId] = useEditingScheduleId();
+  const today = pickScheduleForDay(schedules, 4); // Prototype "today" is Thursday.
+
+  function open() {
+    setEditingId(today.id);
+    go('sleep-schedule');
+  }
+
   return (
     <div
-      onClick={() => go('sleep-schedule')}
+      onClick={open}
       aria-label="Edit schedule"
       style={{
-        // Vertically centered against the 36px time numbers.
         marginTop: 22,
         width: 30, height: 30, borderRadius: 15,
         background: W.fill, border: `1px solid ${W.veryweak}`,

@@ -12,7 +12,6 @@ import {
 } from '../state/store';
 
 const LANGUAGES = ['English', 'Español', 'Français', 'Deutsch', 'Italiano', '日本語', 'Русский'];
-const SLEEP_GOAL_OPTIONS = [6, 7, 8, 9, 10];
 
 export function Profile() {
   const [goal, setGoal] = useSleepGoal();
@@ -137,22 +136,24 @@ export function Profile() {
 function ProfileHero() {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 16,
-      padding: '8px 6px 18px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      padding: '12px 6px 22px', position: 'relative',
     }}>
       <div style={{
-        width: 64, height: 64, borderRadius: 32,
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(60% 60% at 50% 30%, rgba(120,140,255,0.10), transparent 70%)',
+      }} />
+      <div style={{
+        width: 88, height: 88, borderRadius: 44,
         background: W.fill, border: `1px solid ${W.veryweak}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-        color: W.ink,
+        flexShrink: 0, color: W.ink, position: 'relative',
+        boxShadow: '0 8px 28px rgba(0,0,0,0.35)',
       }}>
-        <ProfileFilled size={32} fill={W.ink} />
+        <ProfileFilled size={44} fill={W.ink} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.01em' }}>Sleeper</div>
-        <div style={{ fontSize: 13, color: W.weak, marginTop: 2 }}>Local profile · not signed in</div>
-      </div>
+      <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 14, position: 'relative' }}>Sleeper</div>
+      <div style={{ fontSize: 13, color: W.weak, marginTop: 4, position: 'relative' }}>Local profile · not signed in</div>
     </div>
   );
 }
@@ -320,37 +321,126 @@ function SleepGoalSheet({ value, onSelect, onClose }: {
   onSelect: (v: number) => void;
   onClose: () => void;
 }) {
+  // Tick scale from 4 to 12 hours. The current value is drawn as a
+  // circular thumb sitting on a horizontal tick line, with a small
+  // stem dropping down to the active tick — same vibe as Apple's
+  // "How many hours of sleep do you aim for?" picker.
+  const min = 4;
+  const max = 12;
+  const range = max - min;
+  const [draft, setDraft] = useState(value);
+  const pct = (draft - min) / range;
+  const ticks = Array.from({ length: range + 1 }, (_, i) => min + i);
+
   return (
     <Sheet onClose={onClose}>
-      <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>Sleep goal</div>
-      <div style={{ fontSize: 13, color: W.weak, marginTop: 4, lineHeight: 1.5 }}>
-        Most adults feel best with 7–9 hours each night.
-      </div>
-
-      <div style={{ textAlign: 'center', padding: '20px 0 8px' }}>
-        <div style={{
-          fontSize: 64, fontWeight: 200, letterSpacing: '-0.04em',
-          fontVariantNumeric: 'tabular-nums', lineHeight: 1,
-        }}>{value}</div>
-        <div style={{ fontSize: 13, color: W.weak, marginTop: 6 }}>hours per night</div>
-      </div>
-
       <div style={{
-        marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8,
+        position: 'relative', overflow: 'hidden',
+        margin: '0 -20px', padding: '0 20px 12px',
       }}>
-        {SLEEP_GOAL_OPTIONS.map((h) => {
-          const active = h === value;
-          return (
-            <div key={h} onClick={() => onSelect(h)} style={{
-              padding: '14px 0', textAlign: 'center', borderRadius: 14,
-              background: active ? W.ink : W.paper,
-              color: active ? W.bg : W.ink,
-              border: `1px solid ${active ? W.ink : W.fill}`,
-              fontSize: 14, fontWeight: 600, cursor: 'pointer',
-              fontVariantNumeric: 'tabular-nums',
-            }}>{h} h</div>
-          );
-        })}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'radial-gradient(60% 50% at 50% 0%, rgba(120,140,255,0.12), transparent 70%)',
+        }} />
+        <div style={{ position: 'relative', textAlign: 'center', paddingTop: 4 }}>
+          <div style={{ fontSize: 13, color: W.weak, fontWeight: 500 }}>Sleep goal</div>
+          <div style={{
+            fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 6, lineHeight: 1.25,
+          }}>
+            How many hours of sleep<br />do you aim for each night?
+          </div>
+          <div style={{
+            fontSize: 13, color: W.weak, marginTop: 8, lineHeight: 1.5,
+            maxWidth: 300, marginLeft: 'auto', marginRight: 'auto',
+          }}>
+            Getting <strong style={{ color: W.ink, fontWeight: 600 }}>7 to 9 hours</strong> of sleep can improve your health, mood and overall well-being.
+          </div>
+        </div>
+
+        <div style={{
+          position: 'relative', marginTop: 32, height: 180,
+        }}>
+          {/* Big circle indicator with the current value */}
+          <div style={{
+            position: 'absolute', left: `${pct * 100}%`, top: 0,
+            transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            transition: 'left .2s cubic-bezier(.2,.7,.2,1)',
+            pointerEvents: 'none',
+          }}>
+            <div style={{
+              width: 76, height: 76, borderRadius: 38,
+              background: W.bg, border: `2px solid ${W.ink}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 12px 28px rgba(0,0,0,0.45)',
+              fontSize: 24, fontWeight: 600, color: W.ink,
+              letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+            }}>{draft}h</div>
+            <div style={{
+              width: 2, height: 24, background: W.ink, opacity: 0.9, marginTop: -1,
+            }} />
+          </div>
+
+          {/* Tick row */}
+          <div style={{
+            position: 'absolute', left: 0, right: 0, top: 102,
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+            height: 28,
+          }}>
+            {ticks.map((h) => {
+              const sel = h === draft;
+              return (
+                <div
+                  key={h}
+                  onClick={() => setDraft(h)}
+                  style={{
+                    flex: 1, height: '100%',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{
+                    width: 2, height: sel ? 22 : 14,
+                    borderRadius: 1,
+                    background: sel ? W.ink : W.veryweak,
+                    transition: 'height .15s ease, background .15s ease',
+                  }} />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Labels */}
+          <div style={{
+            position: 'absolute', left: 0, right: 0, top: 138,
+            display: 'flex', justifyContent: 'space-between',
+          }}>
+            {ticks.map((h) => {
+              const showLabel = h % 2 === 0;
+              return (
+                <div key={h} style={{
+                  flex: 1, textAlign: 'center',
+                  fontSize: 11, color: h === draft ? W.ink : W.weak,
+                  fontWeight: h === draft ? 600 : 500,
+                  fontVariantNumeric: 'tabular-nums',
+                }}>{showLabel ? h : ''}</div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+        <div onClick={() => onSelect(draft)} style={{
+          padding: '16px 0', textAlign: 'center',
+          background: W.ink, color: W.bg,
+          borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 6px 18px rgba(0,0,0,0.22)',
+        }}>Save sleep goal</div>
+        <div onClick={onClose} style={{
+          padding: '10px 0', textAlign: 'center',
+          color: W.weak, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+        }}>Not now</div>
       </div>
     </Sheet>
   );
