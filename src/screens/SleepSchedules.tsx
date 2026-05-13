@@ -3,7 +3,7 @@ import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { TopPad, HeaderBar } from '../components/shared';
 import { ArrowRightTinyIcon, ChevronRightIcon, PencilIcon } from '../components/icons';
-import { useSchedules, useEditingScheduleId, type Schedule } from '../state/store';
+import { useSchedules, useEditingScheduleId, useSleepGoal, type Schedule } from '../state/store';
 import { lookupSound } from '../data/sounds';
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
@@ -71,6 +71,16 @@ function ScheduleCard({ schedule, subtitle, onChange, onOpenMix }: {
   const bedStr = fmt(schedule.bedHour, schedule.bedMinute);
   const wakeStr = fmt(schedule.wakeHour, schedule.wakeMinute);
   const dur = durationBetween(schedule.bedHour, schedule.bedMinute, schedule.wakeHour, schedule.wakeMinute);
+  const [goal] = useSleepGoal();
+  const actualMinutes = durationInMin(schedule.bedHour, schedule.bedMinute, schedule.wakeHour, schedule.wakeMinute);
+  const goalMinutes = goal * 60;
+  const deltaMin = actualMinutes - goalMinutes;
+  const onTarget = Math.abs(deltaMin) <= 15;
+  const deltaLabel = deltaMin === 0
+    ? 'matches goal'
+    : deltaMin > 0
+      ? `+${formatDelta(deltaMin)} over goal`
+      : `${formatDelta(-deltaMin)} short of goal`;
 
   function setBed(value: string) {
     const [h, m] = value.split(':').map(Number);
@@ -116,11 +126,57 @@ function ScheduleCard({ schedule, subtitle, onChange, onOpenMix }: {
         <TimeField label="Wake up" value={wakeStr} onChange={setWake} />
       </div>
 
-      <div style={{ height: 1, background: W.fill, margin: '20px -18px 14px' }} />
+      <div style={{
+        marginTop: 16, padding: '10px 12px',
+        background: W.fill, border: `1px solid ${W.veryweak}`,
+        borderRadius: 14,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 26, height: 26, borderRadius: 13,
+            background: onTarget ? 'rgba(127,227,161,0.18)' : W.bg,
+            border: `1px solid ${onTarget ? 'rgba(127,227,161,0.45)' : W.veryweak}`,
+            color: onTarget ? '#7FE3A1' : W.weak,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 700, fontFamily: W.font,
+            fontVariantNumeric: 'tabular-nums',
+          }}>{goal}</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: W.ink, lineHeight: 1.2 }}>Sleep goal · {goal}h</div>
+            <div style={{ fontSize: 11, color: onTarget ? '#7FE3A1' : W.weak, marginTop: 2 }}>{deltaLabel}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: W.fill, margin: '16px -18px 14px' }} />
 
       <MixPlate sounds={schedule.sounds.map((s) => s.id)} onClick={onOpenMix} />
+
+      {schedule.timerMin !== undefined && (
+        <div style={{
+          marginTop: 10,
+          fontSize: 11, color: W.weak, textAlign: 'center',
+        }}>
+          {schedule.timerMin ? `Sounds stop in ${schedule.timerMin} min` : 'Sounds play until alarm'}
+        </div>
+      )}
     </div>
   );
+}
+
+function durationInMin(bedH: number, bedM: number, wakeH: number, wakeM: number) {
+  let mins = (wakeH * 60 + wakeM) - (bedH * 60 + bedM);
+  if (mins <= 0) mins += 24 * 60;
+  return mins;
+}
+
+function formatDelta(min: number) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
 }
 
 function TimeField({ label, value, onChange }: {

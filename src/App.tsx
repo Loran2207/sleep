@@ -20,6 +20,7 @@ import { JournalEntryEdit } from './screens/JournalEntry';
 import { WindDown } from './screens/WindDown';
 import { WakeupSurvey } from './screens/WakeupSurvey';
 import { NightShiftGuide } from './screens/NightShiftGuide';
+import { Profile } from './screens/Profile';
 import { StubScreen } from './screens/Stub';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
@@ -50,7 +51,7 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'analytics': () => <StubScreen title="Analytics" hint="Charts and trends will live here. Coming soon." />,
   'journal': () => <Journal />,
   'journal-entry': () => <JournalEntryEdit />,
-  'profile': () => <StubScreen title="Profile" hint="Account, sounds, preferences. Coming soon." />,
+  'profile': () => <Profile />,
 };
 
 export function App() {
