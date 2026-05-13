@@ -203,14 +203,21 @@ function DayMoodIcon({ mood, isFuture }: { mood: MoodType; isFuture: boolean }) 
         }} />
       );
     }
+    // Missed past day — a 28px paper pill with a soft question-mark
+    // glyph sized to match the mood faces beside it.
     return (
       <div style={{
         width: 28, height: 28, borderRadius: 14,
-        background: W.fill, border: `1px solid ${W.veryweak}`,
+        background: W.paper, border: `1.5px solid ${W.veryweak}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: W.weak, fontSize: 13, fontWeight: 600,
-        fontFamily: W.font, lineHeight: 1,
-      }}>?</div>
+        flexShrink: 0,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke={W.weak} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9.1 9a3 3 0 1 1 4.9 2.3c-1 .7-2 1.5-2 2.7" />
+          <circle cx="12" cy="17.5" r="0.6" fill={W.weak} stroke="none" />
+        </svg>
+      </div>
     );
   }
   const { x, y, tint } = moodToPosition(mood);

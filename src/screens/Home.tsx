@@ -225,32 +225,38 @@ function MissedDayCard({ day }: { day: Day }) {
   return (
     <div style={{ padding: '14px 20px 10px' }}>
       <div style={{
+        position: 'relative', overflow: 'hidden',
         background: W.paper, border: `1px dashed ${W.veryweak}`,
-        borderRadius: 22, padding: '24px 18px 22px',
-        display: 'flex', alignItems: 'center', gap: 16,
+        borderRadius: 22, padding: '28px 22px 26px',
+        textAlign: 'center',
       }}>
         <div style={{
-          width: 56, height: 56, borderRadius: 28,
-          background: W.fill, border: `1px solid ${W.veryweak}`,
+          width: 80, height: 80, borderRadius: 40,
+          margin: '0 auto',
+          background: W.fill, border: `1.5px solid ${W.veryweak}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 26, fontWeight: 600, color: W.weak,
-          flexShrink: 0, lineHeight: 1,
-        }}>?</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
-          <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 2 }}>
-            Missed this day
-          </div>
-          <div style={{ fontSize: 12, color: W.weak, marginTop: 4, lineHeight: 1.45 }}>
-            How did you sleep? Fill it in if you remember.
-          </div>
-          <div onClick={fillIn} style={{
-            display: 'inline-block', marginTop: 12,
-            padding: '8px 14px', borderRadius: 999,
-            background: W.ink, color: W.bg,
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-          }}>Fill in</div>
+          flexShrink: 0,
+        }}>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none"
+            stroke={W.weak} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9.1 9a3 3 0 1 1 4.9 2.3c-1 .7-2 1.5-2 2.7" />
+            <circle cx="12" cy="17.5" r="0.7" fill={W.weak} stroke="none" />
+          </svg>
         </div>
+        <div style={{ fontSize: 12, color: W.weak, fontWeight: 500, marginTop: 14 }}>{dayLabel(day.n)}</div>
+        <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 4 }}>
+          Missed this day
+        </div>
+        <div style={{ fontSize: 13, color: W.weak, marginTop: 6, lineHeight: 1.5, maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
+          Add when you went to bed, when you woke up and how you felt.
+        </div>
+        <div onClick={fillIn} style={{
+          display: 'inline-block', marginTop: 18,
+          padding: '12px 24px', borderRadius: 999,
+          background: W.ink, color: W.bg,
+          fontSize: 14, fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
+        }}>Fill in</div>
       </div>
     </div>
   );
