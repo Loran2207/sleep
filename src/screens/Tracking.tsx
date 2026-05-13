@@ -61,6 +61,8 @@ export function TrackingActive() {
     return (
       <AlarmRinging
         alarmTime={state.alarm}
+        ringing={alarmRinging}
+        onToggle={setAlarmRinging}
         onStop={() => { setAlarmRinging(false); go('wakeup-survey'); }}
         onSnooze={() => {
           setAlarmRinging(false);
@@ -88,10 +90,9 @@ export function TrackingActive() {
       }} />
       <TopPad />
 
-      <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', padding: '4px 20px', alignItems: 'center' }}>
+      <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', padding: '4px 20px', alignItems: 'center', gap: 12 }}>
         <div onClick={() => go('tracking-stop-confirm')} style={{ fontSize: 14, color: '#fff', cursor: 'pointer', opacity: 0.75 }}>End</div>
-        <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>{mode === 'nap' ? 'Napping' : 'Tracking'}</div>
-        <div style={{ width: 30 }} />
+        <AlarmStateToggle ringing={alarmRinging} onChange={setAlarmRinging} />
       </div>
 
       <div style={{
@@ -219,11 +220,36 @@ export function TrackingActive() {
           color: 'rgba(255,255,255,0.85)',
           fontSize: 13, cursor: 'pointer',
         }}>Quit tracking</div>
-        <div onClick={() => setAlarmRinging(true)} style={{
-          fontSize: 11, color: 'rgba(255,255,255,0.4)', cursor: 'pointer',
-          padding: '4px 10px',
-        }}>Test · ring alarm</div>
       </div>
+    </div>
+  );
+}
+
+// Top-right segment toggle to flip the tracking screen between the
+// normal "sleeping" view and the alarm-ringing view. Mirrors the
+// Sleep / Nap toggle on Wind down — small testing affordance for
+// developers and reviewers.
+function AlarmStateToggle({ ringing, onChange }: { ringing: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 2,
+      padding: 3, borderRadius: 999,
+      background: 'rgba(255,255,255,0.08)',
+      border: '1px solid rgba(255,255,255,0.12)',
+    }}>
+      {(['sleeping', 'ringing'] as const).map((id) => {
+        const active = (id === 'ringing') === ringing;
+        return (
+          <div key={id} onClick={() => onChange(id === 'ringing')} style={{
+            padding: '6px 12px', borderRadius: 999,
+            fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            background: active ? '#fff' : 'transparent',
+            color: active ? '#0E1014' : 'rgba(255,255,255,0.75)',
+            transition: 'background .12s ease, color .12s ease',
+            letterSpacing: 0.1,
+          }}>{id === 'sleeping' ? 'Sleeping' : 'Ringing'}</div>
+        );
+      })}
     </div>
   );
 }
@@ -471,8 +497,10 @@ export function TrackingSounds() {
 // Apple-style minimal: full-bleed dark canvas, a slow pulse around
 // the time, the alarm time dominant, a small label, then a white
 // "Stop" button and a quieter "Snooze 9 min" link beneath.
-function AlarmRinging({ alarmTime, onStop, onSnooze }: {
+function AlarmRinging({ alarmTime, ringing, onToggle, onStop, onSnooze }: {
   alarmTime: string;
+  ringing: boolean;
+  onToggle: (v: boolean) => void;
   onStop: () => void;
   onSnooze: () => void;
 }) {
@@ -500,7 +528,14 @@ function AlarmRinging({ alarmTime, onStop, onSnooze }: {
       <TopPad />
 
       <div style={{
-        position: 'relative', textAlign: 'center', padding: '20px 20px 0',
+        position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+        padding: '4px 20px', gap: 12,
+      }}>
+        <AlarmStateToggle ringing={ringing} onChange={onToggle} />
+      </div>
+
+      <div style={{
+        position: 'relative', textAlign: 'center', padding: '8px 20px 0',
         fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)',
         letterSpacing: 0.2,
       }}>Alarm</div>

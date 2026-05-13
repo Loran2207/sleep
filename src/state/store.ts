@@ -134,6 +134,10 @@ export type JournalEntry = {
   date: string;          // YYYY-MM-DD
   time: string;          // HH:MM
   whenLabel: string;     // "Today, 09:12" / "17 December, 23:12"
+  // Optional sleep-session times — when the user actually went to bed
+  // and woke up. Used when filling in a missed day.
+  bedTime?: string;      // HH:MM
+  wakeTime?: string;     // HH:MM
   text: string;
   context: string[];     // legacy free-text tags
   factors: string[];     // sleep factors from the wake-up survey

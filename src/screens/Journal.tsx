@@ -129,32 +129,36 @@ function MissingDayInline({ day, onFill }: { day: Day; onFill: () => void }) {
   const isToday = day.n === days[todayIdx].n;
   return (
     <div style={{
-      marginBottom: 18,
+      marginBottom: 22,
       background: W.paper, border: `1px dashed ${W.veryweak}`,
-      borderRadius: 18, padding: '16px 16px',
-      display: 'flex', alignItems: 'center', gap: 14,
+      borderRadius: 22, padding: '24px 22px 22px',
+      textAlign: 'center',
     }}>
       <div style={{
-        width: 44, height: 44, borderRadius: 22,
-        background: W.fill, border: `1px solid ${W.veryweak}`,
+        width: 64, height: 64, borderRadius: 32,
+        margin: '0 auto',
+        background: W.fill, border: `1.5px solid ${W.veryweak}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 20, fontWeight: 600, color: W.weak,
-        flexShrink: 0, lineHeight: 1,
-      }}>?</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: W.ink, marginTop: 2 }}>
-          {isToday ? 'No entry yet for today' : 'Nothing logged for this day'}
-        </div>
-        <div style={{ fontSize: 12, color: W.weak, marginTop: 2, lineHeight: 1.4 }}>
-          Add how you slept, your mood, anything from the night.
-        </div>
+      }}>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"
+          stroke={W.weak} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9.1 9a3 3 0 1 1 4.9 2.3c-1 .7-2 1.5-2 2.7" />
+          <circle cx="12" cy="17.5" r="0.7" fill={W.weak} stroke="none" />
+        </svg>
+      </div>
+      <div style={{ fontSize: 12, color: W.weak, fontWeight: 500, marginTop: 14 }}>{dayLabel(day.n)}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em', marginTop: 4 }}>
+        {isToday ? 'No entry yet for today' : 'Nothing logged for this day'}
+      </div>
+      <div style={{ fontSize: 13, color: W.weak, marginTop: 6, lineHeight: 1.5, maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
+        Add when you went to bed, when you woke up and how you felt.
       </div>
       <div onClick={onFill} style={{
-        padding: '8px 12px', borderRadius: 999,
+        display: 'inline-block', marginTop: 16,
+        padding: '12px 22px', borderRadius: 999,
         background: W.ink, color: W.bg,
-        fontSize: 12, fontWeight: 600, cursor: 'pointer',
-        flexShrink: 0,
+        fontSize: 14, fontWeight: 600, cursor: 'pointer',
+        boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
       }}>Fill in</div>
     </div>
   );

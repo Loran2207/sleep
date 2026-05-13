@@ -39,6 +39,8 @@ export function JournalEntryEdit() {
   const [text, setText] = useState(entry?.text ?? '');
   const [date, setDate] = useState(entry?.date ?? '');
   const [time, setTime] = useState(entry?.time ?? '');
+  const [bedTime, setBedTime] = useState(entry?.bedTime ?? '');
+  const [wakeTime, setWakeTime] = useState(entry?.wakeTime ?? '');
   const [diary, setDiary] = useState<Record<string, string | string[]>>(entry?.diary ?? {});
 
   const [sheet, setSheet] = useState<'mood' | 'text' | 'diary' | null>(null);
@@ -51,6 +53,8 @@ export function JournalEntryEdit() {
     setText(entry.text);
     setDate(entry.date);
     setTime(entry.time);
+    setBedTime(entry.bedTime ?? '');
+    setWakeTime(entry.wakeTime ?? '');
     setDiary(entry.diary ?? {});
   }, [entry?.id]);
 
@@ -74,6 +78,8 @@ export function JournalEntryEdit() {
       legacyMood: reading.legacyMood,
       text: text.trim(),
       date, time,
+      bedTime: bedTime || undefined,
+      wakeTime: wakeTime || undefined,
       whenLabel: formatWhenLabel(date, time, entry!.whenLabel),
       factors,
       diary,
@@ -119,7 +125,13 @@ export function JournalEntryEdit() {
         <SectionLabel hint="Quick answers about how the night went. Habit chips are inferred from here.">Sleep diary</SectionLabel>
         <DiaryCard diary={diary} onClick={() => setSheet('diary')} />
 
-        <SectionLabel>When</SectionLabel>
+        <SectionLabel hint="When you actually went to bed and woke up.">Sleep times</SectionLabel>
+        <SleepTimesCard
+          bedTime={bedTime} wakeTime={wakeTime}
+          onChangeBed={setBedTime} onChangeWake={setWakeTime}
+        />
+
+        <SectionLabel>Entry date</SectionLabel>
         <div style={{ display: 'flex', gap: 10, padding: '0 4px' }}>
           <DateField value={date} onChange={setDate} />
           <TimeField value={time} onChange={setTime} />
@@ -623,6 +635,91 @@ function TextSheet({ value, onChange, onClose }: {
 }
 
 // ─── Date / time fields ──────────────────────────────────────────
+function SleepTimesCard({ bedTime, wakeTime, onChangeBed, onChangeWake }: {
+  bedTime: string; wakeTime: string;
+  onChangeBed: (v: string) => void;
+  onChangeWake: (v: string) => void;
+}) {
+  const dur = (bedTime && wakeTime) ? durationBetween(bedTime, wakeTime) : null;
+  return (
+    <div style={{
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 18, padding: '14px 14px',
+    }}>
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 10,
+      }}>
+        <SleepTimeSlot label="Went to bed" value={bedTime} onChange={onChangeBed} />
+        <div style={{ textAlign: 'center', minWidth: 56, color: W.weak }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
+          <div style={{ fontSize: 11, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+            {dur ?? '—'}
+          </div>
+        </div>
+        <SleepTimeSlot label="Woke up" value={wakeTime} onChange={onChangeWake} />
+      </div>
+    </div>
+  );
+}
+
+function SleepTimeSlot({ label, value, onChange }: {
+  label: string; value: string; onChange: (v: string) => void;
+}) {
+  const ref = useRef<HTMLInputElement | null>(null);
+  function open() {
+    const el = ref.current;
+    if (!el) return;
+    const sp = (el as unknown as { showPicker?: () => void }).showPicker;
+    if (typeof sp === 'function') sp.call(el); else el.focus();
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>{label}</div>
+      <div
+        onClick={open}
+        style={{
+          padding: '8px 12px', borderRadius: 12,
+          background: W.fill, border: `1px solid ${W.veryweak}`,
+          minWidth: 88, position: 'relative',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <input
+          ref={ref}
+          type="time"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer',
+            colorScheme: 'dark',
+          }}
+          aria-label={label}
+        />
+        <div style={{
+          fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em',
+          fontVariantNumeric: 'tabular-nums', color: value ? W.ink : W.weak, lineHeight: 1,
+        }}>{value || '—'}</div>
+      </div>
+    </div>
+  );
+}
+
+function durationBetween(start: string, end: string): string {
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let mins = (eh * 60 + em) - (sh * 60 + sm);
+  if (mins <= 0) mins += 24 * 60;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
 function DateField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const ref = useRef<HTMLInputElement | null>(null);
   return (
