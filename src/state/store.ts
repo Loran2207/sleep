@@ -54,6 +54,30 @@ export function useNightShiftDone(): [boolean, (v: boolean) => void] {
   return [v, nightShiftStore.set];
 }
 
+// ─── PROFILE PREFS ──────────────────────────────────────────────
+// Target hours of sleep — shown on Profile, used as guidance when
+// editing schedules.
+const sleepGoalStore = createStore<number>(8);
+export function useSleepGoal(): [number, (v: number) => void] {
+  const v = useSyncExternalStore(sleepGoalStore.subscribe, sleepGoalStore.get, sleepGoalStore.get);
+  return [v, sleepGoalStore.set];
+}
+
+// Mock language preference. The picker on Profile rotates this value
+// but doesn't actually localise the UI yet.
+const languageStore = createStore<string>('English');
+export function useLanguage(): [string, (v: string) => void] {
+  const v = useSyncExternalStore(languageStore.subscribe, languageStore.get, languageStore.get);
+  return [v, languageStore.set];
+}
+
+// Notifications preference (mock toggle on Profile).
+const notificationsStore = createStore<boolean>(true);
+export function useNotifications(): [boolean, (v: boolean) => void] {
+  const v = useSyncExternalStore(notificationsStore.subscribe, notificationsStore.get, notificationsStore.get);
+  return [v, notificationsStore.set];
+}
+
 // ─── HABITS ──────────────────────────────────────────────────────
 import type { ScreenId } from '../tokens';
 
