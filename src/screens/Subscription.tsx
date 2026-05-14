@@ -116,43 +116,67 @@ function Hero({ active }: { active: boolean }) {
       position: 'relative', overflow: 'hidden',
       borderRadius: 24, padding: '26px 22px 24px',
       background: `
-        radial-gradient(120% 100% at 50% 0%, rgba(139,114,255,0.45) 0%, rgba(139,114,255,0) 60%),
-        linear-gradient(180deg, #181B2A 0%, #10121C 100%)`,
-      border: '1px solid rgba(255,255,255,0.08)',
-      boxShadow: '0 18px 50px rgba(0,0,0,0.45)',
+        radial-gradient(110% 90% at 50% 0%, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 55%),
+        linear-gradient(180deg, #15161B 0%, #0A0B10 100%)`,
+      border: '1px solid rgba(255,255,255,0.10)',
+      boxShadow: '0 22px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)',
     }}>
+      <AuroraDrift />
       <BigMoon />
       <div style={{ position: 'relative' }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 7,
           padding: '5px 11px 5px 8px', borderRadius: 999,
-          background: 'rgba(255,255,255,0.08)',
+          background: 'rgba(255,255,255,0.06)',
           border: '1px solid rgba(255,255,255,0.14)',
           fontSize: 12, fontWeight: 600,
-          color: 'rgba(255,255,255,0.9)',
+          color: 'rgba(255,255,255,0.92)',
+          letterSpacing: 0.1,
+          animation: 'sub-rise .55s cubic-bezier(.2,.7,.2,1)',
         }}>
           <span style={{
             width: 6, height: 6, borderRadius: 3,
-            background: active ? '#7FE3A1' : '#B7C8FF',
-            boxShadow: `0 0 8px ${active ? '#7FE3A1' : '#B7C8FF'}`,
+            background: active ? '#FFFFFF' : '#A8C0E8',
+            boxShadow: `0 0 8px ${active ? 'rgba(255,255,255,0.85)' : 'rgba(168,192,232,0.85)'}`,
           }} />
           {active ? 'Active' : 'Premium'}
         </div>
         <div style={{
-          fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em',
+          fontSize: 36, fontWeight: 700, letterSpacing: '-0.025em',
           marginTop: 14, lineHeight: 1,
+          animation: 'sub-title-in .7s cubic-bezier(.2,.7,.2,1) .05s both',
         }}>
-          Sleep<span style={{ color: '#B7C8FF' }}>+</span>
+          Sleep<span style={{ color: '#A8C0E8' }}>+</span>
         </div>
         <div style={{
-          fontSize: 14, color: 'rgba(255,255,255,0.7)',
-          marginTop: 8, lineHeight: 1.5, maxWidth: 280,
+          fontSize: 14, color: 'rgba(255,255,255,0.65)',
+          marginTop: 10, lineHeight: 1.55, maxWidth: 290,
+          animation: 'sub-rise .7s cubic-bezier(.2,.7,.2,1) .15s both',
         }}>
           {active
             ? 'Thanks for keeping the lights low. Every feature is yours.'
             : 'Sleep better, wake brighter. Unlock the full toolkit.'}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Slow, almost-imperceptible color drift behind the hero. A single
+// faint white blob slides through the card on a long loop so the dark
+// surface never reads as static.
+function AuroraDrift() {
+  return (
+    <div aria-hidden style={{
+      position: 'absolute', inset: 0, pointerEvents: 'none',
+      overflow: 'hidden', borderRadius: 24,
+    }}>
+      <div style={{
+        position: 'absolute', top: '-40%', left: '-30%',
+        width: '160%', height: '180%',
+        background: 'radial-gradient(closest-side, rgba(168,192,232,0.18) 0%, rgba(168,192,232,0) 70%)',
+        animation: 'sub-aurora 14s ease-in-out infinite',
+      }} />
     </div>
   );
 }
@@ -189,9 +213,9 @@ function PeriodToggle({ value, onChange }: {
         left: value === 'monthly' ? 4 : '50%',
         width: 'calc(50% - 4px)',
         borderRadius: 999,
-        background: 'linear-gradient(135deg, rgba(183,200,255,0.95), rgba(143,165,255,0.95))',
-        boxShadow: '0 6px 16px rgba(143,165,255,0.30)',
-        transition: 'left .25s cubic-bezier(.2,.7,.2,1)',
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #ECEEF2 100%)',
+        boxShadow: '0 6px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.7)',
+        transition: 'left .28s cubic-bezier(.2,.7,.2,1)',
       }} />
       <TogglePill label="Monthly" active={value === 'monthly'} onClick={() => onChange('monthly')} />
       <TogglePill label="Yearly"  active={value === 'yearly'}  onClick={() => onChange('yearly')}  badge={`Save ${ANNUAL_SAVINGS}%`} />
@@ -216,8 +240,8 @@ function TogglePill({ label, active, onClick, badge }: {
       {badge && (
         <span style={{
           padding: '2px 8px', borderRadius: 999,
-          background: active ? 'rgba(11,12,18,0.18)' : 'rgba(127,227,161,0.18)',
-          color: active ? '#0B0C12' : '#7FE3A1',
+          background: active ? 'rgba(11,12,18,0.14)' : 'rgba(168,192,232,0.16)',
+          color: active ? '#0B0C12' : '#A8C0E8',
           fontSize: 10, fontWeight: 700,
           transition: 'background .2s ease, color .2s ease',
         }}>{badge}</span>
@@ -285,10 +309,10 @@ function FeatureList() {
           }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: 'linear-gradient(135deg, rgba(183,200,255,0.16) 0%, rgba(126,107,255,0.12) 100%)',
-              border: '1px solid rgba(183,200,255,0.22)',
+              background: 'linear-gradient(155deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, color: '#B7C8FF',
+              flexShrink: 0, color: 'rgba(255,255,255,0.92)',
             }}>
               {f.icon}
             </div>
@@ -340,11 +364,12 @@ function StickyCta({ onSubscribe, period }: {
         <div onClick={onSubscribe} style={{
           padding: '15px 0', textAlign: 'center',
           borderRadius: 999,
-          background: 'linear-gradient(135deg, #B7C8FF 0%, #8FA5FF 50%, #7E6BFF 100%)',
-          color: '#0B0C12', fontSize: 15, fontWeight: 700,
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #E9EBEF 100%)',
+          color: '#0A0B10', fontSize: 15, fontWeight: 700,
           letterSpacing: '-0.01em', cursor: 'pointer',
-          boxShadow: '0 14px 32px rgba(126,107,255,0.35), 0 0 0 1px rgba(255,255,255,0.10) inset',
+          boxShadow: '0 14px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.10) inset, 0 0 0 6px rgba(168,192,232,0.06)',
           position: 'relative', overflow: 'hidden',
+          animation: 'sub-cta-breathe 3.6s ease-in-out infinite',
         }}>
           Start free trial
           <Shimmer />
@@ -362,9 +387,10 @@ function Shimmer() {
   return (
     <div style={{
       position: 'absolute', top: 0, bottom: 0, left: 0,
-      width: '40%',
-      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)',
-      animation: 'shimmer 2.4s ease-in-out infinite',
+      width: '50%',
+      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
+      mixBlendMode: 'overlay',
+      animation: 'shimmer 3.2s ease-in-out infinite',
       pointerEvents: 'none',
     }} />
   );
@@ -464,7 +490,7 @@ function PlanStatusCard({ period, price, renewsOn, autoRenew, onAutoRenew }: {
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>
             {autoRenew
               ? <>Next charge <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{prettyDate(renewsOn)}</span></>
-              : <>Access until <span style={{ color: '#FFB47A', fontWeight: 600 }}>{prettyDate(renewsOn)}</span></>}
+              : <>Access until <span style={{ color: '#A8C0E8', fontWeight: 600 }}>{prettyDate(renewsOn)}</span></>}
           </div>
         </div>
         <div style={{
@@ -500,17 +526,22 @@ function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   return (
     <div onClick={() => onChange(!on)} style={{
       width: 46, height: 28, borderRadius: 14, padding: 3,
-      background: on ? 'linear-gradient(135deg, #B7C8FF, #8FA5FF)' : 'rgba(255,255,255,0.14)',
+      background: on ? 'linear-gradient(180deg, #FFFFFF 0%, #E5E8EE 100%)' : 'rgba(255,255,255,0.14)',
+      border: on ? '1px solid rgba(255,255,255,0.40)' : '1px solid rgba(255,255,255,0.10)',
       display: 'flex', alignItems: 'center',
       cursor: 'pointer',
-      transition: 'background .2s ease',
+      transition: 'background .2s ease, border-color .2s ease',
       flexShrink: 0,
+      boxSizing: 'border-box',
     }}>
       <div style={{
-        width: 22, height: 22, borderRadius: 11, background: '#fff',
+        width: 20, height: 20, borderRadius: 10,
+        background: on ? '#0A0B10' : '#FFFFFF',
         transform: on ? 'translateX(18px)' : 'translateX(0)',
-        transition: 'transform .2s cubic-bezier(.2,.7,.2,1)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+        transition: 'transform .22s cubic-bezier(.2,.7,.2,1), background .2s ease',
+        boxShadow: on
+          ? '0 1px 3px rgba(0,0,0,0.55)'
+          : '0 1px 4px rgba(0,0,0,0.35)',
       }} />
     </div>
   );
@@ -539,10 +570,10 @@ function SwitchPlanCard({ current, target, onTap }: {
     }}>
       <div style={{
         width: 36, height: 36, borderRadius: 10,
-        background: 'linear-gradient(135deg, rgba(183,200,255,0.16) 0%, rgba(126,107,255,0.12) 100%)',
-        border: '1px solid rgba(183,200,255,0.22)',
+        background: 'linear-gradient(155deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+        border: '1px solid rgba(255,255,255,0.14)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, color: '#B7C8FF',
+        flexShrink: 0, color: 'rgba(255,255,255,0.92)',
       }}>
         <IconSwitch />
       </div>
@@ -554,8 +585,8 @@ function SwitchPlanCard({ current, target, onTap }: {
           {isUpgrade && (
             <span style={{
               padding: '2px 8px', borderRadius: 999,
-              background: 'rgba(127,227,161,0.18)',
-              color: '#7FE3A1',
+              background: 'rgba(168,192,232,0.16)',
+              color: '#A8C0E8',
               fontSize: 10, fontWeight: 700,
             }}>Save ${savings}/yr</span>
           )}
@@ -681,12 +712,12 @@ function ConfirmSheet({ title, body, confirmLabel, destructive, onConfirm, onClo
             borderRadius: 999,
             background: destructive
               ? 'linear-gradient(135deg, #FF8787 0%, #FF5A5A 100%)'
-              : 'linear-gradient(135deg, #B7C8FF 0%, #8FA5FF 50%, #7E6BFF 100%)',
-            color: destructive ? '#fff' : '#0B0C12',
+              : 'linear-gradient(180deg, #FFFFFF 0%, #E9EBEF 100%)',
+            color: destructive ? '#fff' : '#0A0B10',
             fontSize: 15, fontWeight: 700, cursor: 'pointer',
             boxShadow: destructive
               ? '0 10px 24px rgba(255,90,90,0.30)'
-              : '0 10px 24px rgba(126,107,255,0.30)',
+              : '0 10px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.10) inset',
           }}>{confirmLabel}</div>
           <div onClick={onClose} style={{
             padding: '12px 0', textAlign: 'center',
@@ -786,8 +817,8 @@ const KEYFRAMES = `
     100% { opacity: 1; transform: none; }
   }
   @keyframes shimmer {
-    0% { transform: translateX(-150%); }
-    100% { transform: translateX(250%); }
+    0% { transform: translateX(-160%); }
+    100% { transform: translateX(260%); }
   }
   @keyframes twinkle {
     0%, 100% { opacity: 0.25; }
@@ -800,5 +831,32 @@ const KEYFRAMES = `
   @keyframes sheetUp {
     0% { transform: translateY(100%); }
     100% { transform: translateY(0); }
+  }
+  @keyframes sub-rise {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: none; }
+  }
+  @keyframes sub-title-in {
+    0% { opacity: 0; transform: translateY(10px); letter-spacing: 0.04em; }
+    100% { opacity: 1; transform: none; letter-spacing: -0.025em; }
+  }
+  @keyframes sub-aurora {
+    0%   { transform: translate(0%, 0%); }
+    50%  { transform: translate(12%, 6%); }
+    100% { transform: translate(0%, 0%); }
+  }
+  @keyframes sub-cta-breathe {
+    0%, 100% {
+      box-shadow:
+        0 14px 32px rgba(0,0,0,0.45),
+        0 0 0 1px rgba(255,255,255,0.10) inset,
+        0 0 0 6px rgba(168,192,232,0.06);
+    }
+    50% {
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(255,255,255,0.16) inset,
+        0 0 0 10px rgba(168,192,232,0.10);
+    }
   }
 `;
