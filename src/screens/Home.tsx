@@ -512,6 +512,7 @@ function QuizSection() {
         display: 'flex', gap: 12, overflowX: 'auto',
         padding: '4px 16px 8px 16px',
         scrollSnapType: 'x mandatory',
+        scrollPaddingLeft: 16,
         WebkitOverflowScrolling: 'touch',
       }}>
         {QUIZZES.map((q) => (
@@ -554,8 +555,20 @@ function QuizCard({ quiz, onClick }: { quiz: Quiz; onClick: () => void }) {
         fontSize: 14, fontWeight: 700, color: W.ink,
         letterSpacing: '-0.01em', lineHeight: 1.25,
       }}>{quiz.title}</div>
+      <div style={{
+        marginTop: 4, fontSize: 11, color: W.weak, lineHeight: 1.3,
+        fontWeight: 500,
+      }}>{quizDuration(quiz)}</div>
     </div>
   );
+}
+
+// Pulls "2 min" (or whatever the time portion is) from a quiz's meta
+// string so the card shows expected duration without re-stating the
+// question count.
+function quizDuration(quiz: Quiz): string {
+  const parts = quiz.meta.split('·').map((p) => p.trim());
+  return parts[parts.length - 1] || quiz.meta;
 }
 
 function quizHexA(hex: string, a: number) {

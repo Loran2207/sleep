@@ -282,17 +282,18 @@ function PremiumRow({ active, period }: { active: boolean; period: 'monthly' | '
       <div style={{
         position: 'relative',
         width: 32, height: 32, borderRadius: 10,
-        background: 'linear-gradient(135deg, #7C6BFF 0%, #B981F0 55%, #FFC089 100%)',
+        background: 'linear-gradient(155deg, #20232C 0%, #0A0B10 100%)',
+        border: '1px solid rgba(255,255,255,0.14)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
-        boxShadow: '0 8px 20px rgba(124,107,255,0.35), inset 0 1px 0 rgba(255,255,255,0.20)',
+        boxShadow: '0 6px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10)',
       }}>
-        <MoonIcon size={16} stroke="#0B0C12" strokeWidth={2} />
+        <MoonIcon size={15} stroke="#FFFFFF" strokeWidth={1.8} />
         <div aria-hidden style={{
-          position: 'absolute', top: -2, right: -2,
-          width: 8, height: 8, borderRadius: 4,
-          background: '#FFD27A',
-          boxShadow: '0 0 8px rgba(255,210,122,0.85)',
+          position: 'absolute', top: -1, right: -1,
+          width: 6, height: 6, borderRadius: 3,
+          background: '#A8C0E8',
+          boxShadow: '0 0 6px rgba(168,192,232,0.85)',
         }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -306,11 +307,9 @@ function PremiumRow({ active, period }: { active: boolean; period: 'monthly' | '
       <div style={{
         fontSize: 11, fontWeight: 600,
         padding: '4px 10px', borderRadius: 999,
-        background: active
-          ? 'rgba(255,192,137,0.16)'
-          : 'rgba(185,129,240,0.16)',
-        color: active ? '#FFC089' : '#D7AEFF',
-        border: `1px solid ${active ? 'rgba(255,192,137,0.40)' : 'rgba(185,129,240,0.40)'}`,
+        background: active ? 'rgba(255,255,255,0.10)' : 'rgba(168,192,232,0.10)',
+        color: active ? '#FFFFFF' : '#A8C0E8',
+        border: `1px solid ${active ? 'rgba(255,255,255,0.22)' : 'rgba(168,192,232,0.34)'}`,
       }}>
         {active ? 'Active' : 'Upgrade'}
       </div>
