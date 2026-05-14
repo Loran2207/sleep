@@ -382,11 +382,11 @@ function BreathingCard() {
     <div onClick={() => go('practice-intro')} style={{
       ...TILE_BASE,
       background: `
-        radial-gradient(70% 70% at 14% 30%, rgba(127,194,255,0.32) 0%, rgba(127,194,255,0) 70%),
-        radial-gradient(120% 90% at 95% 100%, rgba(127,194,255,0.08) 0%, rgba(127,194,255,0) 60%),
-        linear-gradient(180deg, #141A26 0%, #0F121A 100%)`,
-      border: '1px solid rgba(127,194,255,0.24)',
-      boxShadow: '0 14px 30px rgba(127,194,255,0.08)',
+        radial-gradient(70% 70% at 14% 30%, rgba(138,161,255,0.32) 0%, rgba(138,161,255,0) 70%),
+        radial-gradient(120% 90% at 95% 100%, rgba(138,161,255,0.08) 0%, rgba(138,161,255,0) 60%),
+        linear-gradient(180deg, #161A26 0%, #0F121A 100%)`,
+      border: '1px solid rgba(138,161,255,0.26)',
+      boxShadow: '0 14px 30px rgba(138,161,255,0.10)',
     }}>
       <ToolCardKeyframes />
       <BreathRing />
@@ -400,7 +400,7 @@ function BreathingCard() {
           {todaySessions.length === 0
             ? '4‑7‑8 breath. Slow down anytime.'
             : <>
-                <span style={{ color: '#7FC2FF', fontWeight: 600 }}>
+                <span style={{ color: '#8AA1FF', fontWeight: 600 }}>
                   {todaySessions.length} session{todaySessions.length === 1 ? '' : 's'} today
                 </span>
                 <span> · {breaths} breaths</span>
@@ -409,9 +409,9 @@ function BreathingCard() {
       </div>
       <div style={{
         padding: '8px 14px', borderRadius: 999,
-        background: 'rgba(127,194,255,0.14)',
-        border: '1px solid rgba(127,194,255,0.35)',
-        color: '#B8DCFF', fontSize: 12, fontWeight: 600,
+        background: 'rgba(138,161,255,0.14)',
+        border: '1px solid rgba(138,161,255,0.40)',
+        color: '#B5C2FF', fontSize: 12, fontWeight: 600,
         flexShrink: 0,
       }}>Start</div>
     </div>
@@ -423,11 +423,11 @@ function SoundsCard() {
     <div onClick={() => go('sounds-player')} style={{
       ...TILE_BASE,
       background: `
-        radial-gradient(70% 70% at 14% 30%, rgba(255,180,122,0.34) 0%, rgba(255,180,122,0) 70%),
-        radial-gradient(120% 90% at 95% 100%, rgba(255,180,122,0.08) 0%, rgba(255,180,122,0) 60%),
-        linear-gradient(180deg, #1C1814 0%, #15110F 100%)`,
-      border: '1px solid rgba(255,180,122,0.26)',
-      boxShadow: '0 14px 30px rgba(255,180,122,0.10)',
+        radial-gradient(70% 70% at 14% 30%, rgba(255,142,124,0.32) 0%, rgba(255,142,124,0) 70%),
+        radial-gradient(120% 90% at 95% 100%, rgba(255,142,124,0.08) 0%, rgba(255,142,124,0) 60%),
+        linear-gradient(180deg, #1C1614 0%, #15100F 100%)`,
+      border: '1px solid rgba(255,142,124,0.28)',
+      boxShadow: '0 14px 30px rgba(255,142,124,0.10)',
     }}>
       <ToolCardKeyframes />
       <SoundOrb />
@@ -443,9 +443,9 @@ function SoundsCard() {
       </div>
       <div style={{
         padding: '8px 14px', borderRadius: 999,
-        background: 'rgba(255,180,122,0.14)',
-        border: '1px solid rgba(255,180,122,0.40)',
-        color: '#FFD3B0', fontSize: 12, fontWeight: 600,
+        background: 'rgba(255,142,124,0.14)',
+        border: '1px solid rgba(255,142,124,0.42)',
+        color: '#FFC9C0', fontSize: 12, fontWeight: 600,
         flexShrink: 0,
       }}>Listen</div>
     </div>
@@ -462,18 +462,18 @@ function SoundOrb() {
     }}>
       <div style={{
         position: 'absolute', inset: 0,
-        borderRadius: '50%', border: '1px dashed rgba(255,180,122,0.45)',
+        borderRadius: '50%', border: '1px dashed rgba(255,142,124,0.50)',
       }} />
       <div style={{
         position: 'absolute', width: 32, height: 32, borderRadius: 16,
-        background: 'radial-gradient(circle at 35% 30%, rgba(255,225,196,0.55), rgba(255,180,122,0.10) 65%, transparent 80%)',
-        border: '1px solid rgba(255,180,122,0.55)',
+        background: 'radial-gradient(circle at 35% 30%, rgba(255,210,200,0.60), rgba(255,142,124,0.10) 65%, transparent 80%)',
+        border: '1px solid rgba(255,142,124,0.60)',
       }} />
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 2 }}>
         {[0, 0.18, 0.36].map((d, i) => (
           <div key={i} style={{
             width: 2, height: 12, borderRadius: 1,
-            background: '#FFE2C7',
+            background: '#FFE0DA',
             transformOrigin: 'center',
             animation: `sound-bar 1.${4 + i}s ease-in-out infinite`,
             animationDelay: `${d}s`,
@@ -582,12 +582,12 @@ function BreathRing() {
     }}>
       <div style={{
         position: 'absolute', inset: 0,
-        borderRadius: '50%', border: '1px dashed rgba(127,194,255,0.45)',
+        borderRadius: '50%', border: '1px dashed rgba(138,161,255,0.50)',
       }} />
       <div style={{
         width: 32, height: 32, borderRadius: 16,
-        background: 'radial-gradient(circle at 35% 30%, rgba(184,220,255,0.65), rgba(127,194,255,0.10) 65%, transparent 80%)',
-        border: '1px solid rgba(127,194,255,0.55)',
+        background: 'radial-gradient(circle at 35% 30%, rgba(195,205,255,0.70), rgba(138,161,255,0.10) 65%, transparent 80%)',
+        border: '1px solid rgba(138,161,255,0.60)',
         animation: 'breath-pulse 4.2s ease-in-out infinite',
       }} />
     </div>
