@@ -8,7 +8,7 @@ import {
 } from '../components/icons';
 import {
   useSleepGoal, useLanguage, useNotifications,
-  useSchedules,
+  useSchedules, useSubscription,
 } from '../state/store';
 
 const LANGUAGES = ['English', 'Español', 'Français', 'Deutsch', 'Italiano', '日本語', 'Русский'];
@@ -18,6 +18,7 @@ export function Profile() {
   const [language, setLanguage] = useLanguage();
   const [notifications, setNotifications] = useNotifications();
   const { list: schedules } = useSchedules();
+  const [subscription] = useSubscription();
 
   const [sheet, setSheet] = useState<'goal' | 'language' | null>(null);
 
@@ -29,6 +30,11 @@ export function Profile() {
         <ProfileHero />
 
         <SignInBanner />
+
+        <SectionLabel>Subscription</SectionLabel>
+        <Group>
+          <PremiumRow active={subscription.active} period={subscription.period} />
+        </Group>
 
         <SectionLabel>Sleep</SectionLabel>
         <Group>
@@ -265,6 +271,44 @@ const iconBoxStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   flexShrink: 0,
 };
+
+function PremiumRow({ active, period }: { active: boolean; period: 'monthly' | 'yearly' }) {
+  return (
+    <div onClick={() => go('subscription')} style={{
+      padding: '14px 14px',
+      display: 'flex', alignItems: 'center', gap: 12,
+      cursor: 'pointer',
+    }}>
+      <div style={{
+        width: 30, height: 30, borderRadius: 8,
+        background: 'linear-gradient(135deg, #B7C8FF 0%, #8FA5FF 55%, #7E6BFF 100%)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+        boxShadow: '0 6px 14px rgba(126,107,255,0.30)',
+      }}>
+        <MoonIcon size={16} stroke="#0B0C12" strokeWidth={2} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, color: W.ink }}>Sleep+</div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 1 }}>
+          {active
+            ? `${period === 'yearly' ? 'Yearly' : 'Monthly'} plan · active`
+            : 'Unlock the full toolkit'}
+        </div>
+      </div>
+      <div style={{
+        fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
+        padding: '4px 9px', borderRadius: 999,
+        background: active ? 'rgba(127,227,161,0.16)' : 'rgba(183,200,255,0.16)',
+        color: active ? '#7FE3A1' : '#B7C8FF',
+        border: `1px solid ${active ? 'rgba(127,227,161,0.35)' : 'rgba(183,200,255,0.35)'}`,
+      }}>
+        {active ? 'ACTIVE' : 'UPGRADE'}
+      </div>
+      <ChevronRightIcon size={14} stroke={W.veryweak} />
+    </div>
+  );
+}
 
 function GlyphSquare({ children }: { children: React.ReactNode }) {
   return (
