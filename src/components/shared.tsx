@@ -12,6 +12,7 @@ import { lookupSound } from '../data/sounds';
 import { useNightShiftDone } from '../state/store';
 import { CheckIcon, NightShiftIcon } from './icons';
 import { MoodFace } from './MoodFace';
+import { Avatar } from './Avatar';
 import { moodToPosition } from '../data/mood';
 
 // Small breathing pad above content. Adds iOS safe-area-inset-top so the
@@ -246,13 +247,9 @@ export function StickyTopBar({ background }: { background?: string } = {}) {
           fontFamily: '"Times New Roman", Georgia, serif',
           fontStyle: 'italic', color: W.ink,
         }}>night</div>
-        <div onClick={() => go('profile')} aria-label="Profile" style={{
-          width: 34, height: 34, borderRadius: 17,
-          background: W.fill, border: `1px solid ${W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-          fontSize: 13, fontWeight: 600, color: W.ink, flexShrink: 0,
-        }}>A</div>
+        <div onClick={() => go('profile')} aria-label="Profile" style={{ cursor: 'pointer' }}>
+          <Avatar name="Kirill Kuts" size={34} />
+        </div>
       </div>
     </div>
   );
