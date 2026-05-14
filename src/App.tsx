@@ -22,6 +22,7 @@ import { WakeupSurvey } from './screens/WakeupSurvey';
 import { NightShiftGuide } from './screens/NightShiftGuide';
 import { Profile } from './screens/Profile';
 import { Subscription } from './screens/Subscription';
+import { QuizIntro, QuizSession, QuizResult } from './screens/Quiz';
 import { StubScreen } from './screens/Stub';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
@@ -54,6 +55,9 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'journal-entry': () => <JournalEntryEdit />,
   'profile': () => <Profile />,
   'subscription': () => <Subscription />,
+  'quiz-intro': () => <QuizIntro />,
+  'quiz-session': () => <QuizSession />,
+  'quiz-result': () => <QuizResult />,
 };
 
 export function App() {

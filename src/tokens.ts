@@ -40,4 +40,7 @@ export type ScreenId =
   | 'journal'
   | 'journal-entry'
   | 'profile'
-  | 'subscription';
+  | 'subscription'
+  | 'quiz-intro'
+  | 'quiz-session'
+  | 'quiz-result';

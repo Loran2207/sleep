@@ -317,6 +317,38 @@ export function usePracticeCycles(): [number, (n: number) => void] {
   return [v, practiceCyclesStore.set];
 }
 
+// ─── ACTIVE QUIZ STATE ──────────────────────────────────────────
+// One transient session at a time. The intro screen starts a quiz,
+// the question screen records answers, the result screen reads the
+// final score. There's no history persisted yet — when content lands
+// we can swap this for a per-quiz history store.
+export type QuizSession = {
+  quizId: string;
+  step: number;            // current question index
+  answers: number[];       // chosen option value per question
+};
+const quizSessionStore = createStore<QuizSession | null>(null);
+export function useQuizSession() {
+  const v = useSyncExternalStore(quizSessionStore.subscribe, quizSessionStore.get, quizSessionStore.get);
+  return {
+    session: v,
+    start: (quizId: string) => quizSessionStore.set({ quizId, step: 0, answers: [] }),
+    setAnswer: (idx: number, value: number) => {
+      const cur = quizSessionStore.get();
+      if (!cur) return;
+      const answers = cur.answers.slice();
+      answers[idx] = value;
+      quizSessionStore.set({ ...cur, answers });
+    },
+    setStep: (step: number) => {
+      const cur = quizSessionStore.get();
+      if (!cur) return;
+      quizSessionStore.set({ ...cur, step });
+    },
+    clear: () => quizSessionStore.set(null),
+  };
+}
+
 // ─── BREATH SESSIONS HISTORY ────────────────────────────────────
 // Each completed 4-7-8 session is logged here so past days can show
 // their breathing history.
