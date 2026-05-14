@@ -508,10 +508,11 @@ function QuizSection() {
       }}>Self-checks</div>
       <div style={{
         display: 'flex', gap: 12, overflowX: 'auto',
-        padding: '4px 16px 8px 16px',
+        padding: '8px 16px 36px 16px',
         scrollSnapType: 'x mandatory',
         scrollPaddingLeft: 16,
         WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
       }}>
         {QUIZZES.map((q) => (
           <QuizCard key={q.id} quiz={q} onClick={() => openQuiz(q)} />
