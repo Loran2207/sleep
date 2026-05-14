@@ -55,6 +55,7 @@ export function Subscription() {
       position: 'relative', overflow: 'hidden',
     }}>
       <style>{KEYFRAMES}</style>
+      <PageBackdrop />
       <StarField tick={tick} />
       <TopPad />
 
@@ -364,14 +365,15 @@ function StickyCta({ onSubscribe, period }: {
         <div onClick={onSubscribe} style={{
           padding: '15px 0', textAlign: 'center',
           borderRadius: 999,
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #E9EBEF 100%)',
+          background: 'linear-gradient(110deg, #E5E8ED 0%, #FAFBFD 22%, #FFFFFF 50%, #F0F2F6 75%, #E5E8ED 100%)',
+          backgroundSize: '220% 100%',
           color: '#0A0B10', fontSize: 15, fontWeight: 700,
           letterSpacing: '-0.01em', cursor: 'pointer',
           boxShadow: '0 14px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.10) inset, 0 0 0 6px rgba(168,192,232,0.06)',
           position: 'relative', overflow: 'hidden',
-          animation: 'sub-cta-breathe 3.6s ease-in-out infinite',
+          animation: 'sub-iridescent 5.5s linear infinite, sub-cta-breathe 3.6s ease-in-out infinite',
         }}>
-          Start free trial
+          <span style={{ position: 'relative', zIndex: 2 }}>Start free trial</span>
           <Shimmer />
         </div>
         <div style={{
@@ -386,12 +388,12 @@ function StickyCta({ onSubscribe, period }: {
 function Shimmer() {
   return (
     <div style={{
-      position: 'absolute', top: 0, bottom: 0, left: 0,
-      width: '50%',
-      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
-      mixBlendMode: 'overlay',
-      animation: 'shimmer 3.2s ease-in-out infinite',
+      position: 'absolute', top: -4, bottom: -4, left: 0,
+      width: '45%',
+      background: 'linear-gradient(95deg, transparent 0%, rgba(168,192,232,0) 30%, rgba(255,255,255,0.95) 48%, rgba(168,192,232,0.55) 52%, rgba(255,255,255,0) 70%, transparent 100%)',
+      animation: 'shimmer 3.4s ease-in-out infinite',
       pointerEvents: 'none',
+      filter: 'blur(0.5px)',
     }} />
   );
 }
@@ -756,6 +758,54 @@ function FineLinks() {
   );
 }
 
+// ─── Page-wide ambient backdrop ──────────────────────────────────
+// Two large, slow-drifting light fields layered behind everything,
+// plus a sparse rain of tiny "dust" particles rising up the screen.
+// Designed to be felt, not noticed — the surface never quite settles.
+function PageBackdrop() {
+  const dust = [
+    { x: 12, d: 0,  dur: 22 },
+    { x: 26, d: 5,  dur: 26 },
+    { x: 42, d: 11, dur: 19 },
+    { x: 56, d: 2,  dur: 24 },
+    { x: 70, d: 8,  dur: 21 },
+    { x: 84, d: 14, dur: 28 },
+    { x: 94, d: 3,  dur: 23 },
+  ];
+  return (
+    <div aria-hidden style={{
+      position: 'absolute', inset: 0, pointerEvents: 'none',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '-15%', left: '-35%',
+        width: '140%', height: '70%',
+        background: 'radial-gradient(closest-side, rgba(168,192,232,0.14) 0%, rgba(168,192,232,0) 70%)',
+        animation: 'sub-bg-drift 22s ease-in-out infinite',
+      }} />
+      <div style={{
+        position: 'absolute',
+        top: '35%', right: '-30%',
+        width: '120%', height: '55%',
+        background: 'radial-gradient(closest-side, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 70%)',
+        animation: 'sub-bg-drift-r 28s ease-in-out infinite',
+      }} />
+      {dust.map((p, i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          left: `${p.x}%`, bottom: '-6%',
+          width: 2, height: 2, borderRadius: 1,
+          background: 'rgba(255,255,255,0.55)',
+          boxShadow: '0 0 5px rgba(255,255,255,0.35)',
+          animation: `sub-dust ${p.dur}s linear infinite`,
+          animationDelay: `${p.d}s`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
 // ─── Star field ───────────────────────────────────────────────────
 function StarField({ tick }: { tick: number }) {
   const stars = [
@@ -817,8 +867,28 @@ const KEYFRAMES = `
     100% { opacity: 1; transform: none; }
   }
   @keyframes shimmer {
-    0% { transform: translateX(-160%); }
-    100% { transform: translateX(260%); }
+    0%   { transform: translateX(-220%); }
+    55%  { transform: translateX(320%); }
+    100% { transform: translateX(320%); }
+  }
+  @keyframes sub-iridescent {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes sub-bg-drift {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(18%, 10%); }
+  }
+  @keyframes sub-bg-drift-r {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(-14%, -8%); }
+  }
+  @keyframes sub-dust {
+    0%   { transform: translateY(0);     opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.3; }
+    100% { transform: translateY(-110vh); opacity: 0; }
   }
   @keyframes twinkle {
     0%, 100% { opacity: 0.25; }
