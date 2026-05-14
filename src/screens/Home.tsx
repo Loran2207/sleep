@@ -423,14 +423,14 @@ function QuizSection() {
     <div style={{ marginTop: 26 }}>
       <div style={{
         display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-        padding: '0 20px 12px',
+        padding: '0 24px 12px 24px',
       }}>
         <div style={{ fontSize: 13, color: W.weak, fontWeight: 600 }}>Self-checks</div>
         <div style={{ fontSize: 11, color: W.veryweak, fontWeight: 500 }}>2 min each</div>
       </div>
       <div style={{
         display: 'flex', gap: 12, overflowX: 'auto',
-        padding: '4px 20px 8px',
+        padding: '4px 20px 8px 24px',
         scrollSnapType: 'x mandatory',
         WebkitOverflowScrolling: 'touch',
       }}>
