@@ -255,7 +255,7 @@ function BreathHistory({ sessions }: { sessions: BreathSession[] }) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         fontSize: 11, fontWeight: 600,
-        color: '#7FC2FF',
+        color: '#8AA1FF',
         marginBottom: 8,
       }}>
         <BreathDot />
@@ -277,8 +277,8 @@ function BreathSessionCard({ session }: { session: BreathSession }) {
   const tint = session.feeling ? FEELING_TINT[session.feeling] : null;
   return (
     <div style={{
-      background: 'rgba(127,194,255,0.05)',
-      border: '1px solid rgba(127,194,255,0.20)',
+      background: 'rgba(138,161,255,0.05)',
+      border: '1px solid rgba(138,161,255,0.22)',
       borderRadius: 14, padding: '12px 14px',
     }}>
       <div style={{
@@ -329,8 +329,8 @@ function BreathDot() {
   return (
     <span style={{
       width: 8, height: 8, borderRadius: 4,
-      background: 'radial-gradient(circle, #B8DCFF, rgba(127,194,255,0.35) 70%)',
-      boxShadow: '0 0 6px rgba(127,194,255,0.6)',
+      background: 'radial-gradient(circle, #B5C2FF, rgba(138,161,255,0.40) 70%)',
+      boxShadow: '0 0 6px rgba(138,161,255,0.65)',
       flexShrink: 0,
     }} />
   );
