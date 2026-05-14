@@ -51,11 +51,8 @@ export function Home() {
         <div style={{ height: 1, background: W.fill, margin: '32px 16px 8px' }} />
 
         <div style={{ padding: '0 16px' }}>
-          <ToolsSectionHeader title="Tools" />
-          <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-            <BreathingCard />
-            <SoundsCard />
-          </div>
+          <BreathingCard />
+          <SoundsCard />
 
           <ToolsSectionHeader title="Wind down" style={{ marginTop: 20 }} />
           <SettingsCard
@@ -372,16 +369,16 @@ function ToolCardKeyframes() {
 }
 
 const TILE_BASE: React.CSSProperties = {
-  flex: 1, minWidth: 0, minHeight: 168,
   position: 'relative', overflow: 'hidden',
-  borderRadius: 18, padding: '14px 14px 14px',
-  cursor: 'pointer',
-  display: 'flex', flexDirection: 'column',
+  borderRadius: 18, padding: '16px',
+  marginBottom: 10, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', gap: 14,
 };
 
 function BreathingCard() {
   const { forDate } = useBreathSessions();
   const todaySessions = forDate(TODAY_DATE);
+  const breaths = todaySessions.reduce((s, x) => s + x.breaths, 0);
 
   return (
     <div onClick={() => go('practice-intro')} style={{
@@ -393,26 +390,29 @@ function BreathingCard() {
     }}>
       <ToolCardKeyframes />
       <BreathRing />
-      <div style={{ marginTop: 14, fontSize: 14, fontWeight: 700, color: W.ink, letterSpacing: '-0.01em' }}>
-        Breathing
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em' }}>
+          Breathing
+        </div>
+        <div style={{
+          fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4,
+        }}>
+          {todaySessions.length === 0
+            ? '4‑7‑8 breath. Slow down anytime.'
+            : <>
+                <span style={{ color: '#7FC2FF', fontWeight: 600 }}>
+                  {todaySessions.length} session{todaySessions.length === 1 ? '' : 's'} today
+                </span>
+                <span> · {breaths} breaths</span>
+              </>}
+        </div>
       </div>
       <div style={{
-        marginTop: 4, fontSize: 12, color: W.weak, lineHeight: 1.4, flex: 1,
-      }}>
-        {todaySessions.length === 0
-          ? '4‑7‑8 breath. Slow down anytime.'
-          : <>
-              <span style={{ color: '#7FC2FF', fontWeight: 600 }}>
-                {todaySessions.length} session{todaySessions.length === 1 ? '' : 's'} today
-              </span>
-            </>}
-      </div>
-      <div style={{
-        marginTop: 10, alignSelf: 'flex-start',
-        padding: '6px 12px', borderRadius: 999,
+        padding: '8px 14px', borderRadius: 999,
         background: 'rgba(127,194,255,0.14)',
         border: '1px solid rgba(127,194,255,0.35)',
-        color: '#B8DCFF', fontSize: 11, fontWeight: 600,
+        color: '#B8DCFF', fontSize: 12, fontWeight: 600,
+        flexShrink: 0,
       }}>Start</div>
     </div>
   );
@@ -429,20 +429,22 @@ function SoundsCard() {
     }}>
       <ToolCardKeyframes />
       <SoundOrb />
-      <div style={{ marginTop: 14, fontSize: 14, fontWeight: 700, color: W.ink, letterSpacing: '-0.01em' }}>
-        Sounds
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em' }}>
+          Sounds
+        </div>
+        <div style={{
+          fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4,
+        }}>
+          Drift off to rain, fire or waves.
+        </div>
       </div>
       <div style={{
-        marginTop: 4, fontSize: 12, color: W.weak, lineHeight: 1.4, flex: 1,
-      }}>
-        Drift off to rain, fire or waves.
-      </div>
-      <div style={{
-        marginTop: 10, alignSelf: 'flex-start',
-        padding: '6px 12px', borderRadius: 999,
+        padding: '8px 14px', borderRadius: 999,
         background: 'rgba(255,180,122,0.14)',
         border: '1px solid rgba(255,180,122,0.40)',
-        color: '#FFD3B0', fontSize: 11, fontWeight: 600,
+        color: '#FFD3B0', fontSize: 12, fontWeight: 600,
+        flexShrink: 0,
       }}>Listen</div>
     </div>
   );
