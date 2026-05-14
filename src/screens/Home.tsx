@@ -48,9 +48,7 @@ export function Home() {
 
         {isToday ? <RoutineHero /> : <PastDayCard day={sel} />}
 
-        <div style={{ height: 1, background: W.fill, margin: '32px 16px 8px' }} />
-
-        <div style={{ padding: '0 16px' }}>
+        <div style={{ padding: '24px 16px 0' }}>
           <BreathingCard />
           <SoundsCard />
 
