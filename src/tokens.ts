@@ -39,4 +39,5 @@ export type ScreenId =
   | 'analytics'
   | 'journal'
   | 'journal-entry'
-  | 'profile';
+  | 'profile'
+  | 'subscription';

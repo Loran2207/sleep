@@ -78,6 +78,24 @@ export function useNotifications(): [boolean, (v: boolean) => void] {
   return [v, notificationsStore.set];
 }
 
+// Mock subscription state. Manage screen flips active / billing period.
+export type BillingPeriod = 'monthly' | 'yearly';
+export type Subscription = {
+  active: boolean;
+  period: BillingPeriod;
+  renewsOn: string; // YYYY-MM-DD
+};
+const subscriptionStore = createStore<Subscription>({
+  active: false,
+  period: 'yearly',
+  renewsOn: '2027-05-14',
+});
+export function useSubscription(): [Subscription, (patch: Partial<Subscription>) => void] {
+  const v = useSyncExternalStore(subscriptionStore.subscribe, subscriptionStore.get, subscriptionStore.get);
+  const update = (patch: Partial<Subscription>) => subscriptionStore.set({ ...subscriptionStore.get(), ...patch });
+  return [v, update];
+}
+
 // ─── HABITS ──────────────────────────────────────────────────────
 import type { ScreenId } from '../tokens';
 
