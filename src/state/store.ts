@@ -169,36 +169,94 @@ export type JournalEntry = {
 };
 
 const journalStore = createStore<JournalEntry[]>([
+  // Today (Thu Feb 19) — already filled in.
   {
     id: 'j-1', moodX: 0.85, moodY: 0.55, feeling: 'Happy', feelingDesc: 'Light and clear',
     legacyMood: 'great', date: '2026-02-19', time: '09:12', whenLabel: 'Today, 09:12',
+    bedTime: '23:05', wakeTime: '07:02',
     text: 'Took a morning stroll through Central Park. The air was so fresh and the sun felt amazing. Total connection with nature. Perfect way to start the day, feeling super recharged and ready for anything.',
     context: ['outdoors', 'exercise'],
     factors: ['sunlight', 'workout'],
     diary: {},
   },
+  // Tue Feb 17 — solid sleep, good mood.
   {
-    id: 'j-2', moodX: 0.5, moodY: 0.75, feeling: 'Alert', feelingDesc: 'Wired and busy',
-    legacyMood: 'meh', date: '2025-12-17', time: '23:12', whenLabel: '17 December, 23:12',
-    text: "Big presentation for the new launch next week. Honestly, I'm freaking out a bit! I've been staring at the slides for hours, but that \"what if\" voice won't shut up. Just need to breathe, visualize the win, and remember why I started.",
-    context: ['work'],
-    factors: ['stress', 'screens', 'coffee-late'],
+    id: 'j-feb17', moodX: 0.7, moodY: 0.4, feeling: 'Calm', feelingDesc: 'At ease',
+    legacyMood: 'good', date: '2026-02-17', time: '07:04', whenLabel: 'Feb 17, 07:04',
+    bedTime: '23:00', wakeTime: '07:04',
+    text: 'Better night. Cut caffeine after lunch and it actually paid off — fell asleep within twenty minutes and slept through.',
+    context: [],
+    factors: ['sunlight', 'workout'],
     diary: {},
   },
+  // Mon Feb 16 — short night, average mood.
   {
-    id: 'j-3', moodX: 0.7, moodY: 0.4, feeling: 'Calm', feelingDesc: 'At ease',
-    legacyMood: 'good', date: '2025-12-15', time: '21:40', whenLabel: '15 December, 21:40',
-    text: "Finally saw the sun after days of rain! It felt like the world was giving me a massive high-five. Just a reminder that the tough bits don't last forever. Things always get better if you just keep going.",
-    context: ['outdoors'],
-    factors: ['sunlight', 'read'],
+    id: 'j-feb16', moodX: 0.5, moodY: 0.45, feeling: 'Neutral', feelingDesc: 'Just here',
+    legacyMood: 'meh', date: '2026-02-16', time: '07:18', whenLabel: 'Feb 16, 07:18',
+    bedTime: '00:00', wakeTime: '07:18',
+    text: 'Monday is rough. Doom-scrolled too long, bed too late, woke up groggy.',
+    context: [],
+    factors: ['screens'],
     diary: {},
   },
+  // Sun Feb 15 — good Sunday vibes.
   {
-    id: 'j-4', moodX: 0.3, moodY: 0.7, feeling: 'Anxious', feelingDesc: 'Worried',
-    legacyMood: 'bad', date: '2025-12-13', time: '22:05', whenLabel: '13 December, 22:05',
-    text: "Couldn't fall asleep again. Mind racing. Tried 4-7-8 breathing for ten minutes, helped a bit but still tossed for an hour after. Cutting caffeine after lunch from now on.",
-    context: ['bed'],
+    id: 'j-feb15', moodX: 0.7, moodY: 0.4, feeling: 'Calm', feelingDesc: 'At ease',
+    legacyMood: 'good', date: '2026-02-15', time: '07:00', whenLabel: 'Feb 15, 07:00',
+    bedTime: '23:30', wakeTime: '07:00',
+    text: 'Slept solid. Sunday vibes — read for half an hour before lights out and drifted off easily.',
+    context: [],
+    factors: ['read'],
+    diary: {},
+  },
+  // Sat Feb 14 — great night.
+  {
+    id: 'j-feb14', moodX: 0.85, moodY: 0.55, feeling: 'Happy', feelingDesc: 'Light and clear',
+    legacyMood: 'great', date: '2026-02-14', time: '07:18', whenLabel: 'Feb 14, 07:18',
+    bedTime: '23:10', wakeTime: '07:18',
+    text: 'Saturday morning, slept in a bit and woke up naturally. Felt great.',
+    context: [],
+    factors: ['sunlight'],
+    diary: {},
+  },
+  // Fri Feb 13 — bad night.
+  {
+    id: 'j-feb13', moodX: 0.3, moodY: 0.7, feeling: 'Anxious', feelingDesc: 'Worried',
+    legacyMood: 'bad', date: '2026-02-13', time: '06:40', whenLabel: 'Feb 13, 06:40',
+    bedTime: '23:35', wakeTime: '06:40',
+    text: "Couldn't fall asleep — mind racing about Monday. Tossed and turned for over an hour after lights out.",
+    context: [],
     factors: ['coffee-late', 'stress', 'late-dinner'],
+    diary: {},
+  },
+  // Wed Feb 11 — great night.
+  {
+    id: 'j-feb11', moodX: 0.85, moodY: 0.55, feeling: 'Happy', feelingDesc: 'Light and clear',
+    legacyMood: 'great', date: '2026-02-11', time: '07:02', whenLabel: 'Feb 11, 07:02',
+    bedTime: '22:48', wakeTime: '07:02',
+    text: 'Excellent night. Woke up before the alarm feeling really refreshed and ready to go.',
+    context: [],
+    factors: ['sunlight', 'workout'],
+    diary: {},
+  },
+  // Tue Feb 10 — meh.
+  {
+    id: 'j-feb10', moodX: 0.5, moodY: 0.45, feeling: 'Neutral', feelingDesc: 'Just here',
+    legacyMood: 'meh', date: '2026-02-10', time: '07:18', whenLabel: 'Feb 10, 07:18',
+    bedTime: '00:12', wakeTime: '07:18',
+    text: 'Late to bed, average sleep. Feeling a bit tired this morning.',
+    context: [],
+    factors: ['screens', 'late-dinner'],
+    diary: {},
+  },
+  // Mon Feb 9 — good.
+  {
+    id: 'j-feb09', moodX: 0.7, moodY: 0.4, feeling: 'Calm', feelingDesc: 'At ease',
+    legacyMood: 'good', date: '2026-02-09', time: '06:56', whenLabel: 'Feb 9, 06:56',
+    bedTime: '23:14', wakeTime: '06:56',
+    text: 'Slept solid 7h+. Mind was quiet, body felt rested in the morning.',
+    context: [],
+    factors: ['sunlight', 'read'],
     diary: {},
   },
 ]);

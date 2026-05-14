@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad, HeaderBar, LiquidGlassNav } from '../components/shared';
+import { TopPad, LiquidGlassNav } from '../components/shared';
 import {
-  CheckIcon, ChevronRightIcon, MoonIcon, BellIcon, MusicIcon,
-  WindIcon, NightShiftIcon, PhoneOffIcon, ProfileFilled,
+  CheckIcon, ChevronRightIcon, MoonIcon, BellIcon,
+  NightShiftIcon, PhoneOffIcon, ProfileFilled,
 } from '../components/icons';
 import {
   useSleepGoal, useLanguage, useNotifications,
@@ -24,7 +24,6 @@ export function Profile() {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
       <TopPad />
-      <HeaderBar title="Profile" onBack={() => go('home')} />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 130px' }}>
         <ProfileHero />
@@ -46,13 +45,6 @@ export function Profile() {
             value={`${schedules.length} preset${schedules.length === 1 ? '' : 's'}`}
             onClick={() => go('sleep-schedule')}
           />
-          <Divider />
-          <Row
-            icon={<MusicIcon size={18} stroke={W.ink} />}
-            title="Sounds catalog"
-            value=""
-            onClick={() => go('sounds')}
-          />
         </Group>
 
         <SectionLabel>Wind down</SectionLabel>
@@ -69,13 +61,6 @@ export function Profile() {
             title="Distraction blocking"
             value=""
             onClick={() => go('routine')}
-          />
-          <Divider />
-          <Row
-            icon={<WindIcon size={18} stroke={W.ink} />}
-            title="Breathing practice"
-            value=""
-            onClick={() => go('practice-intro')}
           />
         </Group>
 

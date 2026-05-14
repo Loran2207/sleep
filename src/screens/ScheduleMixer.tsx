@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { W } from '../tokens';
-import { go } from '../state/navigation';
+import { go, back } from '../state/navigation';
 import { TopPad, VolumeSlider } from '../components/shared';
 import {
   GlyphPlus, GlyphChevDn, GlyphTrash,
@@ -26,7 +26,7 @@ export function ScheduleMix() {
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px' }}>
-        <div onClick={() => go('sleep-schedule')} style={{
+        <div onClick={() => back()} style={{
           width: 36, height: 36, borderRadius: 18,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: 'rgba(255,255,255,0.85)',
@@ -132,7 +132,7 @@ export function ScheduleSounds() {
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px' }}>
-        <div onClick={() => go('schedule-mix')} style={{
+        <div onClick={() => back()} style={{
           width: 36, height: 36, borderRadius: 18,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: 'rgba(255,255,255,0.85)',
@@ -209,7 +209,7 @@ export function ScheduleSounds() {
         display: 'flex', alignItems: 'center', gap: 10,
         backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
       }}>
-        <div onClick={() => go('schedule-mix')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+        <div onClick={() => back()} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
           <div style={{ fontSize: 13, fontWeight: 500 }}>
             {mix.length === 0 ? 'No sounds' : (mix.length === 1 ? lookupSound(mix[0].id)?.name : 'Mix')}
           </div>
@@ -217,7 +217,7 @@ export function ScheduleSounds() {
             {mix.length === 0 ? 'Tap a sound above' : `${mix.length} sound${mix.length === 1 ? '' : 's'}`}
           </div>
         </div>
-        <div onClick={() => go('schedule-mix')} style={{
+        <div onClick={() => back()} style={{
           padding: '8px 14px', borderRadius: 999,
           background: '#fff', color: '#0E1014',
           fontSize: 13, fontWeight: 600, cursor: 'pointer',

@@ -14,31 +14,9 @@ import { MoodFace } from '../components/MoodFace';
 import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useEditingScheduleId, useJournal, pickScheduleForDay } from '../state/store';
 import { readMood } from '../data/mood';
 import { lookupFactor } from '../data/factors';
+import { DAYS as days, TODAY_IDX as todayIdx, dayToDate, dayLabel } from '../data/days';
 
-const days: Day[] = [
-  { dow: 'M', n: 9, mood: 'good', sleep: '7h 12m' },
-  { dow: 'T', n: 10, mood: 'meh', sleep: '6h 02m' },
-  { dow: 'W', n: 11, mood: 'great', sleep: '7h 48m' },
-  // n=12 left blank to demonstrate the "missed day" state.
-  { dow: 'T', n: 12, mood: null, sleep: null },
-  { dow: 'F', n: 13, mood: 'bad', sleep: '5h 41m' },
-  { dow: 'S', n: 14, mood: 'great', sleep: '8h 12m' },
-  { dow: 'S', n: 15, mood: 'good', sleep: '7h 30m' },
-  { dow: 'M', n: 16, mood: 'meh', sleep: '6h 42m' },
-  { dow: 'T', n: 17, mood: 'good', sleep: '7h 04m' },
-  { dow: 'W', n: 18, mood: 'bad', sleep: '5h 58m' },
-  { dow: 'T', n: 19, mood: null, sleep: null },
-  { dow: 'F', n: 20, mood: null, sleep: null },
-  { dow: 'S', n: 21, mood: null, sleep: null },
-  { dow: 'S', n: 22, mood: null, sleep: null },
-];
-const todayIdx = 10;
-
-// Maps a calendar day number into a journal date for the mock month.
-// Real app would use proper date math.
-export const dayToDate = (n: number) => `2026-02-${String(n).padStart(2, '0')}`;
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-export const dayLabel = (n: number) => `${MONTHS_SHORT[1]} ${n}`;
+export { dayToDate, dayLabel };
 
 export function Home() {
   const [selected, setSelected] = useState(todayIdx);

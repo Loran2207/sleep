@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go, back } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { ArrowRightTinyIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon } from '../components/icons';
+import { ArrowRightTinyIcon, ChevronLeftIcon, ChevronRightIcon } from '../components/icons';
 import { useSchedules, useEditingScheduleId, useSleepGoal, type Schedule } from '../state/store';
 import { lookupSound } from '../data/sounds';
 
@@ -36,11 +36,6 @@ function formatDelta(min: number) {
 const PRESET_SUBTITLE: Record<string, string> = {
   weekdays: 'Mon – Fri',
   weekends: 'Sat & Sun',
-};
-
-const PRESET_HINT: Record<string, string> = {
-  weekdays: 'Used Monday through Friday.',
-  weekends: 'Used on Saturday and Sunday.',
 };
 
 const TIMER_OPTIONS: { label: string; minutes: number | null }[] = [
@@ -113,27 +108,17 @@ export function SleepSchedules() {
         <SectionLabel>Sound</SectionLabel>
         <MixPlate sounds={schedule.sounds.map((s) => s.id)} onClick={openMix} />
 
-        <SectionLabel hint="The mix fades out after this many minutes (or stays on until alarm).">Sleep timer</SectionLabel>
+        <SectionLabel>Sleep timer</SectionLabel>
         <TimerPills
           value={schedule.timerMin}
           onChange={(min) => update(schedule.id, { timerMin: min })}
         />
 
         <div style={{
-          marginTop: 20, padding: '12px 14px',
-          background: W.paper, border: `1px solid ${W.fill}`,
-          borderRadius: 14,
-          display: 'flex', alignItems: 'center', gap: 12,
+          marginTop: 18, textAlign: 'center',
+          fontSize: 11, color: W.veryweak, lineHeight: 1.5,
         }}>
-          <div style={{
-            width: 30, height: 30, borderRadius: 8,
-            background: W.fill, border: `1px solid ${W.veryweak}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            fontSize: 13, fontWeight: 700, color: W.weak,
-          }}>i</div>
-          <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: W.weak, lineHeight: 1.45 }}>
-            {PRESET_HINT[schedule.id]} The preset switches automatically with the day of week.
-          </div>
+          Applies automatically on {PRESET_SUBTITLE[schedule.id] ?? 'the matching days'}.
         </div>
       </div>
     </div>
@@ -208,15 +193,8 @@ function ScheduleHero({ schedule, onChange }: {
   }
 
   return (
-    <div style={{ padding: '4px 4px 18px', textAlign: 'center' }}>
-      <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{PRESET_SUBTITLE[schedule.id] ?? ''}</div>
-      <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 6 }}>{schedule.name}</div>
-      <div style={{ fontSize: 13, color: W.weak, marginTop: 6, lineHeight: 1.45 }}>
-        Bedtime to wake-up · <strong style={{ color: W.ink, fontWeight: 600 }}>{dur}</strong>
-      </div>
-
+    <div style={{ padding: '4px 4px 18px' }}>
       <div style={{
-        marginTop: 18,
         background: W.paper, border: `1px solid ${W.fill}`,
         borderRadius: 22, padding: 20,
       }}>
@@ -239,7 +217,10 @@ function ScheduleHero({ schedule, onChange }: {
           <TimeField label="Bedtime" value={bedStr} onChange={setBed} />
           <div style={{ textAlign: 'center', padding: '0 4px', minWidth: 48 }}>
             <ArrowRightTinyIcon size={14} stroke={W.weak} />
-            <div style={{ fontSize: 11, color: W.weak, marginTop: 4, whiteSpace: 'nowrap' }}>{dur}</div>
+            <div style={{
+              fontSize: 11, color: W.weak, marginTop: 4, whiteSpace: 'nowrap',
+              fontVariantNumeric: 'tabular-nums',
+            }}>{dur}</div>
           </div>
           <TimeField label="Wake up" value={wakeStr} onChange={setWake} />
         </div>
@@ -290,9 +271,9 @@ function TimeField({ label, value, onChange }: {
       <div
         onClick={open}
         style={{
-          width: '100%', padding: '10px 12px', borderRadius: 14,
+          width: '100%', padding: '10px 8px', borderRadius: 14,
           background: W.fill, border: `1px solid ${W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', boxSizing: 'border-box',
         }}
       >
@@ -300,18 +281,17 @@ function TimeField({ label, value, onChange }: {
           ref={ref} type="time" className="sched-time" value={value}
           onChange={(e) => onChange(e.target.value)} aria-label={label}
         />
-        <PencilIcon size={12} stroke={W.weak} />
       </div>
     </div>
   );
 }
 
-function SectionLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ padding: '20px 4px 10px' }}>
-      <div style={{ fontSize: 12, color: W.weak, fontWeight: 600, letterSpacing: 0.4 }}>{children}</div>
-      {hint && <div style={{ fontSize: 11, color: W.veryweak, marginTop: 3, lineHeight: 1.4 }}>{hint}</div>}
-    </div>
+    <div style={{
+      padding: '20px 4px 8px',
+      fontSize: 11, color: W.weak, fontWeight: 600, letterSpacing: 0.4,
+    }}>{children}</div>
   );
 }
 
