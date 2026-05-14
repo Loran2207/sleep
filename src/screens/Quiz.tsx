@@ -25,6 +25,7 @@ export function QuizIntro() {
       background: W.bg, color: W.ink, fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
+      <AmbientTop accent={quiz.accent} />
       <TopPad />
 
       <div style={{
@@ -34,6 +35,7 @@ export function QuizIntro() {
         <div onClick={() => back()} style={{
           width: 36, height: 36, borderRadius: 18,
           background: 'rgba(255,255,255,0.06)',
+          border: `1px solid ${hexA(quiz.accent, 0.16)}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: W.ink,
         }}>
@@ -42,6 +44,7 @@ export function QuizIntro() {
       </div>
 
       <div style={{
+        position: 'relative',
         flex: 1, overflowY: 'auto',
         padding: '4px 20px 130px',
       }}>
@@ -96,24 +99,26 @@ function Hero({ quiz }: { quiz: Quiz }) {
   return (
     <div style={{
       position: 'relative', overflow: 'hidden',
-      borderRadius: 22, height: 200, marginTop: 4,
+      borderRadius: 24, height: 220, marginTop: 4,
       background: `
-        radial-gradient(120% 100% at 70% 0%, ${hexA(quiz.accent, 0.35)} 0%, ${hexA(quiz.accent, 0)} 65%),
+        radial-gradient(60% 65% at 50% 38%, ${hexA(quiz.accent, 0.50)} 0%, ${hexA(quiz.accent, 0)} 70%),
+        radial-gradient(120% 100% at 80% 100%, ${hexA(quiz.accent, 0.12)} 0%, ${hexA(quiz.accent, 0)} 60%),
         linear-gradient(180deg, ${hexA(quiz.accent, 0.10)} 0%, ${W.paper} 100%)`,
-      border: `1px solid ${hexA(quiz.accent, 0.24)}`,
+      border: `1px solid ${hexA(quiz.accent, 0.32)}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: `0 22px 50px ${hexA(quiz.accent, 0.16)}`,
     }}>
       <BackdropDots accent={quiz.accent} />
       <div style={{
         position: 'relative',
-        width: 92, height: 92, borderRadius: 24,
-        background: `linear-gradient(135deg, ${hexA(quiz.accent, 0.28)}, ${hexA(quiz.accent, 0.10)})`,
-        border: `1px solid ${hexA(quiz.accent, 0.45)}`,
+        width: 100, height: 100, borderRadius: 28,
+        background: `linear-gradient(135deg, ${hexA(quiz.accent, 0.45)} 0%, ${hexA(quiz.accent, 0.14)} 100%)`,
+        border: `1px solid ${hexA(quiz.accent, 0.60)}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: quiz.accent,
-        boxShadow: `0 12px 30px ${hexA(quiz.accent, 0.18)}`,
+        boxShadow: `0 18px 40px ${hexA(quiz.accent, 0.35)}, inset 0 1px 0 ${hexA(quiz.accent, 0.30)}`,
       }}>
-        <Icon size={42} />
+        <Icon size={44} />
       </div>
     </div>
   );
@@ -152,6 +157,7 @@ export function QuizSession() {
       background: W.bg, color: W.ink, fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
+      <AmbientTop accent={quiz.accent} />
       <TopPad />
 
       <div style={{
@@ -161,6 +167,7 @@ export function QuizSession() {
         <div onClick={prev} style={{
           width: 36, height: 36, borderRadius: 18,
           background: 'rgba(255,255,255,0.06)',
+          border: `1px solid ${hexA(quiz.accent, 0.16)}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: W.ink,
         }}>
@@ -169,7 +176,7 @@ export function QuizSession() {
         <ProgressDots total={total} step={step} accent={quiz.accent} />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px 140px' }}>
+      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '8px 20px 140px' }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12,
           padding: '14px 0 18px',
@@ -205,13 +212,19 @@ export function QuizSession() {
             return (
               <div key={opt.label} onClick={() => pickOption(opt.value)} style={{
                 padding: '15px 16px',
-                background: on ? hexA(quiz.accent, 0.08) : W.paper,
-                border: `1px solid ${on ? hexA(quiz.accent, 0.55) : W.fill}`,
+                background: on
+                  ? `linear-gradient(135deg, ${hexA(quiz.accent, 0.16)} 0%, ${hexA(quiz.accent, 0.05)} 100%)`
+                  : W.paper,
+                border: `1px solid ${on ? hexA(quiz.accent, 0.65) : W.fill}`,
                 borderRadius: 14, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 12,
-                transition: 'background .12s ease, border-color .12s ease',
+                transition: 'background .14s ease, border-color .14s ease, box-shadow .14s ease',
+                boxShadow: on ? `0 8px 22px ${hexA(quiz.accent, 0.18)}` : 'none',
               }}>
-                <div style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 500 }}>
+                <div style={{
+                  flex: 1, minWidth: 0, fontSize: 15, fontWeight: 500,
+                  color: on ? W.ink : W.ink,
+                }}>
                   {opt.label}
                 </div>
                 <div style={{
@@ -220,7 +233,8 @@ export function QuizSession() {
                   border: `1.5px solid ${on ? quiz.accent : W.veryweak}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
-                  transition: 'background .12s ease, border-color .12s ease',
+                  boxShadow: on ? `0 0 0 4px ${hexA(quiz.accent, 0.18)}` : 'none',
+                  transition: 'background .14s ease, border-color .14s ease, box-shadow .14s ease',
                 }}>
                   {on && <CheckIcon size={12} stroke={W.bg} strokeWidth={3} />}
                 </div>
@@ -262,6 +276,7 @@ export function QuizResult() {
       background: W.bg, color: W.ink, fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
+      <AmbientTop accent={quiz.accent} />
       <TopPad />
 
       <div style={{
@@ -271,6 +286,7 @@ export function QuizResult() {
         <div onClick={() => back()} style={{
           width: 36, height: 36, borderRadius: 18,
           background: 'rgba(255,255,255,0.06)',
+          border: `1px solid ${hexA(quiz.accent, 0.16)}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: W.ink,
         }}>
@@ -283,7 +299,7 @@ export function QuizResult() {
         }}>Done</div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 20px 140px' }}>
+      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '4px 20px 140px' }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12,
           padding: '14px 0 18px',
@@ -319,10 +335,14 @@ export function QuizResult() {
         <ScoreBars score={score} max={quiz.maxScore} accent={quiz.accent} />
 
         <div style={{
+          position: 'relative', overflow: 'hidden',
           marginTop: 22, padding: '18px 18px',
-          background: hexA(quiz.accent, 0.06),
-          border: `1px solid ${hexA(quiz.accent, 0.28)}`,
-          borderRadius: 16,
+          background: `
+            radial-gradient(120% 100% at 0% 0%, ${hexA(quiz.accent, 0.14)} 0%, ${hexA(quiz.accent, 0)} 60%),
+            ${hexA(quiz.accent, 0.05)}`,
+          border: `1px solid ${hexA(quiz.accent, 0.34)}`,
+          borderRadius: 18,
+          boxShadow: `0 14px 36px ${hexA(quiz.accent, 0.12)}`,
         }}>
           <div style={{
             fontSize: 11, fontWeight: 600, color: quiz.accent,
@@ -384,11 +404,18 @@ function ProgressDots({ total, step, accent }: {
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
       {Array.from({ length: total }).map((_, i) => {
         const filled = i <= step;
+        const current = i === step;
         return (
           <div key={i} style={{
             flex: 1, height: 4, borderRadius: 2,
-            background: filled ? accent : W.fill,
-            transition: 'background .2s ease',
+            background: filled
+              ? (current
+                  ? `linear-gradient(90deg, ${accent}, ${accent})`
+                  : accent)
+              : W.fill,
+            opacity: filled ? 1 : 1,
+            boxShadow: current ? `0 0 12px ${hexA(accent, 0.55)}` : 'none',
+            transition: 'background .2s ease, box-shadow .2s ease',
           }} />
         );
       })}
@@ -403,17 +430,21 @@ function ScoreBars({ score, max, accent }: {
   const bars = Array.from({ length: max }, (_, i) => i < score);
   return (
     <div style={{
-      marginTop: 14,
+      marginTop: 14, position: 'relative',
       display: 'flex', alignItems: 'flex-end', gap: 4, height: 56,
     }}>
       {bars.map((on, i) => {
-        const h = 18 + (i / Math.max(max - 1, 1)) * 32;
+        const t = i / Math.max(max - 1, 1);
+        const h = 18 + t * 32;
         return (
           <div key={i} style={{
             flex: 1, height: h,
-            borderRadius: 2,
-            background: on ? accent : W.fill,
-            opacity: on ? 1 : 0.7,
+            borderRadius: 3,
+            background: on
+              ? `linear-gradient(180deg, ${accent} 0%, ${darken(accent, 0.18)} 100%)`
+              : W.fill,
+            opacity: on ? 1 : 0.55,
+            boxShadow: on ? `0 4px 14px ${hexA(accent, 0.25)}` : 'none',
             transition: 'background .12s ease',
           }} />
         );
@@ -467,6 +498,21 @@ function pillStyle(accent: string, mode: 'enabled' | 'disabled' | 'outline' = 'e
     color: W.bg,
     boxShadow: `0 14px 32px ${hexA(accent, 0.32)}, 0 0 0 1px rgba(255,255,255,0.06) inset`,
   };
+}
+
+// Whole-page soft tinted vignette that radiates from the top of the
+// screen — mirrors how the reference Theme picker washes the whole
+// header in its active color before the content takes over.
+function AmbientTop({ accent }: { accent: string }) {
+  return (
+    <div aria-hidden style={{
+      position: 'absolute', top: 0, left: 0, right: 0, height: 420,
+      pointerEvents: 'none',
+      background: `
+        radial-gradient(80% 60% at 50% 0%, ${hexA(accent, 0.18)} 0%, ${hexA(accent, 0)} 70%)`,
+      zIndex: 0,
+    }} />
+  );
 }
 
 function BackdropDots({ accent }: { accent: string }) {
