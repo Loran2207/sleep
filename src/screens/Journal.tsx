@@ -4,7 +4,7 @@ import { go } from '../state/navigation';
 import { StickyTopBar, DayStrip, LiquidGlassNav, type Day } from '../components/shared';
 import { HabitGlyph } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
-import { useEditingJournalId, useJournal, type JournalEntry } from '../state/store';
+import { useEditingJournalId, useJournal, useBreathSessions, type JournalEntry, type BreathSession } from '../state/store';
 import { lookupFactor } from '../data/factors';
 import { readMood } from '../data/mood';
 import { DAYS as days, TODAY_IDX as todayIdx, dayToDate, dayLabel } from '../data/days';
@@ -15,6 +15,7 @@ const moodColor: Record<string, string> = {
 
 export function Journal() {
   const { list, add } = useJournal();
+  const breath = useBreathSessions();
   const [, setEditingId] = useEditingJournalId();
   const [selected, setSelected] = useState(todayIdx);
   const stripRef = useRef<HTMLDivElement | null>(null);
@@ -84,13 +85,18 @@ export function Journal() {
 
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 20px 130px', WebkitOverflowScrolling: 'touch' }}>
         {showMissing && (
-          <MissingDayInline day={selectedDay} onFill={() => fillInDay(selectedDay)} />
+          <MissingDayInline
+            day={selectedDay}
+            onFill={() => fillInDay(selectedDay)}
+            sessions={breath.forDate(selectedDate)}
+          />
         )}
         {list.map((e, i) => (
           <div key={e.id} data-entry-id={e.id}>
             <EntryRow
               entry={e}
               isLast={i === list.length - 1}
+              sessions={breath.forDate(e.date)}
               onClick={() => openEntry(e.id)}
             />
           </div>
@@ -107,7 +113,11 @@ export function Journal() {
   );
 }
 
-function MissingDayInline({ day, onFill }: { day: Day; onFill: () => void }) {
+function MissingDayInline({ day, onFill, sessions }: {
+  day: Day;
+  onFill: () => void;
+  sessions: BreathSession[];
+}) {
   const isToday = day.n === days[todayIdx].n;
   return (
     <div style={{
@@ -142,13 +152,20 @@ function MissingDayInline({ day, onFill }: { day: Day; onFill: () => void }) {
         fontSize: 14, fontWeight: 600, cursor: 'pointer',
         boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
       }}>Fill in</div>
+
+      {sessions.length > 0 && (
+        <div style={{ marginTop: 22, textAlign: 'left' }}>
+          <BreathHistory sessions={sessions} />
+        </div>
+      )}
     </div>
   );
 }
 
-function EntryRow({ entry, isLast, onClick }: {
+function EntryRow({ entry, isLast, sessions, onClick }: {
   entry: JournalEntry;
   isLast: boolean;
+  sessions: BreathSession[];
   onClick: () => void;
 }) {
   const c = moodColor[entry.legacyMood] || W.weak;
@@ -208,7 +225,113 @@ function EntryRow({ entry, isLast, onClick }: {
             </div>
           )}
         </div>
+        {sessions.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <BreathHistory sessions={sessions} />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+const FEELING_LABEL: Record<string, string> = {
+  calmer: 'Calmer',
+  same: 'About the same',
+  restless: 'Still restless',
+};
+
+const FEELING_TINT: Record<string, string> = {
+  calmer: '#7FE3A1',
+  same: '#B7C8FF',
+  restless: '#E59A6F',
+};
+
+function BreathHistory({ sessions }: { sessions: BreathSession[] }) {
+  const totalBreaths = sessions.reduce((s, x) => s + x.breaths, 0);
+  const totalMin = Math.round(sessions.reduce((s, x) => s + x.durationSec, 0) / 60);
+  return (
+    <div>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        fontSize: 11, fontWeight: 600,
+        color: '#7FC2FF',
+        marginBottom: 8,
+      }}>
+        <BreathDot />
+        <span>Breathing</span>
+        <span style={{ color: W.weak, fontWeight: 500 }}>
+          · {sessions.length} session{sessions.length === 1 ? '' : 's'} · {totalBreaths} breaths{totalMin > 0 ? ` · ${totalMin} min` : ''}
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {sessions.map((s) => <BreathSessionCard key={s.id} session={s} />)}
+      </div>
+    </div>
+  );
+}
+
+function BreathSessionCard({ session }: { session: BreathSession }) {
+  const mm = Math.floor(session.durationSec / 60);
+  const ss = String(session.durationSec % 60).padStart(2, '0');
+  const tint = session.feeling ? FEELING_TINT[session.feeling] : null;
+  return (
+    <div style={{
+      background: 'rgba(127,194,255,0.05)',
+      border: '1px solid rgba(127,194,255,0.20)',
+      borderRadius: 14, padding: '12px 14px',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        fontSize: 11, color: W.weak,
+      }}>
+        <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+          {session.time} · 4‑7‑8
+        </span>
+        {session.feeling && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            color: tint ?? W.ink, fontWeight: 600,
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: 3,
+              background: tint ?? W.ink,
+            }} />
+            {FEELING_LABEL[session.feeling]}
+          </span>
+        )}
+      </div>
+      <div style={{
+        marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+      }}>
+        <Metric value={session.cycles}            label="cycles" />
+        <Metric value={`${mm}:${ss}`}             label="minutes" />
+        <Metric value={session.breaths}           label="breaths" />
+      </div>
+    </div>
+  );
+}
+
+function Metric({ value, label }: { value: number | string; label: string }) {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{
+        fontSize: 22, fontWeight: 500, color: W.ink,
+        fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em',
+        lineHeight: 1,
+      }}>{value}</div>
+      <div style={{ fontSize: 11, color: W.weak, marginTop: 5 }}>{label}</div>
+    </div>
+  );
+}
+
+function BreathDot() {
+  return (
+    <span style={{
+      width: 8, height: 8, borderRadius: 4,
+      background: 'radial-gradient(circle, #B8DCFF, rgba(127,194,255,0.35) 70%)',
+      boxShadow: '0 0 6px rgba(127,194,255,0.6)',
+      flexShrink: 0,
+    }} />
   );
 }

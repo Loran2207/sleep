@@ -317,6 +317,42 @@ export function usePracticeCycles(): [number, (n: number) => void] {
   return [v, practiceCyclesStore.set];
 }
 
+// ─── BREATH SESSIONS HISTORY ────────────────────────────────────
+// Each completed 4-7-8 session is logged here so past days can show
+// their breathing history.
+export type BreathFeeling = 'calmer' | 'same' | 'restless';
+export type BreathSession = {
+  id: string;
+  date: string;       // YYYY-MM-DD
+  time: string;       // HH:MM
+  cycles: number;
+  durationSec: number;
+  breaths: number;
+  feeling: BreathFeeling | null;
+};
+const breathSessionsStore = createStore<BreathSession[]>([
+  // Today (Feb 19) — a morning calm-down and an evening wind-down.
+  { id: 'br-1', date: '2026-02-19', time: '22:14', cycles: 8,  durationSec: 152, breaths: 24, feeling: 'calmer' },
+  { id: 'br-2', date: '2026-02-19', time: '07:40', cycles: 4,  durationSec: 76,  breaths: 12, feeling: 'same' },
+  // A few past days so the journal history feels lived-in.
+  { id: 'br-3', date: '2026-02-17', time: '23:02', cycles: 12, durationSec: 228, breaths: 36, feeling: 'calmer' },
+  { id: 'br-4', date: '2026-02-14', time: '21:55', cycles: 8,  durationSec: 152, breaths: 24, feeling: 'calmer' },
+  { id: 'br-5', date: '2026-02-14', time: '07:30', cycles: 4,  durationSec: 76,  breaths: 12, feeling: 'same' },
+  { id: 'br-6', date: '2026-02-11', time: '22:48', cycles: 8,  durationSec: 152, breaths: 24, feeling: 'restless' },
+]);
+export function useBreathSessions() {
+  const list = useSyncExternalStore(breathSessionsStore.subscribe, breathSessionsStore.get, breathSessionsStore.get);
+  return {
+    list,
+    forDate: (date: string) => list.filter((s) => s.date === date),
+    add: (s: Omit<BreathSession, 'id'>) => {
+      const id = `br-${Date.now()}`;
+      breathSessionsStore.set([{ id, ...s }, ...breathSessionsStore.get()]);
+      return id;
+    },
+  };
+}
+
 // ─── SOUND MIX (active tracking) ─────────────────────────────────
 export type MixSound = { id: string; vol: number };
 export type MixState = { mix: MixSound[]; playing: boolean; alarm: string; timerMin: number | null };

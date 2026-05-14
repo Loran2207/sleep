@@ -28,3 +28,7 @@ const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
 
 export const dayToDate = (n: number) => `2026-02-${String(n).padStart(2, '0')}`;
 export const dayLabel = (n: number) => `${MONTHS_SHORT[1]} ${n}`;
+
+// Mock "today" used by the prototype so seeded entries and new actions
+// share the same date. The day strip's TODAY_IDX maps to n = 19.
+export const TODAY_DATE = dayToDate(DAYS[TODAY_IDX].n);
