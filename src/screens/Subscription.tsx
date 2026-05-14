@@ -41,7 +41,7 @@ export function Subscription() {
     const renew = new Date();
     if (period === 'monthly') renew.setMonth(renew.getMonth() + 1);
     else renew.setFullYear(renew.getFullYear() + 1);
-    setSub({ active: true, period, renewsOn: renew.toISOString().slice(0, 10) });
+    setSub({ active: true, period, autoRenew: true, renewsOn: renew.toISOString().slice(0, 10) });
   }
 
   function cancel() {
@@ -83,7 +83,9 @@ export function Subscription() {
           <ActivePlan
             period={sub.period}
             renewsOn={sub.renewsOn}
+            autoRenew={sub.autoRenew}
             onSwitch={(p) => setSub({ period: p })}
+            onAutoRenew={(v) => setSub({ autoRenew: v })}
             onCancel={cancel}
           />
         ) : (
@@ -369,57 +371,331 @@ function Shimmer() {
 }
 
 // ─── Active manage view ───────────────────────────────────────────
-function ActivePlan({ period, renewsOn, onSwitch, onCancel }: {
+type Confirm =
+  | { kind: 'switch'; to: BillingPeriod }
+  | { kind: 'cancel' }
+  | null;
+
+function ActivePlan({ period, renewsOn, autoRenew, onSwitch, onAutoRenew, onCancel }: {
   period: BillingPeriod;
   renewsOn: string;
+  autoRenew: boolean;
   onSwitch: (p: BillingPeriod) => void;
+  onAutoRenew: (v: boolean) => void;
   onCancel: () => void;
 }) {
+  const [confirm, setConfirm] = useState<Confirm>(null);
   const price = PRICE[period];
+  const other: BillingPeriod = period === 'monthly' ? 'yearly' : 'monthly';
+
   return (
     <>
-      <div style={{
-        marginTop: 18, padding: '18px 18px',
-        background: 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        borderRadius: 18,
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Current plan</div>
-            <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4, letterSpacing: '-0.01em' }}>
-              {period === 'monthly' ? 'Monthly' : 'Yearly'}
-            </div>
-          </div>
-          <div style={{
-            fontSize: 13, fontWeight: 600,
-            fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.85)',
-          }}>
-            ${price.amount}{price.perLabel.replace('/ ', '/')}
-          </div>
-        </div>
-        <div style={{
-          marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.08)',
-          fontSize: 12, color: 'rgba(255,255,255,0.55)',
-        }}>
-          Renews on <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{prettyDate(renewsOn)}</span>
-        </div>
-      </div>
+      <PlanStatusCard
+        period={period}
+        price={price}
+        renewsOn={renewsOn}
+        autoRenew={autoRenew}
+        onAutoRenew={onAutoRenew}
+      />
 
-      <SectionLabel style={{ marginTop: 22 }}>Switch plan</SectionLabel>
-      <PeriodToggle value={period} onChange={onSwitch} />
+      <SectionLabel style={{ marginTop: 22 }}>Plan options</SectionLabel>
+      <SwitchPlanCard
+        current={period}
+        target={other}
+        onTap={() => setConfirm({ kind: 'switch', to: other })}
+      />
 
-      <FeatureList />
+      <SectionLabel style={{ marginTop: 22 }}>Billing</SectionLabel>
+      <PaymentRow />
 
-      <div onClick={onCancel} style={{
+      <div onClick={() => setConfirm({ kind: 'cancel' })} style={{
         marginTop: 22, padding: '14px 0', textAlign: 'center',
-        border: '1px solid rgba(255,255,255,0.14)',
-        borderRadius: 999, color: 'rgba(255,255,255,0.85)',
+        border: '1px solid rgba(255,90,90,0.30)',
+        borderRadius: 999, color: '#FF7A7A',
         fontSize: 14, fontWeight: 600, cursor: 'pointer',
+        background: 'rgba(255,90,90,0.06)',
       }}>Cancel subscription</div>
 
       <FineLinks />
+
+      {confirm?.kind === 'switch' && (
+        <ConfirmSheet
+          title={`Switch to ${confirm.to}?`}
+          body={switchBody(period, confirm.to, renewsOn)}
+          confirmLabel={`Switch to ${confirm.to}`}
+          onConfirm={() => { onSwitch(confirm.to); setConfirm(null); }}
+          onClose={() => setConfirm(null)}
+        />
+      )}
+      {confirm?.kind === 'cancel' && (
+        <ConfirmSheet
+          title="Cancel Sleep+?"
+          body={`You'll keep premium features until ${prettyDate(renewsOn)}. After that, the app falls back to the free tier.`}
+          confirmLabel="Cancel subscription"
+          destructive
+          onConfirm={() => { onCancel(); setConfirm(null); }}
+          onClose={() => setConfirm(null)}
+        />
+      )}
     </>
+  );
+}
+
+function PlanStatusCard({ period, price, renewsOn, autoRenew, onAutoRenew }: {
+  period: BillingPeriod;
+  price: typeof PRICE[BillingPeriod];
+  renewsOn: string;
+  autoRenew: boolean;
+  onAutoRenew: (v: boolean) => void;
+}) {
+  return (
+    <div style={{
+      marginTop: 18, padding: '18px 18px 0',
+      background: 'rgba(255,255,255,0.04)',
+      border: '1px solid rgba(255,255,255,0.10)',
+      borderRadius: 18,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Current plan</div>
+          <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4, letterSpacing: '-0.01em' }}>
+            Sleep+ {period === 'monthly' ? 'Monthly' : 'Yearly'}
+          </div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>
+            {autoRenew
+              ? <>Next charge <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{prettyDate(renewsOn)}</span></>
+              : <>Access until <span style={{ color: '#FFB47A', fontWeight: 600 }}>{prettyDate(renewsOn)}</span></>}
+          </div>
+        </div>
+        <div style={{
+          textAlign: 'right',
+          fontSize: 13, fontWeight: 600,
+          fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.9)',
+        }}>
+          <div>${price.amount.toFixed(2)}</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginTop: 2 }}>
+            per {period === 'monthly' ? 'month' : 'year'}
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        marginTop: 14, padding: '12px 0',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', alignItems: 'center', gap: 12,
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 500 }}>Auto-renew</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+            {autoRenew ? 'Charges automatically on renewal' : 'Subscription ends after current period'}
+          </div>
+        </div>
+        <Switch on={autoRenew} onChange={onAutoRenew} />
+      </div>
+    </div>
+  );
+}
+
+function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div onClick={() => onChange(!on)} style={{
+      width: 46, height: 28, borderRadius: 14, padding: 3,
+      background: on ? 'linear-gradient(135deg, #B7C8FF, #8FA5FF)' : 'rgba(255,255,255,0.14)',
+      display: 'flex', alignItems: 'center',
+      cursor: 'pointer',
+      transition: 'background .2s ease',
+      flexShrink: 0,
+    }}>
+      <div style={{
+        width: 22, height: 22, borderRadius: 11, background: '#fff',
+        transform: on ? 'translateX(18px)' : 'translateX(0)',
+        transition: 'transform .2s cubic-bezier(.2,.7,.2,1)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+      }} />
+    </div>
+  );
+}
+
+function SwitchPlanCard({ current, target, onTap }: {
+  current: BillingPeriod;
+  target: BillingPeriod;
+  onTap: () => void;
+}) {
+  const cur = PRICE[current];
+  const tgt = PRICE[target];
+  const isUpgrade = target === 'yearly';
+  const savings = isUpgrade
+    ? Math.round((cur.amount * 12 - tgt.amount))
+    : 0;
+
+  return (
+    <div onClick={onTap} style={{
+      padding: '14px 14px',
+      background: 'rgba(255,255,255,0.04)',
+      border: '1px solid rgba(255,255,255,0.10)',
+      borderRadius: 16,
+      display: 'flex', alignItems: 'center', gap: 14,
+      cursor: 'pointer',
+    }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 10,
+        background: 'linear-gradient(135deg, rgba(183,200,255,0.16) 0%, rgba(126,107,255,0.12) 100%)',
+        border: '1px solid rgba(183,200,255,0.22)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, color: '#B7C8FF',
+      }}>
+        <IconSwitch />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 600 }}>
+            Switch to {target}
+          </div>
+          {isUpgrade && (
+            <span style={{
+              padding: '2px 8px', borderRadius: 999,
+              background: 'rgba(127,227,161,0.18)',
+              color: '#7FE3A1',
+              fontSize: 10, fontWeight: 700,
+            }}>Save ${savings}/yr</span>
+          )}
+        </div>
+        <div style={{
+          fontSize: 12, color: 'rgba(255,255,255,0.55)',
+          marginTop: 3, fontVariantNumeric: 'tabular-nums',
+        }}>
+          ${tgt.amount}{tgt.perLabel} · {tgt.sub.toLowerCase()}
+        </div>
+      </div>
+      <ChevronRight />
+    </div>
+  );
+}
+
+function PaymentRow() {
+  return (
+    <div style={{
+      padding: '14px 14px',
+      background: 'rgba(255,255,255,0.04)',
+      border: '1px solid rgba(255,255,255,0.10)',
+      borderRadius: 16,
+      display: 'flex', alignItems: 'center', gap: 14,
+      cursor: 'pointer',
+    }}>
+      <div style={{
+        width: 44, height: 28, borderRadius: 6,
+        background: 'linear-gradient(135deg, #1a1f3a 0%, #2a3055 100%)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <span style={{
+          fontSize: 9, fontWeight: 700, color: '#fff',
+          letterSpacing: 0.5, fontStyle: 'italic',
+        }}>VISA</span>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
+          Visa  ••••  4242
+        </div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+          Default payment method
+        </div>
+      </div>
+      <ChevronRight />
+    </div>
+  );
+}
+
+function ChevronRight() {
+  return (
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none"
+      stroke="rgba(255,255,255,0.35)" strokeWidth={2}
+      strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 6l6 6-6 6"/>
+    </svg>
+  );
+}
+
+function IconSwitch() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={1.7}
+      strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 9h13l-3-3"/>
+      <path d="M20 15H7l3 3"/>
+    </svg>
+  );
+}
+
+function switchBody(from: BillingPeriod, to: BillingPeriod, renewsOn: string) {
+  if (to === 'yearly') {
+    return `Your next charge on ${prettyDate(renewsOn)} will be $${PRICE.yearly.amount} for one year of Sleep+, then yearly after that.`;
+  }
+  return `You'll be charged $${PRICE.monthly.amount} each month starting on ${prettyDate(renewsOn)}. You can switch back anytime.`;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  void from;
+}
+
+function ConfirmSheet({ title, body, confirmLabel, destructive, onConfirm, onClose }: {
+  title: string;
+  body: string;
+  confirmLabel: string;
+  destructive?: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div onClick={onClose} style={{
+      position: 'absolute', inset: 0, zIndex: 60,
+      background: 'rgba(6,7,12,0.7)',
+      backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'flex-end',
+      animation: 'fadeIn .15s ease',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%',
+        background: '#14161F',
+        borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        padding: '14px 20px 26px',
+        boxShadow: '0 -20px 60px rgba(0,0,0,0.55)',
+        animation: 'sheetUp .22s cubic-bezier(.2,.7,.2,1)',
+      }}>
+        <div style={{
+          width: 40, height: 4, borderRadius: 2,
+          background: 'rgba(255,255,255,0.12)', margin: '0 auto 14px',
+        }} />
+        <div style={{
+          fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em',
+          textAlign: 'center',
+        }}>{title}</div>
+        <div style={{
+          fontSize: 13, color: 'rgba(255,255,255,0.65)',
+          marginTop: 8, lineHeight: 1.5, textAlign: 'center',
+          maxWidth: 320, marginLeft: 'auto', marginRight: 'auto',
+        }}>{body}</div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+          <div onClick={onConfirm} style={{
+            padding: '14px 0', textAlign: 'center',
+            borderRadius: 999,
+            background: destructive
+              ? 'linear-gradient(135deg, #FF8787 0%, #FF5A5A 100%)'
+              : 'linear-gradient(135deg, #B7C8FF 0%, #8FA5FF 50%, #7E6BFF 100%)',
+            color: destructive ? '#fff' : '#0B0C12',
+            fontSize: 15, fontWeight: 700, cursor: 'pointer',
+            boxShadow: destructive
+              ? '0 10px 24px rgba(255,90,90,0.30)'
+              : '0 10px 24px rgba(126,107,255,0.30)',
+          }}>{confirmLabel}</div>
+          <div onClick={onClose} style={{
+            padding: '12px 0', textAlign: 'center',
+            color: 'rgba(255,255,255,0.7)',
+            fontSize: 14, fontWeight: 500, cursor: 'pointer',
+          }}>Not now</div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -516,5 +792,13 @@ const KEYFRAMES = `
   @keyframes twinkle {
     0%, 100% { opacity: 0.25; }
     50% { opacity: 0.85; }
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes sheetUp {
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(0); }
   }
 `;
