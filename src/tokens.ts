@@ -35,6 +35,7 @@ export type ScreenId =
   | 'practice-session'
   | 'practice-complete'
   | 'wind-down'
+  | 'sounds-player'
   | 'wakeup-survey'
   | 'analytics'
   | 'journal'
