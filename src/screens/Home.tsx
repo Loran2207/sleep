@@ -384,9 +384,11 @@ function BreathingCard() {
     <div onClick={() => go('practice-intro')} style={{
       ...TILE_BASE,
       background: `
-        radial-gradient(120% 100% at 85% 0%, rgba(127,194,255,0.22) 0%, rgba(127,194,255,0) 60%),
-        linear-gradient(180deg, #161A24 0%, #11141C 100%)`,
-      border: '1px solid rgba(127,194,255,0.18)',
+        radial-gradient(70% 70% at 14% 30%, rgba(127,194,255,0.32) 0%, rgba(127,194,255,0) 70%),
+        radial-gradient(120% 90% at 95% 100%, rgba(127,194,255,0.08) 0%, rgba(127,194,255,0) 60%),
+        linear-gradient(180deg, #141A26 0%, #0F121A 100%)`,
+      border: '1px solid rgba(127,194,255,0.24)',
+      boxShadow: '0 14px 30px rgba(127,194,255,0.08)',
     }}>
       <ToolCardKeyframes />
       <BreathRing />
@@ -423,9 +425,11 @@ function SoundsCard() {
     <div onClick={() => go('sounds-player')} style={{
       ...TILE_BASE,
       background: `
-        radial-gradient(120% 100% at 85% 0%, rgba(255,180,122,0.24) 0%, rgba(255,180,122,0) 60%),
-        linear-gradient(180deg, #1B1815 0%, #14110F 100%)`,
-      border: '1px solid rgba(255,180,122,0.20)',
+        radial-gradient(70% 70% at 14% 30%, rgba(255,180,122,0.34) 0%, rgba(255,180,122,0) 70%),
+        radial-gradient(120% 90% at 95% 100%, rgba(255,180,122,0.08) 0%, rgba(255,180,122,0) 60%),
+        linear-gradient(180deg, #1C1814 0%, #15110F 100%)`,
+      border: '1px solid rgba(255,180,122,0.26)',
+      boxShadow: '0 14px 30px rgba(255,180,122,0.10)',
     }}>
       <ToolCardKeyframes />
       <SoundOrb />
@@ -522,25 +526,28 @@ function QuizCard({ quiz, onClick }: { quiz: Quiz; onClick: () => void }) {
   const Icon = quiz.icon;
   return (
     <div onClick={onClick} style={{
-      flex: '0 0 148px', minHeight: 144,
+      flex: '0 0 148px', minHeight: 148,
       scrollSnapAlign: 'start',
       position: 'relative', overflow: 'hidden',
-      borderRadius: 18, padding: '14px 14px 14px',
+      borderRadius: 20, padding: '14px 14px 14px',
       background: `
-        radial-gradient(120% 100% at 80% 0%, ${quizHexA(quiz.accent, 0.30)} 0%, ${quizHexA(quiz.accent, 0)} 65%),
-        linear-gradient(180deg, ${quizHexA(quiz.accent, 0.10)} 0%, ${W.paper} 100%)`,
-      border: `1px solid ${quizHexA(quiz.accent, 0.24)}`,
+        radial-gradient(95% 70% at 22% 18%, ${quizHexA(quiz.accent, 0.42)} 0%, ${quizHexA(quiz.accent, 0)} 70%),
+        radial-gradient(120% 90% at 90% 100%, ${quizHexA(quiz.accent, 0.10)} 0%, ${quizHexA(quiz.accent, 0)} 60%),
+        linear-gradient(180deg, ${quizHexA(quiz.accent, 0.08)} 0%, #14141A 100%)`,
+      border: `1px solid ${quizHexA(quiz.accent, 0.28)}`,
       cursor: 'pointer',
       display: 'flex', flexDirection: 'column',
+      boxShadow: `0 14px 30px ${quizHexA(quiz.accent, 0.10)}`,
     }}>
       <div style={{
-        width: 38, height: 38, borderRadius: 10,
-        background: `linear-gradient(135deg, ${quizHexA(quiz.accent, 0.28)}, ${quizHexA(quiz.accent, 0.10)})`,
-        border: `1px solid ${quizHexA(quiz.accent, 0.45)}`,
+        width: 40, height: 40, borderRadius: 12,
+        background: `linear-gradient(135deg, ${quizHexA(quiz.accent, 0.40)} 0%, ${quizHexA(quiz.accent, 0.12)} 100%)`,
+        border: `1px solid ${quizHexA(quiz.accent, 0.55)}`,
         color: quiz.accent,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: `0 6px 18px ${quizHexA(quiz.accent, 0.32)}, inset 0 1px 0 ${quizHexA(quiz.accent, 0.20)}`,
       }}>
-        <Icon size={18} />
+        <Icon size={19} />
       </div>
       <div style={{ flex: 1 }} />
       <div style={{

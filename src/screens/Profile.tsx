@@ -280,13 +280,20 @@ function PremiumRow({ active, period }: { active: boolean; period: 'monthly' | '
       cursor: 'pointer',
     }}>
       <div style={{
-        width: 30, height: 30, borderRadius: 8,
-        background: 'linear-gradient(135deg, #B7C8FF 0%, #8FA5FF 55%, #7E6BFF 100%)',
+        position: 'relative',
+        width: 32, height: 32, borderRadius: 10,
+        background: 'linear-gradient(135deg, #7C6BFF 0%, #B981F0 55%, #FFC089 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
-        boxShadow: '0 6px 14px rgba(126,107,255,0.30)',
+        boxShadow: '0 8px 20px rgba(124,107,255,0.35), inset 0 1px 0 rgba(255,255,255,0.20)',
       }}>
         <MoonIcon size={16} stroke="#0B0C12" strokeWidth={2} />
+        <div aria-hidden style={{
+          position: 'absolute', top: -2, right: -2,
+          width: 8, height: 8, borderRadius: 4,
+          background: '#FFD27A',
+          boxShadow: '0 0 8px rgba(255,210,122,0.85)',
+        }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 500, color: W.ink }}>Sleep+</div>
@@ -299,9 +306,11 @@ function PremiumRow({ active, period }: { active: boolean; period: 'monthly' | '
       <div style={{
         fontSize: 11, fontWeight: 600,
         padding: '4px 10px', borderRadius: 999,
-        background: active ? 'rgba(127,227,161,0.16)' : 'rgba(183,200,255,0.16)',
-        color: active ? '#7FE3A1' : '#B7C8FF',
-        border: `1px solid ${active ? 'rgba(127,227,161,0.35)' : 'rgba(183,200,255,0.35)'}`,
+        background: active
+          ? 'rgba(255,192,137,0.16)'
+          : 'rgba(185,129,240,0.16)',
+        color: active ? '#FFC089' : '#D7AEFF',
+        border: `1px solid ${active ? 'rgba(255,192,137,0.40)' : 'rgba(185,129,240,0.40)'}`,
       }}>
         {active ? 'Active' : 'Upgrade'}
       </div>

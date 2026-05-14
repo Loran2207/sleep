@@ -53,7 +53,7 @@ const CHRONOTYPE: Quiz = {
   blurb: 'Morning lark, night owl, or somewhere between?',
   hero: 'A short reflection on when you feel sharpest, when sleep finds you, and how your body schedules itself across the day.',
   meta: '5 questions · 2 min',
-  accent: '#FFB47A',
+  accent: '#FF8E7C',
   icon: IconChronotype,
   questions: [
     { id: 'q1', prompt: 'On a free day, when would you naturally wake up?', options: [
@@ -122,7 +122,7 @@ const SLEEP_NEED: Quiz = {
   blurb: 'How much sleep does your body actually want?',
   hero: 'A few questions about how long it takes to feel rested, and how your body reacts when you cut sleep short.',
   meta: '5 questions · 2 min',
-  accent: '#B7C8FF',
+  accent: '#8AA1FF',
   icon: IconHourglass,
   questions: [
     { id: 'q1', prompt: 'On vacation, with no alarm, how long do you typically sleep?', options: [
@@ -210,7 +210,7 @@ const SLEEP_QUALITY: Quiz = {
   blurb: 'How rested do you feel when you wake?',
   hero: 'Hours in bed and hours of rest aren\'t the same. A short check on how your nights are landing lately.',
   meta: '5 questions · 2 min',
-  accent: '#7FE3A1',
+  accent: '#5DDDB3',
   icon: IconMoonBed,
   questions: [
     { id: 'q1', prompt: 'Do you wake feeling refreshed?', options: FREQUENCY.slice().reverse().map((o, i) => ({ ...o, value: i })) },
