@@ -297,13 +297,13 @@ function PremiumRow({ active, period }: { active: boolean; period: 'monthly' | '
         </div>
       </div>
       <div style={{
-        fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
-        padding: '4px 9px', borderRadius: 999,
+        fontSize: 11, fontWeight: 600,
+        padding: '4px 10px', borderRadius: 999,
         background: active ? 'rgba(127,227,161,0.16)' : 'rgba(183,200,255,0.16)',
         color: active ? '#7FE3A1' : '#B7C8FF',
         border: `1px solid ${active ? 'rgba(127,227,161,0.35)' : 'rgba(183,200,255,0.35)'}`,
       }}>
-        {active ? 'ACTIVE' : 'UPGRADE'}
+        {active ? 'Active' : 'Upgrade'}
       </div>
       <ChevronRightIcon size={14} stroke={W.veryweak} />
     </div>

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { W } from '../tokens';
 import { back } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { GlyphChevDn, CheckIcon, MoonIcon } from '../components/icons';
+import { GlyphChevDn } from '../components/icons';
 import { useSubscription, type BillingPeriod } from '../state/store';
 
 const PRICE = {
@@ -10,14 +10,16 @@ const PRICE = {
   yearly:  { amount: 47.88, perLabel: '/ year',  sub: '$3.99 / month · billed yearly' },
 } as const;
 
-const FEATURES: { title: string; desc: string }[] = [
-  { title: 'Deep sleep analytics',   desc: 'Cycle breakdown, debt, weekly trends' },
-  { title: 'Unlimited schedules',    desc: 'Build presets for any rhythm or shift' },
-  { title: 'Full sound library',     desc: 'Layered mixes, binaural, brown noise' },
-  { title: 'Smart wake alarm',       desc: 'Wakes you in a light phase, gently' },
-  { title: 'Guided wind-down',       desc: 'Breath, body scan, sleep stories' },
-  { title: 'Dream journal +',        desc: 'Tags, mood map, voice notes, search' },
-  { title: 'Cloud sync',             desc: 'Across iPhone, iPad and the web' },
+type Feature = { title: string; desc: string; icon: ReactNode };
+
+const FEATURES: Feature[] = [
+  { title: 'Deep sleep analytics',   desc: 'Cycle breakdown, debt, weekly trends',           icon: <IconChart /> },
+  { title: 'Unlimited schedules',    desc: 'Build presets for any rhythm or shift',          icon: <IconCalendar /> },
+  { title: 'Full sound library',     desc: 'Layered mixes, binaural, brown noise',           icon: <IconWaves /> },
+  { title: 'Smart wake alarm',       desc: 'Wakes you in a light phase, gently',             icon: <IconSunrise /> },
+  { title: 'Guided wind-down',       desc: 'Breath, body scan, sleep stories',               icon: <IconLeaf /> },
+  { title: 'Dream journal +',        desc: 'Tags, mood map, voice notes, search',            icon: <IconBook /> },
+  { title: 'Cloud sync',             desc: 'Across iPhone, iPad and the web',                icon: <IconCloud /> },
 ];
 
 const ANNUAL_SAVINGS = Math.round((1 - PRICE.yearly.amount / (PRICE.monthly.amount * 12)) * 100);
@@ -26,7 +28,7 @@ export function Subscription() {
   const [sub, setSub] = useSubscription();
   const [period, setPeriod] = useState<BillingPeriod>(sub.period);
 
-  // Star twinkle — pulse opacity on a slow loop.
+  // Slow twinkle loop so the dark hero feels alive.
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setTick((t) => t + 1), 1400);
@@ -36,8 +38,7 @@ export function Subscription() {
   const price = PRICE[period];
 
   function subscribe() {
-    const now = new Date();
-    const renew = new Date(now);
+    const renew = new Date();
     if (period === 'monthly') renew.setMonth(renew.getMonth() + 1);
     else renew.setFullYear(renew.getFullYear() + 1);
     setSub({ active: true, period, renewsOn: renew.toISOString().slice(0, 10) });
@@ -53,6 +54,7 @@ export function Subscription() {
       background: '#0B0C12', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
+      <style>{KEYFRAMES}</style>
       <StarField tick={tick} />
       <TopPad />
 
@@ -71,11 +73,14 @@ export function Subscription() {
         <div style={{ width: 36 }} />
       </div>
 
-      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '4px 20px 28px' }}>
+      <div style={{
+        position: 'relative', flex: 1, overflowY: 'auto',
+        padding: '4px 20px 24px',
+      }}>
         <Hero active={sub.active} />
 
         {sub.active ? (
-          <ActivePlanCard
+          <ActivePlan
             period={sub.period}
             renewsOn={sub.renewsOn}
             onSwitch={(p) => setSub({ period: p })}
@@ -84,83 +89,62 @@ export function Subscription() {
         ) : (
           <>
             <PeriodToggle value={period} onChange={setPeriod} />
-
-            <PricePlate
-              amount={price.amount}
-              perLabel={price.perLabel}
-              sub={price.sub}
-              period={period}
-            />
-
+            <PricePlate price={price} period={period} />
             <FeatureList />
-
-            <div onClick={subscribe} style={{
-              marginTop: 22, padding: '16px 0', textAlign: 'center',
-              borderRadius: 999,
-              background: 'linear-gradient(135deg, #B7C8FF 0%, #8FA5FF 50%, #7E6BFF 100%)',
-              color: '#0B0C12', fontSize: 15, fontWeight: 700,
-              letterSpacing: '-0.01em', cursor: 'pointer',
-              boxShadow: '0 16px 38px rgba(126,107,255,0.35), 0 0 0 1px rgba(255,255,255,0.08) inset',
-              position: 'relative', overflow: 'hidden',
-            }}>
-              Start 7‑day free trial
-              <Shimmer />
-            </div>
-
-            <div style={{
-              marginTop: 12, textAlign: 'center',
-              fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 1.55,
-            }}>
-              Cancel anytime. After the trial, {period === 'monthly' ? '$9.99 / month' : '$47.88 / year'}.
-            </div>
-
             <FineLinks />
+            <div style={{ height: 130 }} />
           </>
         )}
       </div>
+
+      {!sub.active && (
+        <StickyCta
+          onSubscribe={subscribe}
+          period={period}
+        />
+      )}
     </div>
   );
 }
 
+// ─── Hero ─────────────────────────────────────────────────────────
 function Hero({ active }: { active: boolean }) {
   return (
     <div style={{
       position: 'relative', overflow: 'hidden',
-      borderRadius: 24, padding: '28px 22px 24px',
+      borderRadius: 24, padding: '26px 22px 24px',
       background: `
         radial-gradient(120% 100% at 50% 0%, rgba(139,114,255,0.45) 0%, rgba(139,114,255,0) 60%),
         linear-gradient(180deg, #181B2A 0%, #10121C 100%)`,
       border: '1px solid rgba(255,255,255,0.08)',
       boxShadow: '0 18px 50px rgba(0,0,0,0.45)',
     }}>
-      <div style={{ position: 'absolute', top: -40, right: -40, opacity: 0.25 }}>
-        <MoonIcon size={180} stroke="rgba(255,255,255,0.6)" strokeWidth={0.6} />
-      </div>
+      <BigMoon />
       <div style={{ position: 'relative' }}>
         <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          padding: '5px 10px', borderRadius: 999,
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '5px 11px 5px 8px', borderRadius: 999,
           background: 'rgba(255,255,255,0.08)',
           border: '1px solid rgba(255,255,255,0.14)',
-          fontSize: 11, fontWeight: 600, letterSpacing: 0.4,
-          color: 'rgba(255,255,255,0.85)',
+          fontSize: 12, fontWeight: 600,
+          color: 'rgba(255,255,255,0.9)',
         }}>
           <span style={{
             width: 6, height: 6, borderRadius: 3,
             background: active ? '#7FE3A1' : '#B7C8FF',
             boxShadow: `0 0 8px ${active ? '#7FE3A1' : '#B7C8FF'}`,
           }} />
-          {active ? 'ACTIVE' : 'PREMIUM'}
+          {active ? 'Active' : 'Premium'}
         </div>
         <div style={{
-          fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em',
-          marginTop: 14, lineHeight: 1.1,
+          fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em',
+          marginTop: 14, lineHeight: 1,
         }}>
           Sleep<span style={{ color: '#B7C8FF' }}>+</span>
         </div>
         <div style={{
           fontSize: 14, color: 'rgba(255,255,255,0.7)',
-          marginTop: 6, lineHeight: 1.5, maxWidth: 280,
+          marginTop: 8, lineHeight: 1.5, maxWidth: 280,
         }}>
           {active
             ? 'Thanks for keeping the lights low. Every feature is yours.'
@@ -171,6 +155,20 @@ function Hero({ active }: { active: boolean }) {
   );
 }
 
+function BigMoon() {
+  return (
+    <svg
+      width={180} height={180} viewBox="0 0 24 24" fill="none"
+      stroke="rgba(255,255,255,0.55)" strokeWidth={0.5}
+      style={{ position: 'absolute', top: -38, right: -42, opacity: 0.22 }}
+      aria-hidden
+    >
+      <path d="M21 13.5A8.5 8.5 0 1 1 10.5 3a7 7 0 0 0 10.5 10.5z" />
+    </svg>
+  );
+}
+
+// ─── Period toggle ────────────────────────────────────────────────
 function PeriodToggle({ value, onChange }: {
   value: BillingPeriod;
   onChange: (p: BillingPeriod) => void;
@@ -194,7 +192,7 @@ function PeriodToggle({ value, onChange }: {
         transition: 'left .25s cubic-bezier(.2,.7,.2,1)',
       }} />
       <TogglePill label="Monthly" active={value === 'monthly'} onClick={() => onChange('monthly')} />
-      <TogglePill label="Yearly" active={value === 'yearly'}  onClick={() => onChange('yearly')}  badge={`-${ANNUAL_SAVINGS}%`} />
+      <TogglePill label="Yearly"  active={value === 'yearly'}  onClick={() => onChange('yearly')}  badge={`Save ${ANNUAL_SAVINGS}%`} />
     </div>
   );
 }
@@ -215,10 +213,10 @@ function TogglePill({ label, active, onClick, badge }: {
       {label}
       {badge && (
         <span style={{
-          padding: '2px 7px', borderRadius: 999,
+          padding: '2px 8px', borderRadius: 999,
           background: active ? 'rgba(11,12,18,0.18)' : 'rgba(127,227,161,0.18)',
           color: active ? '#0B0C12' : '#7FE3A1',
-          fontSize: 10, fontWeight: 700, letterSpacing: 0.3,
+          fontSize: 10, fontWeight: 700,
           transition: 'background .2s ease, color .2s ease',
         }}>{badge}</span>
       )}
@@ -226,10 +224,12 @@ function TogglePill({ label, active, onClick, badge }: {
   );
 }
 
-function PricePlate({ amount, perLabel, sub, period }: {
-  amount: number; perLabel: string; sub: string; period: BillingPeriod;
+// ─── Price plate ──────────────────────────────────────────────────
+function PricePlate({ price, period }: {
+  price: typeof PRICE[BillingPeriod];
+  period: BillingPeriod;
 }) {
-  const [whole, fraction] = amount.toFixed(2).split('.');
+  const [whole, fraction] = price.amount.toFixed(2).split('.');
   return (
     <div key={period} style={{
       marginTop: 14, padding: '20px 20px',
@@ -239,20 +239,6 @@ function PricePlate({ amount, perLabel, sub, period }: {
       display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
       animation: 'priceIn .35s cubic-bezier(.2,.7,.2,1)',
     }}>
-      <style>{`
-        @keyframes priceIn {
-          0% { opacity: 0; transform: translateY(6px); }
-          100% { opacity: 1; transform: none; }
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-150%); }
-          100% { transform: translateX(250%); }
-        }
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.25; }
-          50% { opacity: 0.85; }
-        }
-      `}</style>
       <div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>
           {period === 'yearly' ? 'Best value' : 'Flexible'}
@@ -262,30 +248,28 @@ function PricePlate({ amount, perLabel, sub, period }: {
           fontVariantNumeric: 'tabular-nums',
         }}>
           <span style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>$</span>
-          <span style={{ fontSize: 42, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>{whole}</span>
+          <span style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>{whole}</span>
           <span style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>.{fraction}</span>
         </div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>
-          {sub}
+          {price.sub}
         </div>
       </div>
       <div style={{
-        fontSize: 13, color: 'rgba(255,255,255,0.6)',
+        fontSize: 12, color: 'rgba(255,255,255,0.65)',
         padding: '6px 12px', borderRadius: 999,
         background: 'rgba(255,255,255,0.05)',
         border: '1px solid rgba(255,255,255,0.10)',
-      }}>{perLabel}</div>
+      }}>{price.perLabel}</div>
     </div>
   );
 }
 
+// ─── Feature list ─────────────────────────────────────────────────
 function FeatureList() {
   return (
-    <div style={{ marginTop: 22 }}>
-      <div style={{
-        fontSize: 11, fontWeight: 600, letterSpacing: 0.5,
-        color: 'rgba(255,255,255,0.55)', padding: '0 4px 10px',
-      }}>EVERYTHING INSIDE</div>
+    <div style={{ marginTop: 24 }}>
+      <SectionLabel>What's included</SectionLabel>
       <div style={{
         background: 'rgba(255,255,255,0.04)',
         border: '1px solid rgba(255,255,255,0.10)',
@@ -293,24 +277,25 @@ function FeatureList() {
       }}>
         {FEATURES.map((f, i) => (
           <div key={f.title} style={{
-            display: 'flex', alignItems: 'flex-start', gap: 12,
-            padding: '12px 14px',
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '14px 14px',
             borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
           }}>
             <div style={{
-              width: 26, height: 26, borderRadius: 13,
-              background: 'rgba(127,227,161,0.14)',
-              border: '1px solid rgba(127,227,161,0.35)',
+              width: 36, height: 36, borderRadius: 10,
+              background: 'linear-gradient(135deg, rgba(183,200,255,0.16) 0%, rgba(126,107,255,0.12) 100%)',
+              border: '1px solid rgba(183,200,255,0.22)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, marginTop: 1,
+              flexShrink: 0, color: '#B7C8FF',
             }}>
-              <CheckIcon size={14} stroke="#7FE3A1" />
+              {f.icon}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{f.title}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 2, lineHeight: 1.45 }}>
-                {f.desc}
-              </div>
+              <div style={{
+                fontSize: 12, color: 'rgba(255,255,255,0.55)',
+                marginTop: 2, lineHeight: 1.45,
+              }}>{f.desc}</div>
             </div>
           </div>
         ))}
@@ -319,7 +304,72 @@ function FeatureList() {
   );
 }
 
-function ActivePlanCard({ period, renewsOn, onSwitch, onCancel }: {
+// ─── Sticky CTA at bottom ─────────────────────────────────────────
+function StickyCta({ onSubscribe, period }: {
+  onSubscribe: () => void;
+  period: BillingPeriod;
+}) {
+  const price = PRICE[period];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      padding: '14px 20px 22px',
+      background: 'linear-gradient(180deg, rgba(11,12,18,0) 0%, rgba(11,12,18,0.86) 30%, #0B0C12 100%)',
+      pointerEvents: 'none',
+    }}>
+      <div style={{
+        pointerEvents: 'auto',
+        background: 'rgba(20,22,32,0.85)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        borderRadius: 22, padding: '12px 14px 14px',
+        backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.45)',
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+          padding: '0 4px 8px',
+          fontSize: 12, color: 'rgba(255,255,255,0.6)',
+        }}>
+          <span>7-day free trial</span>
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+            then ${price.amount} {price.perLabel}
+          </span>
+        </div>
+        <div onClick={onSubscribe} style={{
+          padding: '15px 0', textAlign: 'center',
+          borderRadius: 999,
+          background: 'linear-gradient(135deg, #B7C8FF 0%, #8FA5FF 50%, #7E6BFF 100%)',
+          color: '#0B0C12', fontSize: 15, fontWeight: 700,
+          letterSpacing: '-0.01em', cursor: 'pointer',
+          boxShadow: '0 14px 32px rgba(126,107,255,0.35), 0 0 0 1px rgba(255,255,255,0.10) inset',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          Start free trial
+          <Shimmer />
+        </div>
+        <div style={{
+          marginTop: 8, textAlign: 'center',
+          fontSize: 11, color: 'rgba(255,255,255,0.4)',
+        }}>Cancel anytime</div>
+      </div>
+    </div>
+  );
+}
+
+function Shimmer() {
+  return (
+    <div style={{
+      position: 'absolute', top: 0, bottom: 0, left: 0,
+      width: '40%',
+      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)',
+      animation: 'shimmer 2.4s ease-in-out infinite',
+      pointerEvents: 'none',
+    }} />
+  );
+}
+
+// ─── Active manage view ───────────────────────────────────────────
+function ActivePlan({ period, renewsOn, onSwitch, onCancel }: {
   period: BillingPeriod;
   renewsOn: string;
   onSwitch: (p: BillingPeriod) => void;
@@ -356,7 +406,7 @@ function ActivePlanCard({ period, renewsOn, onSwitch, onCancel }: {
         </div>
       </div>
 
-      <SectionLabel>Switch plan</SectionLabel>
+      <SectionLabel style={{ marginTop: 22 }}>Switch plan</SectionLabel>
       <PeriodToggle value={period} onChange={onSwitch} />
 
       <FeatureList />
@@ -373,12 +423,13 @@ function ActivePlanCard({ period, renewsOn, onSwitch, onCancel }: {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, style }: { children: ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      padding: '20px 4px 10px',
-      fontSize: 11, fontWeight: 600, letterSpacing: 0.5,
-      color: 'rgba(255,255,255,0.55)',
+      padding: '0 4px 10px',
+      fontSize: 12, fontWeight: 600,
+      color: 'rgba(255,255,255,0.6)',
+      ...style,
     }}>{children}</div>
   );
 }
@@ -387,7 +438,7 @@ function FineLinks() {
   return (
     <div style={{
       marginTop: 18, display: 'flex', justifyContent: 'center', gap: 18,
-      fontSize: 11, color: 'rgba(255,255,255,0.45)',
+      fontSize: 12, color: 'rgba(255,255,255,0.45)',
     }}>
       <span style={{ cursor: 'pointer' }}>Restore</span>
       <span style={{ opacity: 0.4 }}>·</span>
@@ -398,20 +449,8 @@ function FineLinks() {
   );
 }
 
-function Shimmer() {
-  return (
-    <div style={{
-      position: 'absolute', top: 0, bottom: 0, left: 0,
-      width: '40%',
-      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)',
-      animation: 'shimmer 2.4s ease-in-out infinite',
-      pointerEvents: 'none',
-    }} />
-  );
-}
-
+// ─── Star field ───────────────────────────────────────────────────
 function StarField({ tick }: { tick: number }) {
-  // A handful of stars, twinkling on a stagger so the dark background feels alive.
   const stars = [
     { x: 8,  y: 12, s: 1.5, d: 0 },
     { x: 22, y: 6,  s: 1,   d: 0.3 },
@@ -440,8 +479,42 @@ function StarField({ tick }: { tick: number }) {
   );
 }
 
+// ─── Themed feature glyphs ────────────────────────────────────────
+function FeatureIcon({ children }: { children: ReactNode }) {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={1.7}
+      strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+
+function IconChart()    { return <FeatureIcon><path d="M5 19V13"/><path d="M10 19V8"/><path d="M15 19v-5"/><path d="M20 19V5"/></FeatureIcon>; }
+function IconCalendar() { return <FeatureIcon><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16"/><path d="M9 3v4M15 3v4"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/></FeatureIcon>; }
+function IconWaves()    { return <FeatureIcon><path d="M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M3 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 7c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></FeatureIcon>; }
+function IconSunrise()  { return <FeatureIcon><path d="M3 18h18"/><path d="M6.5 14a5.5 5.5 0 0 1 11 0"/><path d="M12 4v2"/><path d="M4.5 8l1.4 1.4"/><path d="M19.5 8l-1.4 1.4"/></FeatureIcon>; }
+function IconLeaf()     { return <FeatureIcon><path d="M5 19C5 11 11 5 19 5c0 8-6 14-14 14z"/><path d="M5 19c4-4 7-7 12-12"/></FeatureIcon>; }
+function IconBook()     { return <FeatureIcon><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="M9 8h6"/></FeatureIcon>; }
+function IconCloud()    { return <FeatureIcon><path d="M7 18a4 4 0 0 1-.5-7.9 6 6 0 0 1 11.5 1.4A3.5 3.5 0 0 1 18 18z"/><path d="M12 13v4"/><path d="M10 15l2 2 2-2"/></FeatureIcon>; }
+
 function prettyDate(iso: string) {
   const [y, m, d] = iso.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
+
+const KEYFRAMES = `
+  @keyframes priceIn {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: none; }
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-150%); }
+    100% { transform: translateX(250%); }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 0.85; }
+  }
+`;
