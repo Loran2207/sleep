@@ -415,6 +415,14 @@ export function useMix() {
         ? { ...p, mix: p.mix.filter((s) => s.id !== id) }
         : { ...p, mix: [...p.mix, { id, vol: 0.55 }] }),
     clearAll: () => mixStore.set((p) => ({ ...p, mix: [] })),
+    // Replaces the entire mix with a fresh set of IDs. Reuses any
+    // existing volume the user already set for a sound that survives
+    // the swap; new sounds come in at the default volume.
+    setMixIds: (ids: string[]) =>
+      mixStore.set((p) => ({
+        ...p,
+        mix: ids.map((id) => p.mix.find((s) => s.id === id) ?? { id, vol: 0.55 }),
+      })),
     togglePlay: () => mixStore.set((p) => ({ ...p, playing: !p.playing })),
     setTimer: (min: number | null) => mixStore.set((p) => ({ ...p, timerMin: min })),
     setAlarm: (alarm: string) => mixStore.set((p) => ({ ...p, alarm })),
@@ -477,6 +485,11 @@ export function useScheduleMix() {
         ? { ...s, sounds: s.sounds.filter((x) => x.id !== sid) }
         : { ...s, sounds: [...s.sounds, { id: sid, vol: 0.55 }] }),
     clearAll: () => mutate((s) => ({ ...s, sounds: [] })),
+    setMixIds: (ids: string[]) =>
+      mutate((s) => ({
+        ...s,
+        sounds: ids.map((id) => s.sounds.find((x) => x.id === id) ?? { id, vol: 0.55 }),
+      })),
     setTimer: (min: number | null) => mutate((s) => ({ ...s, timerMin: min })),
   };
 }

@@ -3,40 +3,37 @@ import { W } from '../tokens';
 import { back as goBack } from '../state/navigation';
 import { TopPad, TimerPicker } from '../components/shared';
 import { startTracking } from '../state/tracking';
-import { useDraft } from '../state/store';
-import { SOUND_CATALOG, lookupSound } from '../data/sounds';
+import { useDraft, useMix } from '../state/store';
+import { lookupSound } from '../data/sounds';
+import { SoundMixerPanel, type QuickMix } from '../components/SoundMixerPanel';
 
 const ACCENT = '#FFB47A';
 
-// A small set of curated single-tap mixes shown at the top.
-// Each preset replaces the active sound set when tapped.
-const QUICK_MIXES: { id: string; name: string; sounds: string[] }[] = [
+const QUICK_MIXES: QuickMix[] = [
   { id: 'rainy', name: 'Rainy night', sounds: ['rain', 'thunder', 'chimes'] },
-  { id: 'cabin', name: 'Cabin', sounds: ['campfire', 'forest', 'crickets'] },
-  { id: 'ocean', name: 'Open ocean', sounds: ['ocean', 'seagull', 'wind'] },
-  { id: 'cafe',  name: 'Café focus', sounds: ['coffee', 'keyboard'] },
+  { id: 'cabin', name: 'Cabin',       sounds: ['campfire', 'forest', 'crickets'] },
+  { id: 'ocean', name: 'Open ocean',  sounds: ['ocean', 'seagull', 'wind'] },
+  { id: 'cafe',  name: 'Café focus',  sounds: ['coffee', 'keyboard'] },
 ];
 
 export function SoundsPlayer() {
-  const [activeIds, setActiveIds] = useState<string[]>(['rain', 'chimes']);
-  const [playing, setPlaying] = useState(true);
-  const [timerMin, setTimerMin] = useState<number | null>(null);
+  // Player + tracking share the same mix store, so a layered mix
+  // curated here carries straight into a nap with no copying.
+  const mix = useMix();
+  const { state, togglePlay, setTimer } = mix;
+  const playing = state.playing;
+  const timerMin = state.timerMin;
+
   const [showTimer, setShowTimer] = useState(false);
   const [showNapSheet, setShowNapSheet] = useState(false);
   const [, setDraft] = useDraft();
 
-  function toggle(id: string) {
-    setActiveIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
-
-  function applyMix(ids: string[]) {
-    setActiveIds(ids);
-    setPlaying(true);
-  }
+  function onOpenTimer() { setShowTimer(true); }
+  function onTimerSelect(m: number | null) { setTimer(m); setShowTimer(false); }
 
   function startNap() {
-    const names = activeIds
-      .map((id) => lookupSound(id)?.name)
+    const names = state.mix
+      .map((s) => lookupSound(s.id)?.name)
       .filter((x): x is string => !!x);
     setDraft({
       kind: 'nap',
@@ -47,9 +44,10 @@ export function SoundsPlayer() {
     startTracking();
   }
 
-  const activeNames = activeIds
-    .map((id) => lookupSound(id)?.name)
+  const activeNames = state.mix
+    .map((s) => lookupSound(s.id)?.name)
     .filter((x): x is string => !!x);
+  const mixCount = state.mix.length;
 
   return (
     <div style={{
@@ -65,10 +63,6 @@ export function SoundsPlayer() {
         @keyframes sounds-pulse-b {
           0%, 100% { transform: scale(0.96); opacity: 0.6; }
           50% { transform: scale(0.78); opacity: 0.95; }
-        }
-        @keyframes sounds-orbit {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
         }
         @keyframes sounds-bar {
           0%, 100% { transform: scaleY(0.35); }
@@ -110,8 +104,8 @@ export function SoundsPlayer() {
         <div style={{ width: 36 }} />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', position: 'relative', padding: '0 20px 240px' }}>
-        <Visualizer playing={playing} count={activeIds.length} />
+      <div style={{ flex: 1, overflowY: 'auto', position: 'relative', padding: '0 20px 260px' }}>
+        <Visualizer playing={playing} count={mixCount} />
 
         <div style={{
           textAlign: 'center', marginTop: 6,
@@ -128,99 +122,43 @@ export function SoundsPlayer() {
           fontSize: 12, color: W.weak,
           minHeight: 16,
         }}>
-          {activeIds.length === 0
+          {mixCount === 0
             ? 'Tap a tile below to start listening.'
             : playing
               ? <>Playing{timerMin ? ` · stops in ${timerMin} min` : ' · until you stop'}</>
               : 'Paused'}
         </div>
 
-        <div style={{ marginTop: 24 }}>
-          <SectionLabel>Quick mixes</SectionLabel>
-          <div style={{
-            display: 'flex', gap: 10, overflowX: 'auto', padding: '4px 0 6px',
-            WebkitOverflowScrolling: 'touch',
-          }}>
-            {QUICK_MIXES.map((m) => {
-              const active = sameSet(m.sounds, activeIds);
-              return (
-                <div key={m.id} onClick={() => applyMix(m.sounds)} style={{
-                  flex: '0 0 auto', padding: '10px 14px', borderRadius: 999,
-                  background: active ? 'rgba(255,180,122,0.18)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${active ? hexA(ACCENT, 0.55) : 'rgba(255,255,255,0.10)'}`,
-                  color: active ? '#FFD3B0' : 'rgba(255,255,255,0.85)',
-                  fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}>{m.name}</div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div style={{ marginTop: 22 }}>
-          <SectionLabel>Library</SectionLabel>
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px 6px',
-          }}>
-            {SOUND_CATALOG.map((s) => {
-              const on = activeIds.includes(s.id);
-              const Glyph = s.Glyph;
-              return (
-                <div key={s.id} onClick={() => toggle(s.id)} style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                  cursor: 'pointer',
-                }}>
-                  <div style={{
-                    width: 54, height: 54, borderRadius: 18,
-                    background: on
-                      ? `linear-gradient(135deg, ${hexA(ACCENT, 0.30)}, ${hexA(ACCENT, 0.12)})`
-                      : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${on ? hexA(ACCENT, 0.55) : 'rgba(255,255,255,0.10)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative',
-                    transition: 'background .12s, border-color .12s',
-                  }}>
-                    <Glyph size={22} stroke={on ? '#FFE2C7' : 'rgba(255,255,255,0.78)'} />
-                    {on && (
-                      <div style={{
-                        position: 'absolute', bottom: 6, display: 'flex', gap: 2,
-                      }}>
-                        {[0, 0.15, 0.3].map((d, i) => (
-                          <div key={i} style={{
-                            width: 2, height: 6, borderRadius: 1, transformOrigin: 'center',
-                            background: '#FFE2C7',
-                            animation: `sounds-bar 1.1s ease-in-out infinite`,
-                            animationDelay: `${d}s`,
-                          }} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{
-                    fontSize: 11, textAlign: 'center', lineHeight: 1.2,
-                    color: on ? W.ink : 'rgba(255,255,255,0.65)',
-                    fontWeight: on ? 500 : 400, maxWidth: 70,
-                  }}>{s.name}</div>
-                </div>
-              );
-            })}
-          </div>
+        <div style={{ marginTop: 26 }}>
+          <SoundMixerPanel
+            binding={{
+              mix: state.mix,
+              setVol: mix.setVol,
+              toggleSound: mix.toggleSound,
+              removeSound: mix.removeSound,
+              clearAll: mix.clearAll,
+              setMixIds: mix.setMixIds,
+            }}
+            quickMixes={QUICK_MIXES}
+            theme="amber"
+            emptyHint="Tap a sound below to start. Layer as many as you like and balance each independently."
+          />
         </div>
       </div>
 
       <BottomDock
         playing={playing}
-        onTogglePlay={() => setPlaying((p) => !p)}
+        onTogglePlay={togglePlay}
         timerMin={timerMin}
-        onOpenTimer={() => setShowTimer(true)}
+        onOpenTimer={onOpenTimer}
         onAskNap={() => setShowNapSheet(true)}
-        hasSounds={activeIds.length > 0}
+        hasSounds={mixCount > 0}
       />
 
       {showTimer && (
         <TimerPicker
           minutes={timerMin}
-          onSelect={(m) => { setTimerMin(m); setShowTimer(false); }}
+          onSelect={onTimerSelect}
           onClose={() => setShowTimer(false)}
         />
       )}
@@ -228,7 +166,7 @@ export function SoundsPlayer() {
       {showNapSheet && (
         <NapSheet
           minutes={timerMin && timerMin > 0 ? timerMin : 30}
-          mixCount={activeIds.length}
+          mixCount={mixCount}
           onCancel={() => setShowNapSheet(false)}
           onConfirm={startNap}
         />
@@ -237,9 +175,6 @@ export function SoundsPlayer() {
   );
 }
 
-// Two pulsing concentric rings layered behind 4 vertical equalizer bars.
-// Bars only animate when `playing` is true — when paused they sit at a
-// quiet baseline so the screen reads as "muted" instantly.
 function Visualizer({ playing, count }: { playing: boolean; count: number }) {
   const bars = [0, 0.18, 0.36, 0.54];
   return (
@@ -452,17 +387,6 @@ function NapSheet({ minutes, mixCount, onCancel, onConfirm }: {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{
-      fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 600,
-      letterSpacing: 0.2, marginBottom: 10,
-    }}>{children}</div>
-  );
-}
-
-// A handful of soft stars sprinkled randomly. Computed once on mount
-// so they don't reshuffle on every render.
 function StarField() {
   const [stars] = useState(() => {
     const out = [] as { top: string; left: string; size: number; delay: string; dur: string }[];
@@ -492,12 +416,6 @@ function StarField() {
   );
 }
 
-function sameSet(a: string[], b: string[]) {
-  if (a.length !== b.length) return false;
-  const sa = new Set(a);
-  return b.every((x) => sa.has(x));
-}
-
 function hexA(hex: string, a: number) {
   const c = hex.replace('#', '');
   const r = parseInt(c.slice(0, 2), 16);
@@ -505,4 +423,3 @@ function hexA(hex: string, a: number) {
   const b = parseInt(c.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
-
