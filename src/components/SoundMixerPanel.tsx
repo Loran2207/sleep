@@ -31,7 +31,7 @@ export interface MixBinding {
 
 export type QuickMix = { id: string; name: string; sounds: string[] };
 
-export type MixerTheme = 'amber' | 'cool';
+export type MixerTheme = 'warm' | 'cool';
 
 export interface SoundMixerPanelProps {
   binding: MixBinding;
@@ -50,12 +50,12 @@ const THEMES: Record<MixerTheme, {
   catActiveBg: string;
   catActiveText: string;
 }> = {
-  amber: {
-    accent: '#FFB47A',
-    accentSoft: 'rgba(255,180,122,0.16)',
-    accentBorder: 'rgba(255,180,122,0.45)',
-    catActiveBg: 'rgba(255,180,122,0.16)',
-    catActiveText: '#FFD3B0',
+  warm: {
+    accent: '#FF8E7C',
+    accentSoft: 'rgba(255,142,124,0.16)',
+    accentBorder: 'rgba(255,142,124,0.45)',
+    catActiveBg: 'rgba(255,142,124,0.16)',
+    catActiveText: '#FFC9C0',
   },
   cool: {
     accent: '#FFFFFF',
@@ -136,7 +136,7 @@ export function SoundMixerPanel({
                 <div style={{
                   width: 54, height: 54, borderRadius: 18,
                   background: on
-                    ? (theme === 'amber'
+                    ? (theme === 'warm'
                         ? `linear-gradient(135deg, ${rgbA(t.accent, 0.30)} 0%, ${rgbA(t.accent, 0.10)} 100%)`
                         : '#FFFFFF')
                     : 'rgba(255,255,255,0.04)',
@@ -150,10 +150,10 @@ export function SoundMixerPanel({
                   <Glyph
                     size={22}
                     stroke={on
-                      ? (theme === 'amber' ? '#FFE2C7' : '#0E1014')
+                      ? (theme === 'warm' ? '#FFE0DA' : '#0E1014')
                       : 'rgba(255,255,255,0.78)'}
                   />
-                  {on && theme === 'amber' && (
+                  {on && theme === 'warm' && (
                     <div style={{
                       position: 'absolute', bottom: 6,
                       display: 'flex', gap: 2,
@@ -161,7 +161,7 @@ export function SoundMixerPanel({
                       {[0, 0.15, 0.3].map((d, i) => (
                         <div key={i} style={{
                           width: 2, height: 6, borderRadius: 1,
-                          background: '#FFE2C7',
+                          background: '#FFE0DA',
                           animation: 'mxr-bar 1.1s ease-in-out infinite',
                           animationDelay: `${d}s`,
                           transformOrigin: 'center',
@@ -182,7 +182,7 @@ export function SoundMixerPanel({
                 <div style={{
                   fontSize: 11, textAlign: 'center', lineHeight: 1.2,
                   color: on
-                    ? (theme === 'amber' ? W.ink : '#fff')
+                    ? (theme === 'warm' ? W.ink : '#fff')
                     : 'rgba(255,255,255,0.65)',
                   fontWeight: on ? 500 : 400, maxWidth: 70,
                 }}>{s.name}</div>
@@ -250,12 +250,12 @@ function ActiveMixSection({ mix, setVol, removeSound, clearAll, theme }: {
             }}>
               <div style={{
                 width: 40, height: 40, borderRadius: 12,
-                background: theme === 'amber'
+                background: theme === 'warm'
                   ? `linear-gradient(135deg, ${rgbA(t.accent, 0.30)} 0%, ${rgbA(t.accent, 0.10)} 100%)`
                   : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${theme === 'amber' ? t.accentBorder : 'rgba(255,255,255,0.16)'}`,
+                border: `1px solid ${theme === 'warm' ? t.accentBorder : 'rgba(255,255,255,0.16)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                color: theme === 'amber' ? '#FFE2C7' : 'rgba(255,255,255,0.92)',
+                color: theme === 'warm' ? '#FFE0DA' : 'rgba(255,255,255,0.92)',
               }}>
                 <Glyph size={18} stroke="currentColor" />
               </div>

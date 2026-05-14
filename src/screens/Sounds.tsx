@@ -7,7 +7,11 @@ import { useDraft, useMix } from '../state/store';
 import { lookupSound } from '../data/sounds';
 import { SoundMixerPanel, type QuickMix } from '../components/SoundMixerPanel';
 
-const ACCENT = '#FFB47A';
+const ACCENT = '#FF8E7C';
+// Inner-glow tint for the icon & visualizer core. Lighter version of
+// the accent — used for stroke colours on the moon glyph and the
+// equalizer bars inside the visualizer.
+const ACCENT_LIGHT = '#FFE0DA';
 
 const QUICK_MIXES: QuickMix[] = [
   { id: 'rainy', name: 'Rainy night', sounds: ['rain', 'thunder', 'chimes'] },
@@ -79,8 +83,8 @@ export function SoundsPlayer() {
       `}</style>
 
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `
-        radial-gradient(120% 80% at 50% 0%, rgba(255,180,122,0.16) 0%, rgba(255,180,122,0) 55%),
-        radial-gradient(80% 60% at 50% 100%, rgba(127,194,255,0.10) 0%, rgba(127,194,255,0) 60%)`,
+        radial-gradient(120% 80% at 50% 0%, rgba(255,142,124,0.16) 0%, rgba(255,142,124,0) 55%),
+        radial-gradient(80% 60% at 50% 100%, rgba(138,161,255,0.10) 0%, rgba(138,161,255,0) 60%)`,
       }} />
       <StarField />
 
@@ -140,7 +144,7 @@ export function SoundsPlayer() {
               setMixIds: mix.setMixIds,
             }}
             quickMixes={QUICK_MIXES}
-            theme="amber"
+            theme="warm"
             emptyHint="Tap a sound below to start. Layer as many as you like and balance each independently."
           />
         </div>
@@ -205,7 +209,7 @@ function Visualizer({ playing, count }: { playing: boolean; count: number }) {
         {bars.map((d, i) => (
           <div key={i} style={{
             width: 3, height: 28, borderRadius: 2,
-            background: '#FFE7CF',
+            background: ACCENT_LIGHT,
             transformOrigin: 'center',
             animation: playing ? `sounds-bar 1.${4 + i}s ease-in-out infinite` : undefined,
             animationDelay: `${d}s`,
@@ -253,7 +257,7 @@ function BottomDock({
           flexShrink: 0,
         }}>
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none"
-            stroke="#FFE2C7" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            stroke={ACCENT_LIGHT} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 14a8 8 0 0 1-10.5 7.5A9 9 0 0 0 21 14z" />
             <path d="M7 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" />
           </svg>
@@ -356,7 +360,7 @@ function NapSheet({ minutes, mixCount, onCancel, onConfirm }: {
           margin: '0 auto 12px',
         }}>
           <svg width={26} height={26} viewBox="0 0 24 24" fill="none"
-            stroke="#FFE2C7" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            stroke={ACCENT_LIGHT} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 14a8 8 0 0 1-10.5 7.5A9 9 0 0 0 21 14z" />
             <path d="M7 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" />
           </svg>
