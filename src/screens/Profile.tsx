@@ -4,12 +4,15 @@ import { go } from '../state/navigation';
 import { TopPad, LiquidGlassNav } from '../components/shared';
 import {
   CheckIcon, ChevronRightIcon, MoonIcon, BellIcon,
-  NightShiftIcon, PhoneOffIcon, ProfileFilled,
+  NightShiftIcon, PhoneOffIcon,
 } from '../components/icons';
+import { Avatar } from '../components/Avatar';
 import {
   useSleepGoal, useLanguage, useNotifications,
   useSchedules, useSubscription,
 } from '../state/store';
+
+const PROFILE_NAME = 'Kirill Kuts';
 
 const LANGUAGES = ['English', 'Español', 'Français', 'Deutsch', 'Italiano', '日本語', 'Русский'];
 
@@ -134,16 +137,15 @@ function ProfileHero() {
         position: 'absolute', inset: 0, pointerEvents: 'none',
         background: 'radial-gradient(60% 60% at 50% 30%, rgba(120,140,255,0.10), transparent 70%)',
       }} />
-      <div style={{
-        width: 88, height: 88, borderRadius: 44,
-        background: W.fill, border: `1px solid ${W.veryweak}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, color: W.ink, position: 'relative',
-        boxShadow: '0 8px 28px rgba(0,0,0,0.35)',
-      }}>
-        <ProfileFilled size={44} fill={W.ink} />
+      <Avatar
+        name={PROFILE_NAME}
+        size={88}
+        shadow="0 8px 28px rgba(0,0,0,0.35)"
+        style={{ position: 'relative' }}
+      />
+      <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 14, position: 'relative' }}>
+        {PROFILE_NAME}
       </div>
-      <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 14, position: 'relative' }}>Sleeper</div>
       <div style={{ fontSize: 13, color: W.weak, marginTop: 4, position: 'relative' }}>Local profile · not signed in</div>
     </div>
   );
