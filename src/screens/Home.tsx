@@ -51,10 +51,13 @@ export function Home() {
         <div style={{ height: 1, background: W.fill, margin: '32px 16px 8px' }} />
 
         <div style={{ padding: '0 16px' }}>
-          <ToolsSectionHeader title="Practice" hint="Anytime tools" />
-          <BreathingCard />
+          <ToolsSectionHeader title="Tools" />
+          <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+            <BreathingCard />
+            <SoundsCard />
+          </div>
 
-          <ToolsSectionHeader title="Wind down" hint="Before bed" style={{ marginTop: 20 }} />
+          <ToolsSectionHeader title="Wind down" style={{ marginTop: 20 }} />
           <SettingsCard
             icon={<PhoneOffIcon size={22} stroke={W.ink} />}
             title="Block distracting apps"
@@ -347,69 +350,143 @@ function hexA(hex: string, a: number) {
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
+// Shared anim keyframes used by the paired Home tiles. Defined once so
+// both tiles share definitions and we don't ship duplicate <style> blocks.
+function ToolCardKeyframes() {
+  return (
+    <style>{`
+      @keyframes breath-pulse {
+        0%, 100% { transform: scale(0.78); opacity: 0.55; }
+        50% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes sound-bar {
+        0%, 100% { transform: scaleY(0.32); }
+        50% { transform: scaleY(1); }
+      }
+      @keyframes sound-ring {
+        0% { transform: scale(0.7); opacity: 0.6; }
+        100% { transform: scale(1.5); opacity: 0; }
+      }
+    `}</style>
+  );
+}
+
+const TILE_BASE: React.CSSProperties = {
+  flex: 1, minWidth: 0, minHeight: 168,
+  position: 'relative', overflow: 'hidden',
+  borderRadius: 18, padding: '14px 14px 14px',
+  cursor: 'pointer',
+  display: 'flex', flexDirection: 'column',
+};
+
 function BreathingCard() {
   const { forDate } = useBreathSessions();
   const todaySessions = forDate(TODAY_DATE);
-  const breaths = todaySessions.reduce((s, x) => s + x.breaths, 0);
 
   return (
     <div onClick={() => go('practice-intro')} style={{
-      position: 'relative', overflow: 'hidden',
-      borderRadius: 18, padding: '16px 16px',
-      marginBottom: 10, cursor: 'pointer',
+      ...TILE_BASE,
       background: `
         radial-gradient(120% 100% at 85% 0%, rgba(127,194,255,0.22) 0%, rgba(127,194,255,0) 60%),
         linear-gradient(180deg, #161A24 0%, #11141C 100%)`,
       border: '1px solid rgba(127,194,255,0.18)',
-      display: 'flex', alignItems: 'center', gap: 14,
     }}>
-      <style>{`
-        @keyframes breath-pulse {
-          0%, 100% { transform: scale(0.78); opacity: 0.55; }
-          50% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
+      <ToolCardKeyframes />
       <BreathRing />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em' }}>
-          Breathing practice
-        </div>
-        <div style={{
-          fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4,
-        }}>
-          {todaySessions.length === 0
-            ? '4‑7‑8 breath. Slow yourself down anytime.'
-            : <>
-                <span style={{ color: '#7FC2FF', fontWeight: 600 }}>
-                  {todaySessions.length} session{todaySessions.length === 1 ? '' : 's'} today
-                </span>
-                <span> · {breaths} breaths</span>
-              </>}
-        </div>
+      <div style={{ marginTop: 14, fontSize: 14, fontWeight: 700, color: W.ink, letterSpacing: '-0.01em' }}>
+        Breathing
       </div>
       <div style={{
-        padding: '8px 14px', borderRadius: 999,
+        marginTop: 4, fontSize: 12, color: W.weak, lineHeight: 1.4, flex: 1,
+      }}>
+        {todaySessions.length === 0
+          ? '4‑7‑8 breath. Slow down anytime.'
+          : <>
+              <span style={{ color: '#7FC2FF', fontWeight: 600 }}>
+                {todaySessions.length} session{todaySessions.length === 1 ? '' : 's'} today
+              </span>
+            </>}
+      </div>
+      <div style={{
+        marginTop: 10, alignSelf: 'flex-start',
+        padding: '6px 12px', borderRadius: 999,
         background: 'rgba(127,194,255,0.14)',
         border: '1px solid rgba(127,194,255,0.35)',
-        color: '#B8DCFF', fontSize: 12, fontWeight: 600,
-        flexShrink: 0,
+        color: '#B8DCFF', fontSize: 11, fontWeight: 600,
       }}>Start</div>
     </div>
   );
 }
 
-function ToolsSectionHeader({ title, hint, style }: { title: string; hint?: string; style?: React.CSSProperties }) {
+function SoundsCard() {
+  return (
+    <div onClick={() => go('sounds-player')} style={{
+      ...TILE_BASE,
+      background: `
+        radial-gradient(120% 100% at 85% 0%, rgba(255,180,122,0.24) 0%, rgba(255,180,122,0) 60%),
+        linear-gradient(180deg, #1B1815 0%, #14110F 100%)`,
+      border: '1px solid rgba(255,180,122,0.20)',
+    }}>
+      <ToolCardKeyframes />
+      <SoundOrb />
+      <div style={{ marginTop: 14, fontSize: 14, fontWeight: 700, color: W.ink, letterSpacing: '-0.01em' }}>
+        Sounds
+      </div>
+      <div style={{
+        marginTop: 4, fontSize: 12, color: W.weak, lineHeight: 1.4, flex: 1,
+      }}>
+        Drift off to rain, fire or waves.
+      </div>
+      <div style={{
+        marginTop: 10, alignSelf: 'flex-start',
+        padding: '6px 12px', borderRadius: 999,
+        background: 'rgba(255,180,122,0.14)',
+        border: '1px solid rgba(255,180,122,0.40)',
+        color: '#FFD3B0', fontSize: 11, fontWeight: 600,
+      }}>Listen</div>
+    </div>
+  );
+}
+
+// Equalizer bars cradled inside a soft orange disc. Mirrors BreathRing's
+// presentation so the paired tiles read as siblings.
+function SoundOrb() {
   return (
     <div style={{
-      display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-      padding: '12px 4px 10px',
-      ...style,
+      width: 44, height: 44, position: 'relative', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <div style={{ fontSize: 13, color: W.weak, fontWeight: 600 }}>{title}</div>
-      {hint && (
-        <div style={{ fontSize: 11, color: W.veryweak, fontWeight: 500 }}>{hint}</div>
-      )}
+      <div style={{
+        position: 'absolute', inset: 0,
+        borderRadius: '50%', border: '1px dashed rgba(255,180,122,0.45)',
+      }} />
+      <div style={{
+        position: 'absolute', width: 32, height: 32, borderRadius: 16,
+        background: 'radial-gradient(circle at 35% 30%, rgba(255,225,196,0.55), rgba(255,180,122,0.10) 65%, transparent 80%)',
+        border: '1px solid rgba(255,180,122,0.55)',
+      }} />
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 2 }}>
+        {[0, 0.18, 0.36].map((d, i) => (
+          <div key={i} style={{
+            width: 2, height: 12, borderRadius: 1,
+            background: '#FFE2C7',
+            transformOrigin: 'center',
+            animation: `sound-bar 1.${4 + i}s ease-in-out infinite`,
+            animationDelay: `${d}s`,
+          }} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function ToolsSectionHeader({ title, style }: { title: string; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      padding: '12px 4px 10px',
+      fontSize: 13, color: W.weak, fontWeight: 600,
+      ...style,
+    }}>{title}</div>
   );
 }
 
@@ -422,15 +499,12 @@ function QuizSection() {
   return (
     <div style={{ marginTop: 26 }}>
       <div style={{
-        display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-        padding: '0 24px 12px 24px',
-      }}>
-        <div style={{ fontSize: 13, color: W.weak, fontWeight: 600 }}>Self-checks</div>
-        <div style={{ fontSize: 11, color: W.veryweak, fontWeight: 500 }}>2 min each</div>
-      </div>
+        padding: '0 20px 12px 20px',
+        fontSize: 13, color: W.weak, fontWeight: 600,
+      }}>Self-checks</div>
       <div style={{
         display: 'flex', gap: 12, overflowX: 'auto',
-        padding: '4px 20px 8px 24px',
+        padding: '4px 20px 8px 20px',
         scrollSnapType: 'x mandatory',
         WebkitOverflowScrolling: 'touch',
       }}>
