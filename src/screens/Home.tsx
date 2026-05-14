@@ -6,12 +6,13 @@ import {
   PhoneOffIcon, PencilIcon, HabitGlyph,
 } from '../components/icons';
 import {
-  StickyTopBar, DayStrip, LiquidGlassNav, SectionHeader, SettingsCard,
+  StickyTopBar, DayStrip, LiquidGlassNav, SettingsCard,
   NightShiftCard,
   type Day,
 } from '../components/shared';
 import { MoodFace } from '../components/MoodFace';
-import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useEditingScheduleId, useJournal, useBreathSessions, pickScheduleForDay } from '../state/store';
+import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useEditingScheduleId, useJournal, useBreathSessions, useQuizSession, pickScheduleForDay } from '../state/store';
+import { QUIZZES, type Quiz } from '../data/quizzes';
 import { readMood } from '../data/mood';
 import { lookupFactor } from '../data/factors';
 import { DAYS as days, TODAY_IDX as todayIdx, TODAY_DATE, dayToDate, dayLabel } from '../data/days';
@@ -50,10 +51,10 @@ export function Home() {
         <div style={{ height: 1, background: W.fill, margin: '32px 16px 8px' }} />
 
         <div style={{ padding: '0 16px' }}>
-          <SectionHeader>Practice</SectionHeader>
+          <ToolsSectionHeader title="Practice" hint="Anytime tools" />
           <BreathingCard />
 
-          <SectionHeader style={{ marginTop: 18 }}>Wind down</SectionHeader>
+          <ToolsSectionHeader title="Wind down" hint="Before bed" style={{ marginTop: 20 }} />
           <SettingsCard
             icon={<PhoneOffIcon size={22} stroke={W.ink} />}
             title="Block distracting apps"
@@ -62,6 +63,8 @@ export function Home() {
           />
           <NightShiftCard />
         </div>
+
+        <QuizSection />
       </div>
       <LiquidGlassNav active="home" />
     </div>
@@ -393,6 +396,108 @@ function BreathingCard() {
       }}>Start</div>
     </div>
   );
+}
+
+function ToolsSectionHeader({ title, hint, style }: { title: string; hint?: string; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+      padding: '12px 4px 10px',
+      ...style,
+    }}>
+      <div style={{ fontSize: 13, color: W.weak, fontWeight: 600 }}>{title}</div>
+      {hint && (
+        <div style={{ fontSize: 11, color: W.veryweak, fontWeight: 500 }}>{hint}</div>
+      )}
+    </div>
+  );
+}
+
+function QuizSection() {
+  const { start } = useQuizSession();
+  function openQuiz(q: Quiz) {
+    start(q.id);
+    go('quiz-intro');
+  }
+  return (
+    <div style={{ marginTop: 26 }}>
+      <div style={{
+        display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+        padding: '0 20px 12px',
+      }}>
+        <div style={{ fontSize: 13, color: W.weak, fontWeight: 600 }}>Self-checks</div>
+        <div style={{ fontSize: 11, color: W.veryweak, fontWeight: 500 }}>2 min each</div>
+      </div>
+      <div style={{
+        display: 'flex', gap: 12, overflowX: 'auto',
+        padding: '4px 20px 8px',
+        scrollSnapType: 'x mandatory',
+        WebkitOverflowScrolling: 'touch',
+      }}>
+        {QUIZZES.map((q) => (
+          <QuizCard key={q.id} quiz={q} onClick={() => openQuiz(q)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuizCard({ quiz, onClick }: { quiz: Quiz; onClick: () => void }) {
+  const Icon = quiz.icon;
+  return (
+    <div onClick={onClick} style={{
+      flex: '0 0 168px', minHeight: 196,
+      scrollSnapAlign: 'start',
+      position: 'relative', overflow: 'hidden',
+      borderRadius: 18, padding: '14px 14px 16px',
+      background: `
+        radial-gradient(120% 100% at 80% 0%, ${quizHexA(quiz.accent, 0.30)} 0%, ${quizHexA(quiz.accent, 0)} 65%),
+        linear-gradient(180deg, ${quizHexA(quiz.accent, 0.10)} 0%, ${W.paper} 100%)`,
+      border: `1px solid ${quizHexA(quiz.accent, 0.24)}`,
+      cursor: 'pointer',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{
+        width: 38, height: 38, borderRadius: 10,
+        background: `linear-gradient(135deg, ${quizHexA(quiz.accent, 0.28)}, ${quizHexA(quiz.accent, 0.10)})`,
+        border: `1px solid ${quizHexA(quiz.accent, 0.45)}`,
+        color: quiz.accent,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon size={18} />
+      </div>
+      <div style={{
+        marginTop: 14, fontSize: 14, fontWeight: 700, color: W.ink,
+        letterSpacing: '-0.01em', lineHeight: 1.25,
+      }}>{quiz.title}</div>
+      <div style={{
+        marginTop: 6, fontSize: 12, color: W.weak, lineHeight: 1.45, flex: 1,
+      }}>{quiz.blurb}</div>
+      <div style={{
+        marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        fontSize: 11, color: W.weak,
+      }}>
+        <span>{quiz.meta.split('·')[0].trim()}</span>
+        <span style={{
+          width: 22, height: 22, borderRadius: 11,
+          background: quizHexA(quiz.accent, 0.18),
+          border: `1px solid ${quizHexA(quiz.accent, 0.50)}`,
+          color: quiz.accent,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width={11} height={11} viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth={2.4}
+            strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function quizHexA(hex: string, a: number) {
+  return hexA(hex, a);
 }
 
 function BreathRing() {
