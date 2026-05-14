@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { back, replace } from '../state/navigation';
 import { TopPad, HeaderBar } from '../components/shared';
 import { CheckIcon } from '../components/icons';
-import { usePracticeCycles, usePracticeDone, useWindDownStep } from '../state/store';
+import { usePracticeCycles, usePracticeDone, useWindDownStep, useBreathSessions, type BreathFeeling } from '../state/store';
+import { TODAY_DATE } from '../data/days';
 
 export function PracticeIntro() {
   const [seen, setSeen] = useState<boolean>(() => {
@@ -41,14 +42,14 @@ export function PracticeIntro() {
       }} />
 
       <TopPad />
-      <HeaderBar title="Breathe to sleep" onBack={() => back()} />
+      <HeaderBar title="Breathing practice" onBack={() => back()} />
 
       <div style={{ flex: 1, padding: '0 22px 24px', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28, textAlign: 'center' }}>
           <div>
             <div style={{ fontSize: 13, color: W.weak, fontWeight: 500, marginBottom: 8 }}>4-7-8 breath</div>
             <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.2, color: W.ink }}>
-              How long do you want<br/>to practice tonight?
+              How long do you want<br/>to practice?
             </div>
           </div>
 
@@ -125,16 +126,16 @@ function PracticeLearn({ onContinue, backLabel = 'Got it', hideStartCopy = false
       }} />
 
       <TopPad />
-      <HeaderBar title="Breathe to sleep" onBack={() => back()} />
+      <HeaderBar title="Breathing practice" onBack={() => back()} />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 22px 24px', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
         <div style={{ paddingTop: 4 }}>
           <div style={{ fontSize: 13, color: W.weak, fontWeight: 500 }}>4-7-8 breath</div>
           <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15, marginTop: 8 }}>
-            A breath pattern that<br/>slows you down for sleep.
+            A breath pattern that<br/>slows you down.
           </div>
           <div style={{ fontSize: 14, color: W.weak, marginTop: 12, lineHeight: 1.5 }}>
-            Three counts, repeated. Your nervous system follows the rhythm and starts to wind down.
+            Three counts, repeated. Your nervous system follows the rhythm and starts to wind down — anytime you need it.
           </div>
         </div>
 
@@ -368,11 +369,13 @@ export function PracticeSession() {
 }
 
 export function PracticeComplete() {
-  const [feeling, setFeeling] = useState<string | null>(null);
+  const [feeling, setFeeling] = useState<BreathFeeling | null>(null);
   const [saveToJournal, setSaveToJournal] = useState(true);
   const [cycles] = usePracticeCycles();
   const [, setPracticeDone] = usePracticeDone();
   const [, setWindStep] = useWindDownStep();
+  const { add: addBreathSession } = useBreathSessions();
+  const savedRef = useRef(false);
   const seconds = cycles * 19;
   const mm = Math.floor(seconds / 60);
   const ss = String(seconds % 60).padStart(2, '0');
@@ -385,6 +388,20 @@ export function PracticeComplete() {
     // Only on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function finish() {
+    if (saveToJournal && !savedRef.current) {
+      const now = new Date();
+      addBreathSession({
+        date: TODAY_DATE,
+        time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+        cycles, durationSec: seconds, breaths: cycles * 3,
+        feeling,
+      });
+      savedRef.current = true;
+    }
+    back();
+  }
 
   return (
     <div style={{
@@ -449,11 +466,11 @@ export function PracticeComplete() {
             color: W.weak, marginBottom: 12,
           }}>How do you feel now?</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            {[
+            {([
               { id: 'calmer', label: 'Calmer' },
               { id: 'same', label: 'About the same' },
               { id: 'restless', label: 'Still restless' },
-            ].map((opt) => {
+            ] as { id: BreathFeeling; label: string }[]).map((opt) => {
               const active = feeling === opt.id;
               return (
                 <div key={opt.id} onClick={() => setFeeling(opt.id)} style={{
@@ -495,7 +512,7 @@ export function PracticeComplete() {
 
         <div style={{ flex: 1, minHeight: 16 }} />
 
-        <div onClick={() => back()} style={{
+        <div onClick={finish} style={{
           marginTop: 22, padding: '18px 0', textAlign: 'center',
           background: W.ink, color: W.bg, borderRadius: 999,
           fontSize: 15, fontWeight: 600, cursor: 'pointer',

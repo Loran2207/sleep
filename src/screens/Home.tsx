@@ -11,10 +11,10 @@ import {
   type Day,
 } from '../components/shared';
 import { MoodFace } from '../components/MoodFace';
-import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useEditingScheduleId, useJournal, pickScheduleForDay } from '../state/store';
+import { useSchedules, useWindDownStep, usePracticeDone, useEditingJournalId, useEditingScheduleId, useJournal, useBreathSessions, pickScheduleForDay } from '../state/store';
 import { readMood } from '../data/mood';
 import { lookupFactor } from '../data/factors';
-import { DAYS as days, TODAY_IDX as todayIdx, dayToDate, dayLabel } from '../data/days';
+import { DAYS as days, TODAY_IDX as todayIdx, TODAY_DATE, dayToDate, dayLabel } from '../data/days';
 
 export { dayToDate, dayLabel };
 
@@ -50,7 +50,10 @@ export function Home() {
         <div style={{ height: 1, background: W.fill, margin: '32px 16px 8px' }} />
 
         <div style={{ padding: '0 16px' }}>
-          <SectionHeader>Wind down</SectionHeader>
+          <SectionHeader>Practice</SectionHeader>
+          <BreathingCard />
+
+          <SectionHeader style={{ marginTop: 18 }}>Wind down</SectionHeader>
           <SettingsCard
             icon={<PhoneOffIcon size={22} stroke={W.ink} />}
             title="Block distracting apps"
@@ -339,5 +342,76 @@ function hexA(hex: string, a: number) {
   const g = parseInt(c.slice(2, 4), 16);
   const b = parseInt(c.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function BreathingCard() {
+  const { forDate } = useBreathSessions();
+  const todaySessions = forDate(TODAY_DATE);
+  const breaths = todaySessions.reduce((s, x) => s + x.breaths, 0);
+
+  return (
+    <div onClick={() => go('practice-intro')} style={{
+      position: 'relative', overflow: 'hidden',
+      borderRadius: 18, padding: '16px 16px',
+      marginBottom: 10, cursor: 'pointer',
+      background: `
+        radial-gradient(120% 100% at 85% 0%, rgba(127,194,255,0.22) 0%, rgba(127,194,255,0) 60%),
+        linear-gradient(180deg, #161A24 0%, #11141C 100%)`,
+      border: '1px solid rgba(127,194,255,0.18)',
+      display: 'flex', alignItems: 'center', gap: 14,
+    }}>
+      <style>{`
+        @keyframes breath-pulse {
+          0%, 100% { transform: scale(0.78); opacity: 0.55; }
+          50% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
+      <BreathRing />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em' }}>
+          Breathing practice
+        </div>
+        <div style={{
+          fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4,
+        }}>
+          {todaySessions.length === 0
+            ? '4‑7‑8 breath. Slow yourself down anytime.'
+            : <>
+                <span style={{ color: '#7FC2FF', fontWeight: 600 }}>
+                  {todaySessions.length} session{todaySessions.length === 1 ? '' : 's'} today
+                </span>
+                <span> · {breaths} breaths</span>
+              </>}
+        </div>
+      </div>
+      <div style={{
+        padding: '8px 14px', borderRadius: 999,
+        background: 'rgba(127,194,255,0.14)',
+        border: '1px solid rgba(127,194,255,0.35)',
+        color: '#B8DCFF', fontSize: 12, fontWeight: 600,
+        flexShrink: 0,
+      }}>Start</div>
+    </div>
+  );
+}
+
+function BreathRing() {
+  return (
+    <div style={{
+      width: 44, height: 44, position: 'relative', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        borderRadius: '50%', border: '1px dashed rgba(127,194,255,0.45)',
+      }} />
+      <div style={{
+        width: 32, height: 32, borderRadius: 16,
+        background: 'radial-gradient(circle at 35% 30%, rgba(184,220,255,0.65), rgba(127,194,255,0.10) 65%, transparent 80%)',
+        border: '1px solid rgba(127,194,255,0.55)',
+        animation: 'breath-pulse 4.2s ease-in-out infinite',
+      }} />
+    </div>
+  );
 }
 
