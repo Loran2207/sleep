@@ -8,11 +8,11 @@ import { TrackPresets } from './screens/TrackPresets';
 import { TrackNap, TrackNight } from './screens/TrackNapNight';
 import { SoundsCatalog } from './screens/SoundsCatalog';
 import { PlaceDevice } from './screens/PlaceDevice';
-import { TrackingActive, TrackingMixer, TrackingSounds, TrackingStopConfirm } from './screens/Tracking';
+import { TrackingActive, TrackingMixer, TrackingStopConfirm } from './screens/Tracking';
 import { RoutineSetup } from './screens/RoutineSetup';
 import { CourseList, Lesson } from './screens/Course';
 import { SleepSchedules } from './screens/SleepSchedules';
-import { ScheduleMix, ScheduleSounds } from './screens/ScheduleMixer';
+import { ScheduleMix } from './screens/ScheduleMixer';
 import { HabitLibrary, RoutineCheckIn } from './screens/HabitsScreens';
 import { PracticeIntro, PracticeSession, PracticeComplete } from './screens/Practice';
 import { Journal } from './screens/Journal';
@@ -35,14 +35,12 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'place-device': () => <PlaceDevice />,
   'tracking-active': () => <TrackingActive />,
   'tracking-mixer': () => <TrackingMixer />,
-  'tracking-sounds': () => <TrackingSounds />,
   'tracking-stop-confirm': () => <TrackingStopConfirm />,
   'routine': () => <RoutineSetup />,
   'habit-library': () => <HabitLibrary />,
   'routine-checkin': () => <RoutineCheckIn />,
   'sleep-schedule': () => <SleepSchedules />,
   'schedule-mix': () => <ScheduleMix />,
-  'schedule-sounds': () => <ScheduleSounds />,
   'course': () => <CourseList />,
   'lesson': () => <Lesson />,
   'practice-intro': () => <PracticeIntro />,

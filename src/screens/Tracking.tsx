@@ -2,11 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  GlyphPlay, GlyphPause, GlyphSliders, GlyphPlus, GlyphChevDn, GlyphTrash,
+  GlyphPlay, GlyphPause, GlyphSliders, GlyphChevDn,
 } from '../components/icons';
-import { TopPad, VolumeSlider } from '../components/shared';
+import { TopPad } from '../components/shared';
 import { useMix, useSchedules, useSleepMode, useNapDuration, pickScheduleForDay } from '../state/store';
-import { SOUND_CATALOG, SOUND_CATEGORIES, lookupSound, type SoundCategory } from '../data/sounds';
+import { lookupSound } from '../data/sounds';
+import { SoundMixerPanel, type QuickMix } from '../components/SoundMixerPanel';
+
+const TRACKING_QUICK_MIXES: QuickMix[] = [
+  { id: 'rainy',   name: 'Rainy night', sounds: ['rain', 'thunder', 'chimes'] },
+  { id: 'cabin',   name: 'Cabin',       sounds: ['campfire', 'forest', 'crickets'] },
+  { id: 'ocean',   name: 'Open ocean',  sounds: ['ocean', 'seagull', 'wind'] },
+  { id: 'quiet',   name: 'Just noise',  sounds: ['brown', 'whitenoise'] },
+];
 
 // ─── Tracking Active ─────────────────────────────────────────────
 export function TrackingActive() {
@@ -199,13 +207,6 @@ export function TrackingActive() {
           }}>
             <GlyphSliders size={16} stroke="currentColor" />
           </div>
-          <div onClick={() => go('tracking-sounds')} style={{
-            width: 36, height: 36, borderRadius: 18,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'rgba(255,255,255,0.85)', flexShrink: 0,
-          }}>
-            <GlyphPlus size={16} stroke="currentColor" />
-          </div>
         </div>
       </div>
 
@@ -255,8 +256,12 @@ function AlarmStateToggle({ ringing, onChange }: { ringing: boolean; onChange: (
 }
 
 // ─── Tracking Mixer ─────────────────────────────────────────────
+// All sound editing during tracking lives on this screen, powered by
+// the shared SoundMixerPanel: per-sound volume sliders, remove,
+// quick mixes, and an inline library — no more separate catalog hop.
 export function TrackingMixer() {
-  const { state, setVol, removeSound, clearAll, togglePlay } = useMix();
+  const mix = useMix();
+  const { state, togglePlay } = mix;
 
   return (
     <div style={{
@@ -280,218 +285,49 @@ export function TrackingMixer() {
           <GlyphChevDn size={18} stroke="currentColor" />
         </div>
         <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Mix</div>
-        <div onClick={clearAll} style={{
-          fontSize: 13, color: state.mix.length === 0 ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.85)',
-          cursor: state.mix.length === 0 ? 'default' : 'pointer',
-        }}>Clear all</div>
+        <div style={{ width: 36 }} />
       </div>
 
-      <div style={{ position: 'relative', flex: 1, padding: '16px 20px 20px', overflowY: 'auto' }}>
-        {state.mix.length === 0 ? (
-          <EmptyMix />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {state.mix.map((item) => {
-              const meta = lookupSound(item.id);
-              if (!meta) return null;
-              const Glyph = meta.Glyph;
-              return (
-                <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 22,
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    background: 'rgba(255,255,255,0.04)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <Glyph size={20} stroke="rgba(255,255,255,0.9)" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>{meta.name}</div>
-                    <VolumeSlider value={item.vol} onChange={(v) => setVol(item.id, v)} />
-                  </div>
-                  <div onClick={() => removeSound(item.id)} style={{
-                    width: 36, height: 36, borderRadius: 18,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'rgba(255,255,255,0.55)', cursor: 'pointer', flexShrink: 0,
-                  }}>
-                    <GlyphTrash size={16} stroke="currentColor" />
-                  </div>
-                </div>
-              );
-            })}
-            <div onClick={() => go('tracking-sounds')} style={{
-              marginTop: 8, padding: '14px 0', textAlign: 'center',
-              border: '1px dashed rgba(255,255,255,0.22)', borderRadius: 14,
-              fontSize: 13, color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}>
-              <GlyphPlus size={14} stroke="currentColor" />
-              Add sound
-            </div>
-          </div>
-        )}
+      <div style={{ position: 'relative', flex: 1, padding: '12px 20px 130px', overflowY: 'auto' }}>
+        <SoundMixerPanel
+          binding={{
+            mix: state.mix,
+            setVol: mix.setVol,
+            toggleSound: mix.toggleSound,
+            removeSound: mix.removeSound,
+            clearAll: mix.clearAll,
+            setMixIds: mix.setMixIds,
+          }}
+          quickMixes={TRACKING_QUICK_MIXES}
+          theme="cool"
+          emptyHint="Layer rain, fire, chimes — whatever puts you under. Each sound has its own volume."
+        />
       </div>
 
       <div style={{
-        position: 'relative', padding: '14px 24px 32px',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        position: 'absolute', left: 0, right: 0, bottom: 0,
+        padding: '14px 24px calc(28px + env(safe-area-inset-bottom))',
+        background: 'linear-gradient(180deg, rgba(14,16,20,0) 0%, rgba(14,16,20,0.88) 30%, #0E1014 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
+        pointerEvents: 'none',
       }}>
         <div onClick={togglePlay} style={{
+          pointerEvents: 'auto',
           width: 64, height: 64, borderRadius: 32,
           background: '#fff', color: '#0E1014',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0,
+          boxShadow: '0 10px 26px rgba(0,0,0,0.45)',
         }}>
-          {state.playing ? <GlyphPause size={22} stroke="#0E1014" /> : <GlyphPlay size={22} stroke="#0E1014" style={{ marginLeft: 3 }} />}
+          {state.playing
+            ? <GlyphPause size={22} stroke="#0E1014" />
+            : <GlyphPlay size={22} stroke="#0E1014" style={{ marginLeft: 3 }} />}
         </div>
       </div>
     </div>
   );
 }
 
-function EmptyMix() {
-  return (
-    <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', padding: '40px 20px', textAlign: 'center',
-      color: 'rgba(255,255,255,0.55)',
-    }}>
-      <div style={{ fontSize: 14 }}>No sounds yet.</div>
-      <div onClick={() => go('tracking-sounds')} style={{
-        marginTop: 14, padding: '10px 18px', borderRadius: 999,
-        border: '1px solid rgba(255,255,255,0.25)',
-        color: '#fff', fontSize: 13, cursor: 'pointer',
-      }}>Browse sounds</div>
-    </div>
-  );
-}
-
-// ─── Tracking Sounds Catalog ────────────────────────────────────
-export function TrackingSounds() {
-  const { state, toggleSound } = useMix();
-  const [cat, setCat] = useState<SoundCategory>('all');
-  const visible = cat === 'all' ? SOUND_CATALOG : SOUND_CATALOG.filter((s) => s.cat === cat);
-  const activeIds = new Set(state.mix.map((s) => s.id));
-
-  return (
-    <div style={{
-      height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E1014', color: '#fff', fontFamily: W.font,
-      position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', inset: 0, background: `
-        radial-gradient(1px 1px at 18% 25%, rgba(255,255,255,0.4), transparent 50%),
-        radial-gradient(1px 1px at 78% 18%, rgba(255,255,255,0.35), transparent 50%),
-        radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.25), transparent 50%)`,
-      }} />
-      <TopPad />
-
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px' }}>
-        <div onClick={() => go('tracking-mixer')} style={{
-          width: 36, height: 36, borderRadius: 18,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: 'rgba(255,255,255,0.85)',
-        }}>
-          <GlyphChevDn size={18} stroke="currentColor" />
-        </div>
-        <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Sounds</div>
-        <div style={{ width: 36 }} />
-      </div>
-
-      <div style={{
-        position: 'relative', padding: '8px 16px 12px',
-        display: 'flex', gap: 8, overflowX: 'auto',
-      }}>
-        {SOUND_CATEGORIES.map((c) => {
-          const active = c.id === cat;
-          return (
-            <div key={c.id} onClick={() => setCat(c.id)} style={{
-              flex: '0 0 auto', padding: '8px 16px', borderRadius: 999,
-              background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-              color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
-              border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.14)',
-              fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            }}>{c.label}</div>
-          );
-        })}
-      </div>
-
-      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '4px 16px 110px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '18px 8px' }}>
-          {visible.map((s) => {
-            const Glyph = s.Glyph;
-            const on = activeIds.has(s.id);
-            return (
-              <div key={s.id} onClick={() => toggleSound(s.id)} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                cursor: 'pointer',
-              }}>
-                <div style={{
-                  width: 56, height: 56, borderRadius: 28,
-                  background: on ? '#fff' : 'rgba(255,255,255,0.06)',
-                  border: on ? '1px solid #fff' : '1px solid rgba(255,255,255,0.18)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative',
-                  transition: 'background .12s, border-color .12s',
-                }}>
-                  <Glyph size={22} stroke={on ? '#0E1014' : 'rgba(255,255,255,0.85)'} />
-                  {on && (
-                    <div style={{
-                      position: 'absolute', top: -3, right: -3,
-                      width: 16, height: 16, borderRadius: 8,
-                      background: '#0E1014', border: '1px solid #fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 10, color: '#fff', fontWeight: 700, lineHeight: 1,
-                    }}>·</div>
-                  )}
-                </div>
-                <div style={{
-                  fontSize: 11, textAlign: 'center', lineHeight: 1.2,
-                  color: on ? '#fff' : 'rgba(255,255,255,0.7)',
-                  maxWidth: 70, fontWeight: on ? 500 : 400,
-                }}>{s.name}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{
-        position: 'absolute', bottom: 22, left: 16, right: 16,
-        background: 'rgba(20,22,28,0.95)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        borderRadius: 14, padding: '10px 12px',
-        display: 'flex', alignItems: 'center', gap: 10,
-        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-      }}>
-        <div onClick={() => go('tracking-active')} style={{
-          width: 36, height: 36, borderRadius: 18,
-          border: '1px solid rgba(255,255,255,0.18)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', flexShrink: 0,
-        }}>
-          <GlyphPlay size={12} stroke="#fff" style={{ marginLeft: 2 }} />
-        </div>
-        <div onClick={() => go('tracking-mixer')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
-          <div style={{ fontSize: 13, fontWeight: 500 }}>
-            {state.mix.length === 0 ? 'No sounds' : (state.mix.length === 1 ? lookupSound(state.mix[0].id)?.name : 'Mix')}
-          </div>
-          <div style={{ fontSize: 11, opacity: 0.55, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {state.mix.length === 0 ? 'Tap a sound above' : `${state.mix.length} item${state.mix.length === 1 ? '' : 's'}`}
-          </div>
-        </div>
-        <div onClick={() => go('tracking-mixer')} style={{
-          width: 32, height: 32, borderRadius: 16,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
-        }}>
-          <GlyphSliders size={14} stroke="currentColor" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Alarm ringing screen ───────────────────────────────────────
 // Apple-style minimal: full-bleed dark canvas, a slow pulse around
