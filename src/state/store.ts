@@ -84,11 +84,13 @@ export type Subscription = {
   active: boolean;
   period: BillingPeriod;
   renewsOn: string; // YYYY-MM-DD
+  autoRenew: boolean;
 };
 const subscriptionStore = createStore<Subscription>({
   active: false,
   period: 'yearly',
   renewsOn: '2027-05-14',
+  autoRenew: true,
 });
 export function useSubscription(): [Subscription, (patch: Partial<Subscription>) => void] {
   const v = useSyncExternalStore(subscriptionStore.subscribe, subscriptionStore.get, subscriptionStore.get);
