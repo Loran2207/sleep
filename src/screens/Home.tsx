@@ -501,12 +501,12 @@ function QuizSection() {
   return (
     <div style={{ marginTop: 26 }}>
       <div style={{
-        padding: '0 20px 12px 20px',
+        padding: '0 16px 12px 16px',
         fontSize: 13, color: W.weak, fontWeight: 600,
       }}>Self-checks</div>
       <div style={{
         display: 'flex', gap: 12, overflowX: 'auto',
-        padding: '4px 20px 8px 20px',
+        padding: '4px 16px 8px 16px',
         scrollSnapType: 'x mandatory',
         WebkitOverflowScrolling: 'touch',
       }}>
@@ -522,10 +522,10 @@ function QuizCard({ quiz, onClick }: { quiz: Quiz; onClick: () => void }) {
   const Icon = quiz.icon;
   return (
     <div onClick={onClick} style={{
-      flex: '0 0 168px', minHeight: 196,
+      flex: '0 0 148px', minHeight: 144,
       scrollSnapAlign: 'start',
       position: 'relative', overflow: 'hidden',
-      borderRadius: 18, padding: '14px 14px 16px',
+      borderRadius: 18, padding: '14px 14px 14px',
       background: `
         radial-gradient(120% 100% at 80% 0%, ${quizHexA(quiz.accent, 0.30)} 0%, ${quizHexA(quiz.accent, 0)} 65%),
         linear-gradient(180deg, ${quizHexA(quiz.accent, 0.10)} 0%, ${W.paper} 100%)`,
@@ -542,32 +542,11 @@ function QuizCard({ quiz, onClick }: { quiz: Quiz; onClick: () => void }) {
       }}>
         <Icon size={18} />
       </div>
+      <div style={{ flex: 1 }} />
       <div style={{
-        marginTop: 14, fontSize: 14, fontWeight: 700, color: W.ink,
+        fontSize: 14, fontWeight: 700, color: W.ink,
         letterSpacing: '-0.01em', lineHeight: 1.25,
       }}>{quiz.title}</div>
-      <div style={{
-        marginTop: 6, fontSize: 12, color: W.weak, lineHeight: 1.45, flex: 1,
-      }}>{quiz.blurb}</div>
-      <div style={{
-        marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        fontSize: 11, color: W.weak,
-      }}>
-        <span>{quiz.meta.split('·')[0].trim()}</span>
-        <span style={{
-          width: 22, height: 22, borderRadius: 11,
-          background: quizHexA(quiz.accent, 0.18),
-          border: `1px solid ${quizHexA(quiz.accent, 0.50)}`,
-          color: quiz.accent,
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <svg width={11} height={11} viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth={2.4}
-            strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 6l6 6-6 6" />
-          </svg>
-        </span>
-      </div>
     </div>
   );
 }
