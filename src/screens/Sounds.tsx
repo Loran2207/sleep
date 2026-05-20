@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { W } from '../tokens';
 import { back as goBack } from '../state/navigation';
-import { TopPad, TimerPicker } from '../components/shared';
+import { TopPad } from '../components/shared';
 import { startTracking } from '../state/tracking';
 import { useDraft, useMix } from '../state/store';
 import { lookupSound } from '../data/sounds';
@@ -26,12 +26,8 @@ export function SoundsPlayer() {
   const playing = state.playing;
   const timerMin = state.timerMin;
 
-  const [showTimer, setShowTimer] = useState(false);
   const [showNapSheet, setShowNapSheet] = useState(false);
   const [, setDraft] = useDraft();
-
-  function onOpenTimer() { setShowTimer(true); }
-  function onTimerSelect(m: number | null) { setTimer(m); setShowTimer(false); }
 
   function startNap() {
     const names = state.mix
@@ -92,6 +88,8 @@ export function SoundsPlayer() {
             removeSound: mix.removeSound,
             clearAll: mix.clearAll,
             setMixIds: mix.setMixIds,
+            timerMin,
+            setTimer,
           }}
           playing={playing}
           timerMin={timerMin}
@@ -103,18 +101,9 @@ export function SoundsPlayer() {
         playing={playing}
         onTogglePlay={togglePlay}
         timerMin={timerMin}
-        onOpenTimer={onOpenTimer}
         onAskNap={() => setShowNapSheet(true)}
         hasSounds={mixCount > 0}
       />
-
-      {showTimer && (
-        <TimerPicker
-          minutes={timerMin}
-          onSelect={onTimerSelect}
-          onClose={() => setShowTimer(false)}
-        />
-      )}
 
       {showNapSheet && (
         <NapSheet
@@ -129,10 +118,10 @@ export function SoundsPlayer() {
 }
 
 function BottomDock({
-  playing, onTogglePlay, timerMin, onOpenTimer, onAskNap, hasSounds,
+  playing, onTogglePlay, timerMin, onAskNap, hasSounds,
 }: {
   playing: boolean; onTogglePlay: () => void;
-  timerMin: number | null; onOpenTimer: () => void;
+  timerMin: number | null;
   onAskNap: () => void; hasSounds: boolean;
 }) {
   return (
@@ -177,33 +166,12 @@ function BottomDock({
         </svg>
       </div>
 
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <div onClick={onOpenTimer} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          padding: '11px 14px', borderRadius: 999, cursor: 'pointer',
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          fontSize: 13, fontWeight: 500, color: W.ink,
-          flexShrink: 0,
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="13" r="8" />
-            <path d="M9 2h6" />
-            <path d="M12 9v4l3 2" />
-          </svg>
-          {timerMin ? `${timerMin} min` : 'Timer'}
-        </div>
-
-        <div style={{ flex: 1 }} />
-
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
         <div
           onClick={hasSounds ? onTogglePlay : undefined}
           aria-label={playing ? 'Pause' : 'Play'}
           style={{
-            width: 60, height: 60, borderRadius: 30,
+            width: 64, height: 64, borderRadius: 32,
             background: hasSounds ? '#fff' : 'rgba(255,255,255,0.18)',
             color: '#0E0E11',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -214,13 +182,13 @@ function BottomDock({
         >
           {playing
             ? (
-              <svg width={22} height={22} viewBox="0 0 24 24" fill="currentColor">
+              <svg width={24} height={24} viewBox="0 0 24 24" fill="currentColor">
                 <rect x="6" y="5" width="4" height="14" rx="1" />
                 <rect x="14" y="5" width="4" height="14" rx="1" />
               </svg>
             )
             : (
-              <svg width={22} height={22} viewBox="0 0 24 24" fill="currentColor">
+              <svg width={24} height={24} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5l12 7-12 7z" />
               </svg>
             )}

@@ -178,35 +178,55 @@ export function TrackingActive() {
         />
       )}
 
-      <div style={{ position: 'relative', padding: '0 20px' }}>
+      <div style={{ position: 'relative', padding: '0 14px' }}>
+        <style>{`
+          @keyframes track-bar {
+            0%, 100% { transform: scaleY(0.35); }
+            50% { transform: scaleY(1); }
+          }
+        `}</style>
         <div style={{
-          background: 'rgba(255,255,255,0.06)',
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '8px 6px 8px 10px', borderRadius: 18,
+          background: 'rgba(20,20,24,0.82)',
           border: '1px solid rgba(255,255,255,0.10)',
-          borderRadius: 16, padding: '10px 12px',
-          display: 'flex', alignItems: 'center', gap: 10,
-          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+          backdropFilter: 'blur(22px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(22px) saturate(160%)',
+          boxShadow: '0 12px 28px rgba(0,0,0,0.50), 0 1px 0 rgba(255,255,255,0.05) inset',
         }}>
-          <div onClick={togglePlay} style={{
-            width: 40, height: 40, borderRadius: 20,
-            border: '1px solid rgba(255,255,255,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0,
-          }}>
-            {state.playing ? <GlyphPause size={14} stroke="#fff" /> : <GlyphPlay size={14} stroke="#fff" style={{ marginLeft: 2 }} />}
-          </div>
+          <DockBars playing={state.playing} />
           <div onClick={() => go('tracking-mixer')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
-            <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.2 }}>{mixTitle}</div>
             <div style={{
-              fontSize: 11, opacity: 0.55, marginTop: 3,
+              fontSize: 13, fontWeight: 600, color: '#fff',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>{mixTitle}</div>
+            <div style={{
+              fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1,
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>{mixSummary}</div>
           </div>
-          <div onClick={() => go('tracking-mixer')} style={{
-            width: 36, height: 36, borderRadius: 18,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'rgba(255,255,255,0.85)', flexShrink: 0,
-          }}>
-            <GlyphSliders size={16} stroke="currentColor" />
+          <div onClick={() => go('tracking-mixer')}
+            aria-label="Open mixer"
+            style={{
+              width: 28, height: 28, borderRadius: 14,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'rgba(255,255,255,0.55)',
+              cursor: 'pointer', flexShrink: 0,
+            }}>
+            <GlyphSliders size={15} stroke="currentColor" />
+          </div>
+          <div onClick={togglePlay}
+            aria-label={state.playing ? 'Pause' : 'Play'}
+            style={{
+              width: 36, height: 36, borderRadius: 18,
+              background: 'rgba(255,255,255,0.94)', color: '#0E0E11',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
+            }}>
+            {state.playing
+              ? <GlyphPause size={14} stroke="#0E0E11" />
+              : <GlyphPlay size={14} stroke="#0E0E11" style={{ marginLeft: 2 }} />}
           </div>
         </div>
       </div>
@@ -231,6 +251,36 @@ export function TrackingActive() {
 // normal "sleeping" view and the alarm-ringing view. Mirrors the
 // Sleep / Nap toggle on Wind down — small testing affordance for
 // developers and reviewers.
+
+// Visualiser chip on the in-bed dock — matches the bars in the global
+// mini sounds player so the active-tracking dock reads as the same
+// widget family.
+function DockBars({ playing }: { playing: boolean }) {
+  return (
+    <div style={{
+      width: 36, height: 36, borderRadius: 11,
+      background: 'rgba(255,255,255,0.06)',
+      border: '1px solid rgba(255,255,255,0.14)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {[0, 0.15, 0.3].map((d, i) => (
+          <div key={i} style={{
+            width: 2.5, height: 12, borderRadius: 1,
+            background: 'rgba(255,255,255,0.88)',
+            transformOrigin: 'center',
+            animation: playing ? `track-bar 1.${3 + i}s ease-in-out infinite` : undefined,
+            animationDelay: `${d}s`,
+            transform: playing ? undefined : 'scaleY(0.28)',
+            opacity: playing ? 1 : 0.45,
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AlarmStateToggle({ ringing, onChange }: { ringing: boolean; onChange: (v: boolean) => void }) {
   return (
     <div style={{
@@ -294,6 +344,8 @@ export function TrackingMixer() {
             removeSound: mix.removeSound,
             clearAll: mix.clearAll,
             setMixIds: mix.setMixIds,
+            timerMin: state.timerMin,
+            setTimer: mix.setTimer,
           }}
           playing={state.playing}
           timerMin={state.timerMin}
