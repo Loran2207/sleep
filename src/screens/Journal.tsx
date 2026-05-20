@@ -8,18 +8,17 @@ import { HabitGlyph, PencilIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
 import {
   useEditingJournalId, useJournal, useBreathSessions,
-  useSchedules, pickScheduleForDay, useEditingScheduleId,
   type JournalEntry, type BreathSession,
 } from '../state/store';
 import { lookupFactor } from '../data/factors';
 import { readMood } from '../data/mood';
 import { DAYS as days, TODAY_IDX as todayIdx, dayToDate, dayLabel } from '../data/days';
 
-// Journal is one continuous surface keyed by the day strip at the top.
-// Picking a day swaps the body to that day's full read-out: mood,
-// bedtime / wake, sleep duration with stages, factors, breath log.
-// Today brings the countdown hero forward; missed days surface a
-// fill-in card.
+// Journal is one continuous per-day surface. The day strip at the top
+// is the only navigation; today and any past day share the same
+// layout — picking a day rebuilds the body with that day's mood
+// reading, sleep card, stages, vitals, factors and breath log.
+// Today shows last-night's data (Apple Health's convention).
 export function Journal() {
   const [selected, setSelected] = useState(todayIdx);
   const stripRef = useRef<HTMLDivElement | null>(null);
@@ -35,7 +34,6 @@ export function Journal() {
   });
 
   const selectedDay = days[selected];
-  const isToday = selected === todayIdx;
   const isFuture = selected > todayIdx;
 
   return (
@@ -46,8 +44,7 @@ export function Journal() {
       </div>
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ padding: '4px 16px 0' }}>
-          {isFuture ? <FutureDay day={selectedDay} /> :
-            isToday ? <TodayView /> : <PastDayView day={selectedDay} />}
+          {isFuture ? <FutureDay day={selectedDay} /> : <DayView day={selectedDay} />}
         </div>
         <div style={{ height: 130 }} />
       </div>
@@ -56,135 +53,8 @@ export function Journal() {
   );
 }
 
-// ─── TODAY ──────────────────────────────────────────────────────
-function TodayView() {
-  const { list: schedules } = useSchedules();
-  const todaySchedule = pickScheduleForDay(schedules, 4);
-  const countdown = '4h 12m';
-  const sleepEst = '8h 30m';
-  const fmt = (h: number, m: number) =>
-    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-
-  return (
-    <>
-      <CountdownHero
-        bedtime={fmt(todaySchedule.bedHour, todaySchedule.bedMinute)}
-        wake={fmt(todaySchedule.wakeHour, todaySchedule.wakeMinute)}
-        countdown={countdown}
-        sleepEst={sleepEst}
-        scheduleId={todaySchedule.id}
-      />
-
-      <SectionTitle>Last night</SectionTitle>
-      <LastNightCard />
-
-      <SectionTitle>This week</SectionTitle>
-      <SleepDurationChart />
-    </>
-  );
-}
-
-function CountdownHero({ bedtime, wake, countdown, sleepEst, scheduleId }: {
-  bedtime: string; wake: string; countdown: string; sleepEst: string; scheduleId: string;
-}) {
-  const [, setEditingId] = useEditingScheduleId();
-  function editSchedule() {
-    setEditingId(scheduleId);
-    go('sleep-schedule');
-  }
-  return (
-    <div style={{
-      position: 'relative', overflow: 'hidden',
-      borderRadius: 22, padding: '24px 22px 22px',
-      background: `
-        radial-gradient(80% 70% at 50% 0%, rgba(122,105,240,0.22) 0%, rgba(122,105,240,0) 70%),
-        linear-gradient(180deg, #16161D 0%, #0F0F14 100%)`,
-      border: '1px solid rgba(122,105,240,0.22)',
-      boxShadow: '0 14px 30px rgba(0,0,0,0.35)',
-    }}>
-      <div style={{
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 24,
-      }}>
-        <TimeSlot label="Bedtime" time={bedtime} caption={<>in <strong style={{ color: W.ink, fontWeight: 600 }}>{countdown}</strong></>} />
-        <div onClick={editSchedule} aria-label="Edit schedule" style={{
-          marginTop: 22,
-          width: 30, height: 30, borderRadius: 15,
-          background: W.fill, border: `1px solid ${W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', flexShrink: 0,
-        }}>
-          <PencilIcon size={14} stroke={W.ink} />
-        </div>
-        <TimeSlot label="Wake up" time={wake} caption={<>sleep ~ <strong style={{ color: W.ink, fontWeight: 600 }}>{sleepEst}</strong></>} />
-      </div>
-    </div>
-  );
-}
-
-function TimeSlot({ label, time, caption }: { label: string; time: string; caption?: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ fontSize: 12, color: W.weak, fontWeight: 500, marginBottom: 6 }}>{label}</div>
-      <div style={{
-        fontSize: 36, fontWeight: 600, letterSpacing: '-0.02em',
-        lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: W.ink,
-      }}>{time}</div>
-      {caption && (
-        <div style={{ marginTop: 8, fontSize: 12, color: W.weak, fontVariantNumeric: 'tabular-nums' }}>
-          {caption}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function LastNightCard() {
-  const { list } = useJournal();
-  // Newest entry with logged bed/wake times.
-  const last = list.find((e) => e.bedTime && e.wakeTime);
-  if (!last) {
-    return (
-      <div style={{
-        background: W.paper, border: `1px dashed ${W.veryweak}`,
-        borderRadius: 18, padding: '18px 16px',
-        textAlign: 'center', color: W.weak, fontSize: 13,
-      }}>
-        No sleep logged yet. Start tracking tonight to see it here.
-      </div>
-    );
-  }
-  const reading = readMood(last.moodX, last.moodY);
-  const totalMin = minutesBetween(last.bedTime!, last.wakeTime!);
-  const hh = Math.floor(totalMin / 60);
-  const mm = totalMin % 60;
-  return (
-    <div style={{
-      background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 18, padding: '18px 18px',
-      position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(70% 60% at 80% 0%, ${reading.tint}33, transparent 70%)`,
-      }} />
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <MoodFace tint={reading.tint} x={last.moodX} y={last.moodY} size={56} glow />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>{last.whenLabel}</div>
-          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 3 }}>
-            {reading.feeling}
-          </div>
-          <div style={{ fontSize: 12, color: W.weak, marginTop: 2 }}>
-            {last.bedTime} → {last.wakeTime} · {hh}h {String(mm).padStart(2, '0')}m
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── PAST DAY ───────────────────────────────────────────────────
-function PastDayView({ day }: { day: Day }) {
+// ─── DAY VIEW (same for today + past) ──────────────────────────
+function DayView({ day }: { day: Day }) {
   const { list, add } = useJournal();
   const breath = useBreathSessions();
   const [, setEditingId] = useEditingJournalId();
@@ -215,10 +85,12 @@ function PastDayView({ day }: { day: Day }) {
   }
 
   const reading = readMood(entry.moodX, entry.moodY);
-  const hasSleep = entry.bedTime && entry.wakeTime;
-  const totalMin = hasSleep ? minutesBetween(entry.bedTime!, entry.wakeTime!) : null;
-  const hh = totalMin ? Math.floor(totalMin / 60) : 0;
-  const mm = totalMin ? totalMin % 60 : 0;
+  const hasSleep = !!(entry.bedTime && entry.wakeTime);
+  const totalMin = hasSleep ? minutesBetween(entry.bedTime!, entry.wakeTime!) : 0;
+  const hh = Math.floor(totalMin / 60);
+  const mm = totalMin % 60;
+  const vitals = vitalsFor(entry);
+  const stages = stagesFor(entry, totalMin);
 
   return (
     <>
@@ -226,14 +98,20 @@ function PastDayView({ day }: { day: Day }) {
 
       {hasSleep && (
         <>
-          <SectionTitle>Sleep</SectionTitle>
-          <SleepDetailCard
-            bed={entry.bedTime!}
-            wake={entry.wakeTime!}
-            hh={hh}
-            mm={mm}
+          <SleepSummaryCard
+            bed={entry.bedTime!} wake={entry.wakeTime!}
+            hh={hh} mm={mm}
+            efficiency={vitals.efficiency}
           />
-          <SleepStagesCard />
+          <StagesCard stages={stages} />
+          <HeartRateCard vitals={vitals} />
+          <RowMetrics
+            metrics={[
+              { label: 'Fell asleep in', value: `${vitals.timeToSleep}m`, accent: '#8AA1FF' },
+              { label: 'Wake-ups',       value: `${vitals.wakeUps}`,      accent: '#FFC9C0' },
+              { label: 'Respiration',    value: `${vitals.respRate}`, unit: '/min', accent: '#B5C2FF' },
+            ]}
+          />
         </>
       )}
 
@@ -244,9 +122,7 @@ function PastDayView({ day }: { day: Day }) {
             background: W.paper, border: `1px solid ${W.fill}`,
             borderRadius: 18, padding: '16px 16px',
             fontSize: 14, lineHeight: 1.5, color: W.ink, cursor: 'pointer',
-          }}>
-            {entry.text}
-          </div>
+          }}>{entry.text}</div>
         </>
       )}
 
@@ -279,6 +155,7 @@ function DayHero({ day, entry, reading, onEditMood }: {
       background: W.paper,
       border: `1px solid ${hexA(reading.tint, 0.32)}`,
       boxShadow: '0 14px 30px rgba(0,0,0,0.20)',
+      marginTop: 8,
     }}>
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
@@ -293,14 +170,13 @@ function DayHero({ day, entry, reading, onEditMood }: {
           </div>
           <div style={{ fontSize: 13, color: W.weak, marginTop: 2 }}>{reading.desc}</div>
         </div>
-        <div onClick={onEditMood} aria-label="Edit"
-          style={{
-            position: 'relative',
-            width: 32, height: 32, borderRadius: 16,
-            background: W.fill, border: `1px solid ${W.veryweak}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0,
-          }}>
+        <div onClick={onEditMood} aria-label="Edit" style={{
+          position: 'relative',
+          width: 32, height: 32, borderRadius: 16,
+          background: W.fill, border: `1px solid ${W.veryweak}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', flexShrink: 0,
+        }}>
           <PencilIcon size={14} stroke={W.ink} />
         </div>
       </div>
@@ -308,57 +184,77 @@ function DayHero({ day, entry, reading, onEditMood }: {
   );
 }
 
-function SleepDetailCard({ bed, wake, hh, mm }: {
-  bed: string; wake: string; hh: number; mm: number;
+// ─── SLEEP SUMMARY (bed → wake + efficiency ring) ──────────────
+function SleepSummaryCard({ bed, wake, hh, mm, efficiency }: {
+  bed: string; wake: string; hh: number; mm: number; efficiency: number;
 }) {
   return (
     <div style={{
       background: W.paper, border: `1px solid ${W.fill}`,
       borderRadius: 18, padding: '18px 16px',
+      marginTop: 10,
+      display: 'flex', alignItems: 'center', gap: 18,
     }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Bed</div>
-          <div style={{
-            fontSize: 22, fontWeight: 600, marginTop: 4,
-            fontVariantNumeric: 'tabular-nums', color: W.ink, letterSpacing: '-0.02em',
-          }}>{bed}</div>
+      <EfficiencyRing pct={efficiency} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          display: 'flex', alignItems: 'baseline', gap: 4,
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          <span style={{ fontSize: 26, fontWeight: 600, color: W.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>
+            {hh}<span style={{ fontSize: 16, fontWeight: 500, color: W.weak }}>h</span> {String(mm).padStart(2, '0')}<span style={{ fontSize: 16, fontWeight: 500, color: W.weak }}>m</span>
+          </span>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Slept</div>
-          <div style={{
-            fontSize: 22, fontWeight: 600, marginTop: 4,
-            fontVariantNumeric: 'tabular-nums', color: W.ink, letterSpacing: '-0.02em',
-          }}>{hh}h {String(mm).padStart(2, '0')}m</div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Wake</div>
-          <div style={{
-            fontSize: 22, fontWeight: 600, marginTop: 4,
-            fontVariantNumeric: 'tabular-nums', color: W.ink, letterSpacing: '-0.02em',
-          }}>{wake}</div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
+          {bed} → {wake}
         </div>
       </div>
     </div>
   );
 }
 
-// Mocked stage breakdown — real tracking would feed this from HealthKit
-// (Awake / REM / Core / Deep). For the prototype we use a representative
-// healthy adult breakdown so the chart has something to render.
-function SleepStagesCard() {
-  const stages = [
-    { id: 'awake', label: 'Awake',  pct: 7,  color: '#FF8E7C' },
-    { id: 'rem',   label: 'REM',    pct: 23, color: '#8AA1FF' },
-    { id: 'core',  label: 'Core',   pct: 52, color: '#B5C2FF' },
-    { id: 'deep',  label: 'Deep',   pct: 18, color: '#5C75D8' },
-  ];
+function EfficiencyRing({ pct }: { pct: number }) {
+  const size = 64;
+  const stroke = 6;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = c * (pct / 100);
+  return (
+    <div style={{
+      width: size, height: size, position: 'relative', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r}
+          stroke={W.fill} strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r}
+          stroke="url(#effGrad)" strokeWidth={stroke} fill="none"
+          strokeDasharray={`${dash} ${c}`} strokeLinecap="round" />
+        <defs>
+          <linearGradient id="effGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#C4B0FF" />
+            <stop offset="100%" stopColor="#7A69F0" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div style={{
+        position: 'absolute', fontSize: 14, fontWeight: 600, color: W.ink,
+        fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1,
+      }}>
+        <span>{pct}</span>
+        <span style={{ fontSize: 9, color: W.weak, marginTop: 2, fontWeight: 500 }}>%</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── STAGES BAR (Awake / REM / Core / Deep) ────────────────────
+function StagesCard({ stages }: { stages: { id: string; label: string; pct: number; color: string }[] }) {
   return (
     <div style={{
       background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 18, padding: '14px 16px 16px',
+      borderRadius: 18, padding: '16px 16px',
       marginTop: 10,
     }}>
       <div style={{ fontSize: 12, color: W.weak, fontWeight: 500, marginBottom: 10 }}>Stages</div>
@@ -367,11 +263,11 @@ function SleepStagesCard() {
         background: W.fill,
       }}>
         {stages.map((s) => (
-          <div key={s.id} style={{ width: `${s.pct}%`, background: s.color, height: '100%' }} />
+          <div key={s.id} style={{ width: `${s.pct}%`, background: s.color }} />
         ))}
       </div>
       <div style={{
-        marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+        marginTop: 14, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6,
       }}>
         {stages.map((s) => (
           <div key={s.id} style={{ textAlign: 'center' }}>
@@ -379,11 +275,125 @@ function SleepStagesCard() {
               width: 8, height: 8, borderRadius: 2, background: s.color,
               margin: '0 auto 6px',
             }} />
-            <div style={{ fontSize: 14, fontWeight: 600, color: W.ink, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{s.pct}%</div>
+            <div style={{
+              fontSize: 14, fontWeight: 600, color: W.ink,
+              fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+            }}>{s.pct}%</div>
             <div style={{ fontSize: 11, color: W.weak, marginTop: 3 }}>{s.label}</div>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─── HEART RATE OVERNIGHT ──────────────────────────────────────
+function HeartRateCard({ vitals }: { vitals: Vitals }) {
+  const { hrLine, restingHr, avgHr } = vitals;
+  const minHr = Math.min(...hrLine);
+  const maxHr = Math.max(...hrLine);
+  const W_BOX = 280;
+  const H_BOX = 80;
+  const padX = 8;
+  const padY = 10;
+  const innerW = W_BOX - padX * 2;
+  const innerH = H_BOX - padY * 2;
+  const xy = (i: number, v: number) => {
+    const x = padX + (innerW * i) / Math.max(1, hrLine.length - 1);
+    const norm = (v - minHr) / Math.max(1, maxHr - minHr);
+    const y = padY + innerH * (1 - norm);
+    return { x, y };
+  };
+  const path = hrLine.map((v, i) => {
+    const { x, y } = xy(i, v);
+    return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(' ');
+  const fill = `${path} L ${padX + innerW} ${padY + innerH} L ${padX} ${padY + innerH} Z`;
+
+  return (
+    <div style={{
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 18, padding: '16px 14px',
+      marginTop: 10,
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+        padding: '0 4px 8px',
+      }}>
+        <div>
+          <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>Heart rate</div>
+          <div style={{
+            display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 4,
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            <span style={{ fontSize: 22, fontWeight: 600, color: W.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {restingHr}
+            </span>
+            <span style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>bpm · resting</span>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Avg</div>
+          <div style={{
+            fontSize: 13, fontWeight: 600, color: W.ink, fontVariantNumeric: 'tabular-nums', marginTop: 4,
+          }}>{avgHr}<span style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}> bpm</span></div>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W_BOX} ${H_BOX}`} width="100%" height={H_BOX} style={{ display: 'block' }}>
+        <defs>
+          <linearGradient id="hrFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FF8E7C" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#FF8E7C" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="hrStroke" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#FFC9C0" />
+            <stop offset="100%" stopColor="#FF8E7C" />
+          </linearGradient>
+        </defs>
+        <path d={fill} fill="url(#hrFill)" />
+        <path d={path} stroke="url(#hrStroke)" strokeWidth="2" fill="none"
+          strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between',
+        padding: '6px 6px 0', fontSize: 10, color: W.weak,
+        fontVariantNumeric: 'tabular-nums', fontWeight: 500,
+      }}>
+        <span>Bed</span><span>Mid</span><span>Wake</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── ROW OF 3 MINI METRICS ─────────────────────────────────────
+function RowMetrics({ metrics }: {
+  metrics: { label: string; value: string; unit?: string; accent: string }[];
+}) {
+  return (
+    <div style={{
+      marginTop: 10, display: 'grid',
+      gridTemplateColumns: `repeat(${metrics.length}, 1fr)`, gap: 10,
+    }}>
+      {metrics.map((m) => (
+        <div key={m.label} style={{
+          background: W.paper, border: `1px solid ${W.fill}`,
+          borderRadius: 16, padding: '14px 12px',
+        }}>
+          <div style={{
+            width: 6, height: 6, borderRadius: 3,
+            background: m.accent, marginBottom: 8,
+            boxShadow: `0 0 8px ${m.accent}`,
+          }} />
+          <div style={{
+            fontSize: 18, fontWeight: 600, color: W.ink,
+            fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', lineHeight: 1,
+          }}>
+            {m.value}
+            {m.unit && <span style={{ fontSize: 10, color: W.weak, marginLeft: 2, fontWeight: 500 }}>{m.unit}</span>}
+          </div>
+          <div style={{ fontSize: 10, color: W.weak, marginTop: 6, lineHeight: 1.3 }}>{m.label}</div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -414,6 +424,7 @@ function FactorChips({ ids }: { ids: string[] }) {
   );
 }
 
+// ─── MISSING / FUTURE PLACEHOLDERS ─────────────────────────────
 function MissingDayCard({ day, onFill, sessions }: {
   day: Day; onFill: () => void; sessions: BreathSession[];
 }) {
@@ -423,6 +434,7 @@ function MissingDayCard({ day, onFill, sessions }: {
         background: W.paper, border: `1px dashed ${W.veryweak}`,
         borderRadius: 22, padding: '28px 22px 24px',
         textAlign: 'center',
+        marginTop: 8,
       }}>
         <div style={{
           width: 72, height: 72, borderRadius: 36,
@@ -462,13 +474,12 @@ function MissingDayCard({ day, onFill, sessions }: {
   );
 }
 
-// ─── FUTURE DAY ────────────────────────────────────────────────
 function FutureDay({ day }: { day: Day }) {
   return (
     <div style={{
       background: W.paper, border: `1px dashed ${W.veryweak}`,
       borderRadius: 22, padding: '36px 22px',
-      textAlign: 'center',
+      textAlign: 'center', marginTop: 8,
     }}>
       <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
       <div style={{ fontSize: 18, fontWeight: 600, color: W.ink, marginTop: 8 }}>Still ahead</div>
@@ -479,7 +490,7 @@ function FutureDay({ day }: { day: Day }) {
   );
 }
 
-// ─── SHARED PIECES ─────────────────────────────────────────────
+// ─── BREATH HISTORY (per-day) ──────────────────────────────────
 const FEELING_LABEL: Record<string, string> = {
   calmer: 'Calmer',
   same: 'About the same',
@@ -557,8 +568,7 @@ function Metric({ value, label }: { value: number | string; label: string }) {
     <div style={{ textAlign: 'center' }}>
       <div style={{
         fontSize: 22, fontWeight: 500, color: W.ink,
-        fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em',
-        lineHeight: 1,
+        fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', lineHeight: 1,
       }}>{value}</div>
       <div style={{ fontSize: 11, color: W.weak, marginTop: 5 }}>{label}</div>
     </div>
@@ -585,108 +595,62 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── WEEKLY DURATION CHART (under Today's countdown) ───────────
-function SleepDurationChart() {
-  const { list } = useJournal();
-  const data = lastSevenDurations(list);
-  const target = 8 * 60;
-  const max = Math.max(target + 60, ...data.map((d) => d.min));
+// ─── HELPERS: deterministic mock vitals from a journal entry ──
+type Vitals = {
+  restingHr: number;
+  avgHr: number;
+  hrLine: number[];
+  respRate: number;
+  timeToSleep: number;
+  wakeUps: number;
+  efficiency: number;
+};
 
-  const logged = data.filter((d) => d.min > 0);
-  const avg = logged.length
-    ? Math.round(logged.reduce((s, d) => s + d.min, 0) / logged.length)
-    : 0;
-  const avgHH = Math.floor(avg / 60);
-  const avgMM = avg % 60;
+// Pulls a small int seed from the entry id so the same entry always
+// shows the same numbers. mood ∈ [0,1] — happier mood translates into
+// lower resting HR, better efficiency and faster sleep onset, the way
+// the real metrics tend to move together.
+function vitalsFor(entry: JournalEntry): Vitals {
+  const seed = parseInt(entry.id.replace(/\D/g, '').slice(-3) || '0', 10) || 0;
+  const mood = clamp01(entry.moodX);
 
-  return (
-    <div style={{
-      background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 18, padding: '16px 14px 12px',
-    }}>
-      <div style={{
-        display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-        padding: '0 6px 12px',
-      }}>
-        <div>
-          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Average</div>
-          <div style={{
-            fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: W.ink,
-            fontVariantNumeric: 'tabular-nums', marginTop: 2, lineHeight: 1,
-          }}>
-            {avgHH}<span style={{ fontSize: 14, fontWeight: 500, color: W.weak }}>h</span> {String(avgMM).padStart(2, '0')}<span style={{ fontSize: 14, fontWeight: 500, color: W.weak }}>m</span>
-          </div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Goal</div>
-          <div style={{
-            fontSize: 13, fontWeight: 600, color: '#8AA1FF',
-            fontVariantNumeric: 'tabular-nums', marginTop: 4,
-          }}>8h</div>
-        </div>
-      </div>
+  const restingHr = Math.round(56 + (1 - mood) * 10 + (seed % 5));
+  const avgHr = restingHr + 3 + (seed % 4);
+  const respRate = Math.round(13 + (1 - mood) * 2 + (seed % 2));
+  const timeToSleep = Math.round(8 + (1 - mood) * 26 + (seed % 7));
+  const wakeUps = Math.min(4, Math.max(0, Math.round((1 - mood) * 3 + (seed % 2 ? 1 : 0))));
+  const efficiency = Math.max(78, Math.min(98, Math.round(86 + mood * 10 - (seed % 4))));
 
-      <div style={{
-        position: 'relative', height: 100,
-        display: 'flex', alignItems: 'flex-end', gap: 8,
-        padding: '0 6px 6px',
-      }}>
-        <div style={{
-          position: 'absolute', left: 6, right: 6,
-          bottom: 6 + (target / max) * (100 - 6),
-          height: 1, background: 'rgba(138,161,255,0.32)',
-          borderTop: '1px dashed rgba(138,161,255,0.55)',
-          pointerEvents: 'none',
-        }} />
-        {data.map(({ day, min }) => {
-          const h = max === 0 ? 0 : (min / max) * (100 - 6);
-          const isToday = day.n === days[todayIdx].n;
-          const hitTarget = min >= target;
-          return (
-            <div key={day.n} style={{
-              flex: 1, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'flex-end',
-              height: '100%', gap: 8,
-            }}>
-              <div style={{
-                width: '100%', height: Math.max(2, h),
-                borderRadius: 5,
-                background: min === 0
-                  ? 'rgba(255,255,255,0.06)'
-                  : hitTarget
-                    ? 'linear-gradient(180deg, #8AA1FF 0%, #5C75D8 100%)'
-                    : 'linear-gradient(180deg, #FFC9C0 0%, #FF8E7C 100%)',
-                boxShadow: min === 0 ? 'none' : '0 4px 12px rgba(0,0,0,0.35)',
-                opacity: isToday ? 1 : 0.85,
-              }} />
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{
-        display: 'flex', gap: 8, padding: '8px 6px 0',
-        fontSize: 10, color: W.weak, fontWeight: 500,
-      }}>
-        {data.map(({ day }) => (
-          <div key={day.n} style={{ flex: 1, textAlign: 'center' }}>{day.dow}</div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Pull (date, durationMin) pairs for the last 7 days in chronological
-// order. Days without an entry come out as 0 so the chart still
-// reserves their column.
-function lastSevenDurations(list: JournalEntry[]) {
-  const slice = days.slice(Math.max(0, todayIdx - 6), todayIdx + 1);
-  return slice.map((d) => {
-    const e = list.find((x) => x.date === dayToDate(d.n));
-    const min = e?.bedTime && e?.wakeTime ? minutesBetween(e.bedTime, e.wakeTime) : 0;
-    return { day: d, min };
+  // 13 samples across the night with a deepest dip near the middle —
+  // matches the typical Apple Sleep heart-rate curve where HR drops
+  // through the first sleep cycles and rises near wake.
+  const hrLine = Array.from({ length: 13 }, (_, i) => {
+    const phase = i / 12;
+    const dip = Math.sin(phase * Math.PI);
+    const wobble = Math.sin(i * 1.7 + seed) * 1.4;
+    return restingHr - dip * 7 + wobble;
   });
+
+  return { restingHr, avgHr, hrLine, respRate, timeToSleep, wakeUps, efficiency };
 }
+
+// Stage breakdown — also deterministic from the entry. A great night
+// favours Deep + REM; a rough night skews toward Awake + light Core.
+function stagesFor(entry: JournalEntry, _totalMin: number) {
+  const mood = clamp01(entry.moodX);
+  const awake = Math.round(5 + (1 - mood) * 10);
+  const rem = Math.round(18 + mood * 8);
+  const deep = Math.round(14 + mood * 6);
+  const core = Math.max(0, 100 - (awake + rem + deep));
+  return [
+    { id: 'awake', label: 'Awake', pct: awake, color: '#FF8E7C' },
+    { id: 'rem',   label: 'REM',   pct: rem,   color: '#8AA1FF' },
+    { id: 'core',  label: 'Core',  pct: core,  color: '#B5C2FF' },
+    { id: 'deep',  label: 'Deep',  pct: deep,  color: '#5C75D8' },
+  ];
+}
+
+function clamp01(n: number) { return Math.max(0, Math.min(1, n)); }
 
 function minutesBetween(a: string, b: string) {
   const [ah, am] = a.split(':').map(Number);

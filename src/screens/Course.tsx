@@ -32,91 +32,63 @@ export function CourseList() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
-      <CourseKeyframes />
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
         <div style={{
           position: 'relative', overflow: 'hidden',
-          padding: '0 20px 30px',
+          padding: '0 20px 28px',
           background: `
-            radial-gradient(85% 70% at 18% 0%, rgba(122,105,240,0.55) 0%, rgba(122,105,240,0) 60%),
-            radial-gradient(75% 60% at 100% 28%, rgba(255,142,124,0.32) 0%, rgba(255,142,124,0) 65%),
-            radial-gradient(55% 55% at 60% 100%, rgba(138,161,255,0.28) 0%, rgba(138,161,255,0) 75%),
-            linear-gradient(170deg, #1B1640 0%, #14152A 55%, #0E0E18 100%)`,
+            radial-gradient(95% 75% at 25% 0%, rgba(122,105,240,0.32) 0%, rgba(122,105,240,0) 70%),
+            linear-gradient(180deg, #161325 0%, #100F1A 100%)`,
         }}>
           <TopPad h={6} />
 
-          {/* Aurora drift behind the title */}
+          {/* Single soft glow behind the title — subtle, no drift. */}
           <div aria-hidden style={{
-            position: 'absolute', top: -40, right: -80, width: 280, height: 280,
+            position: 'absolute', top: -80, right: -60, width: 240, height: 240,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(196,176,255,0.30) 0%, rgba(122,105,240,0) 65%)',
+            background: 'radial-gradient(circle, rgba(122,105,240,0.22) 0%, rgba(122,105,240,0) 65%)',
             pointerEvents: 'none',
-            animation: 'course-drift-a 14s ease-in-out infinite',
-          }} />
-          <div aria-hidden style={{
-            position: 'absolute', top: 40, left: -50, width: 200, height: 200,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(138,161,255,0.30) 0%, rgba(138,161,255,0) 65%)',
-            pointerEvents: 'none',
-            animation: 'course-drift-b 18s ease-in-out infinite',
-          }} />
-
-          {/* Tiny starfield */}
-          <div aria-hidden style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none',
-            background: `
-              radial-gradient(1.2px 1.2px at 20% 18%, rgba(255,255,255,0.7), transparent 50%),
-              radial-gradient(1px 1px at 65% 22%, rgba(255,255,255,0.5), transparent 50%),
-              radial-gradient(1.4px 1.4px at 82% 42%, rgba(255,255,255,0.55), transparent 50%),
-              radial-gradient(1px 1px at 30% 56%, rgba(255,255,255,0.45), transparent 50%),
-              radial-gradient(1.6px 1.6px at 78% 70%, rgba(255,255,255,0.5), transparent 50%),
-              radial-gradient(0.9px 0.9px at 12% 82%, rgba(255,255,255,0.4), transparent 50%)
-            `,
           }} />
 
           <div style={{ position: 'relative', paddingTop: 14 }}>
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '4px 12px', borderRadius: 999,
-              background: 'rgba(255,255,255,0.10)',
-              border: '1px solid rgba(255,255,255,0.18)',
-              fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)',
-              letterSpacing: 0.4, textTransform: 'uppercase',
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '5px 12px', borderRadius: 999,
+              background: 'rgba(122,105,240,0.14)',
+              border: '1px solid rgba(122,105,240,0.32)',
+              fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.85)',
+              letterSpacing: 0,
             }}>
               <span style={{
                 width: 6, height: 6, borderRadius: 3,
-                background: '#C4B0FF',
-                boxShadow: '0 0 6px rgba(196,176,255,0.7)',
+                background: '#A89AFF',
               }} />
               Course · 12 lessons
             </div>
             <div style={{
-              fontSize: 32, fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.1,
-              marginTop: 12, color: '#fff',
-              textShadow: '0 4px 22px rgba(122,105,240,0.45)',
-            }}>The Science<br />of Sleep</div>
+              fontSize: 30, fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.1,
+              marginTop: 14, color: '#fff',
+            }}>The science<br />of sleep</div>
             <div style={{
-              fontSize: 14, color: 'rgba(255,255,255,0.75)',
+              fontSize: 14, color: 'rgba(255,255,255,0.65)',
               marginTop: 10, lineHeight: 1.5, maxWidth: 320,
             }}>
               Short, evidence-based lessons on why sleep matters and how to make yours better.
             </div>
           </div>
 
-          <div style={{ marginTop: 24, position: 'relative' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 8 }}>
+          <div style={{ marginTop: 22, position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.55)', marginBottom: 8 }}>
               <span>{done} of {total} done · ~18 min left</span>
-              <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: '#fff' }}>{pct}%</span>
+              <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: '#fff' }}>{pct}%</span>
             </div>
             <div style={{
-              height: 6, background: 'rgba(255,255,255,0.12)',
+              height: 5, background: 'rgba(255,255,255,0.08)',
               borderRadius: 3, overflow: 'hidden',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
             }}>
               <div style={{
                 width: `${pct}%`, height: '100%',
-                background: 'linear-gradient(90deg, #C4B0FF 0%, #8AA1FF 100%)',
-                boxShadow: '0 0 12px rgba(196,176,255,0.55)',
+                background: 'linear-gradient(90deg, #A89AFF 0%, #7A69F0 100%)',
               }} />
             </div>
           </div>
@@ -191,21 +163,6 @@ export function CourseList() {
       </div>
       <LiquidGlassNav active="course" />
     </div>
-  );
-}
-
-function CourseKeyframes() {
-  return (
-    <style>{`
-      @keyframes course-drift-a {
-        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.85; }
-        50% { transform: translate(-22px, 14px) scale(1.06); opacity: 1; }
-      }
-      @keyframes course-drift-b {
-        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.75; }
-        50% { transform: translate(18px, -10px) scale(1.08); opacity: 1; }
-      }
-    `}</style>
   );
 }
 
