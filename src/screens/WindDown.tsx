@@ -54,12 +54,12 @@ export function WindDown() {
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 14px', height: 44 }}>
         <button onClick={handleBack} aria-label="Back" style={{
-          width: 36, height: 36, borderRadius: 18, border: 'none',
+          width: 32, height: 32, borderRadius: 16, border: 'none',
           background: 'rgba(255,255,255,0.08)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', padding: 0,
         }}>
-          <ChevronLeftIcon size={18} stroke="#fff" />
+          <ChevronLeftIcon size={16} stroke="#fff" />
         </button>
         <ModeToggle mode={mode} onChange={switchMode} />
         <PresetsButton />
@@ -239,6 +239,18 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 18,
         }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '0 4px 10px',
+          }}>
+            <div style={{
+              fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 500,
+            }}>Sounds stop after, minutes</div>
+            <div style={{
+              fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+              color: '#fff',
+            }}>{todaySchedule.timerMin ? `${todaySchedule.timerMin} min` : 'until alarm'}</div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
             {TIMER_OPTIONS.map((opt) => {
               const active = opt.minutes === todaySchedule.timerMin;
@@ -371,18 +383,17 @@ function WheelPicker({ hour, minute, onChange }: {
       display: 'flex', alignItems: 'stretch', justifyContent: 'center', gap: 4,
     }}>
       <div aria-hidden style={{
-        position: 'absolute', left: 14, right: 14, top: '50%',
-        transform: 'translateY(-50%)', height: 36,
-        borderTop: '1px solid rgba(255,255,255,0.10)',
-        borderBottom: '1px solid rgba(255,255,255,0.10)',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+        position: 'absolute', left: 8, right: 8, top: '50%',
+        transform: 'translateY(-50%)', height: 44,
+        borderRadius: 14,
+        background: 'rgba(255,255,255,0.07)',
         pointerEvents: 'none',
       }} />
       <WheelColumn options={hours} value={hour} onChange={handleHour} />
       <div style={{
-        alignSelf: 'center', fontSize: 26, fontWeight: 600,
-        fontVariantNumeric: 'tabular-nums', color: '#fff',
-        opacity: 0.85, paddingBottom: 4,
+        alignSelf: 'center', fontSize: 22, fontWeight: 500,
+        fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.6)',
+        lineHeight: 1, transform: 'translateY(-1px)',
       }}>:</div>
       <WheelColumn options={minutes} value={minute} onChange={handleMinute} />
     </div>
@@ -452,6 +463,7 @@ function WheelColumn({ options, value, onChange }: {
             fontSize: active ? 26 : 22, fontWeight: active ? 600 : 500,
             color: active ? '#fff' : 'rgba(255,255,255,0.50)',
             fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em',
+            lineHeight: 1,
             transition: 'color .12s ease, font-size .12s ease',
           }}>{pad(o)}</div>
         );
