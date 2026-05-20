@@ -53,7 +53,7 @@ export function ScheduleMix() {
         <SoundMixerPanel
           binding={{ mix, setVol, toggleSound, removeSound, clearAll, setMixIds }}
           quickMixes={SCHEDULE_QUICK_MIXES}
-          theme="cool"
+          theme="warm"
           emptyHint="Layer rain, fire, chimes — whatever you'd like to fall asleep to on this schedule. Each sound has its own volume."
         />
       </div>

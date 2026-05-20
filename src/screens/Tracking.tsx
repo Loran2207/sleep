@@ -299,7 +299,7 @@ export function TrackingMixer() {
             setMixIds: mix.setMixIds,
           }}
           quickMixes={TRACKING_QUICK_MIXES}
-          theme="cool"
+          theme="warm"
           emptyHint="Layer rain, fire, chimes — whatever puts you under. Each sound has its own volume."
         />
       </div>
