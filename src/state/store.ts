@@ -35,8 +35,10 @@ export function useNapDuration(): [number, (n: number) => void] {
 // Current step (1 = routine / breathing, 2 = sounds + timer) and a
 // flag the practice flow flips on completion. Both reset when the
 // user taps "Go to sleep" from Home, so each evening starts fresh.
-// Steps: 1 = routine / breathing, 2 = alarm time, 3 = sounds + timer.
-export type WindDownStep = 1 | 2 | 3;
+// Steps: 1 = settings (alarm + sound mix + timer), 2 = practice (breathing).
+// Order matches the night flow: configure tonight, then settle the body
+// before the lights go out.
+export type WindDownStep = 1 | 2;
 const windDownStepStore = createStore<WindDownStep>(1);
 export function useWindDownStep(): [WindDownStep, (s: WindDownStep) => void] {
   const v = useSyncExternalStore(windDownStepStore.subscribe, windDownStepStore.get, windDownStepStore.get);
