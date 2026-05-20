@@ -32,7 +32,7 @@ export function CourseList() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 190 }}>
         <div style={{
           position: 'relative', overflow: 'hidden',
           padding: '0 20px 28px',

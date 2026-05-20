@@ -387,6 +387,20 @@ export function useBreathSessions() {
   };
 }
 
+// ─── MINI SOUNDS PLAYER VISIBILITY ──────────────────────────────
+// Lets the user dismiss the persistent mini player. Auto-resets to
+// "show" when new playback starts or new sounds are added, so the
+// widget doesn't stay invisible after they actively re-engage with
+// the mix.
+const miniPlayerHiddenStore = createStore<boolean>(false);
+function showMiniPlayer() {
+  if (miniPlayerHiddenStore.get()) miniPlayerHiddenStore.set(false);
+}
+export function useMiniPlayerHidden(): [boolean, (v: boolean) => void] {
+  const v = useSyncExternalStore(miniPlayerHiddenStore.subscribe, miniPlayerHiddenStore.get, miniPlayerHiddenStore.get);
+  return [v, miniPlayerHiddenStore.set];
+}
+
 // ─── SOUND MIX (active tracking) ─────────────────────────────────
 export type MixSound = { id: string; vol: number };
 export type MixState = { mix: MixSound[]; playing: boolean; alarm: string; timerMin: number | null };
@@ -410,22 +424,33 @@ export function useMix() {
       mixStore.set((p) => ({ ...p, mix: p.mix.map((s) => s.id === id ? { ...s, vol } : s) })),
     removeSound: (id: string) =>
       mixStore.set((p) => ({ ...p, mix: p.mix.filter((s) => s.id !== id) })),
-    addSound: (id: string) =>
-      mixStore.set((p) => p.mix.some((s) => s.id === id) ? p : { ...p, mix: [...p.mix, { id, vol: 0.55 }] }),
-    toggleSound: (id: string) =>
+    addSound: (id: string) => {
+      mixStore.set((p) => p.mix.some((s) => s.id === id) ? p : { ...p, mix: [...p.mix, { id, vol: 0.55 }] });
+      showMiniPlayer();
+    },
+    toggleSound: (id: string) => {
+      const wasIn = mixStore.get().mix.some((s) => s.id === id);
       mixStore.set((p) => p.mix.some((s) => s.id === id)
         ? { ...p, mix: p.mix.filter((s) => s.id !== id) }
-        : { ...p, mix: [...p.mix, { id, vol: 0.55 }] }),
+        : { ...p, mix: [...p.mix, { id, vol: 0.55 }] });
+      if (!wasIn) showMiniPlayer();
+    },
     clearAll: () => mixStore.set((p) => ({ ...p, mix: [] })),
     // Replaces the entire mix with a fresh set of IDs. Reuses any
     // existing volume the user already set for a sound that survives
     // the swap; new sounds come in at the default volume.
-    setMixIds: (ids: string[]) =>
+    setMixIds: (ids: string[]) => {
       mixStore.set((p) => ({
         ...p,
         mix: ids.map((id) => p.mix.find((s) => s.id === id) ?? { id, vol: 0.55 }),
-      })),
-    togglePlay: () => mixStore.set((p) => ({ ...p, playing: !p.playing })),
+      }));
+      if (ids.length > 0) showMiniPlayer();
+    },
+    togglePlay: () => {
+      const wasPlaying = mixStore.get().playing;
+      mixStore.set((p) => ({ ...p, playing: !p.playing }));
+      if (!wasPlaying) showMiniPlayer();
+    },
     setTimer: (min: number | null) => mixStore.set((p) => ({ ...p, timerMin: min })),
     setAlarm: (alarm: string) => mixStore.set((p) => ({ ...p, alarm })),
   };
