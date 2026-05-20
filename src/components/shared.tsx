@@ -51,12 +51,13 @@ export function SectionHeader({ children, style = {} }: { children: ReactNode; s
   );
 }
 
-export function SectionLabel({ children, inline = false }: { children: ReactNode; inline?: boolean }) {
+export function SectionLabel({ children, inline = false, style = {} }: { children: ReactNode; inline?: boolean; style?: CSSProperties }) {
   return (
     <div style={{
       fontSize: 13, color: W.weak, fontWeight: 500,
       padding: inline ? 0 : '0 4px 10px',
       letterSpacing: 0,
+      ...style,
     }}>{children}</div>
   );
 }
@@ -141,7 +142,7 @@ export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string })
           <NavCluster items={right} active={active} />
         </div>
 
-        {/* Central Go-to-Sleep FAB */}
+        {/* Central Go-to-Sleep FAB — pearl-white with a soft 3D shell. */}
         <div
           onClick={openSleepFlow}
           aria-label="Go to sleep"
@@ -150,28 +151,37 @@ export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string })
             transform: 'translateX(-50%)',
             width: 64, height: 64, borderRadius: 32,
             cursor: 'pointer',
-            background: active === 'sleep'
-              ? 'radial-gradient(circle at 35% 28%, #C4B0FF 0%, #8A7AFF 45%, #4B3FAF 100%)'
-              : 'radial-gradient(circle at 35% 28%, #B5A0FF 0%, #7969F0 45%, #3F359A 100%)',
-            border: '1px solid rgba(255,255,255,0.20)',
+            background: `
+              radial-gradient(circle at 32% 26%, #FFFFFF 0%, #F4F4F8 42%, #C8C8D2 100%)
+            `,
+            border: '1px solid rgba(255,255,255,0.85)',
             boxShadow: `
-              0 14px 32px rgba(122,105,240,0.55),
-              0 4px 12px rgba(0,0,0,0.45),
-              inset 0 1px 0 rgba(255,255,255,0.30),
-              inset 0 -8px 18px rgba(40,30,120,0.45)
+              0 14px 28px rgba(0,0,0,0.55),
+              0 6px 12px rgba(0,0,0,0.30),
+              inset 0 2.5px 0 rgba(255,255,255,1),
+              inset 0 -12px 24px rgba(150,150,170,0.55),
+              inset 0 0 0 1px rgba(255,255,255,0.50)
             `,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 2,
+            transition: 'transform .15s ease, box-shadow .15s ease',
           }}
         >
-          {/* Halo pulse */}
+          {/* Soft silver halo so the pearl sits in air, not on a card. */}
           <div style={{
             position: 'absolute', inset: -6, borderRadius: 36,
-            background: 'radial-gradient(circle, rgba(122,105,240,0.40) 0%, rgba(122,105,240,0) 65%)',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 70%)',
             pointerEvents: 'none',
             animation: 'sleep-halo 3.4s ease-in-out infinite',
           }} />
-          <SleepGlyph size={28} />
+          {/* Subtle highlight sheen baked into the top-left curve. */}
+          <div aria-hidden style={{
+            position: 'absolute', top: 5, left: 9, width: 22, height: 12,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 70%)',
+            pointerEvents: 'none', filter: 'blur(1px)',
+          }} />
+          <SleepGlyph size={26} color={active === 'sleep' ? '#1A1A22' : '#2A2A33'} />
         </div>
       </div>
     </div>
@@ -220,9 +230,9 @@ function NavCluster({ items, active }: { items: { id: NavId; icon: (p: { size?: 
 }
 
 // Crescent moon used by the central sleep action.
-function SleepGlyph({ size = 28 }: { size?: number }) {
+function SleepGlyph({ size = 28, color = '#fff' }: { size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="#fff">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
       <path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a7 7 0 0 0 10.7 10.7z" />
     </svg>
   );

@@ -92,44 +92,43 @@ function DayView({ day }: { day: Day }) {
   const vitals = vitalsFor(entry);
   const stages = stagesFor(entry, totalMin);
 
+  const showReflection = !!entry.text || entry.factors.length > 0;
+
   return (
     <>
       <DayHero day={day} entry={entry} reading={reading} onEditMood={openEntry} />
 
       {hasSleep && (
         <>
-          <SleepSummaryCard
+          <SectionTitle>Sleep</SectionTitle>
+          <SleepCard
             bed={entry.bedTime!} wake={entry.wakeTime!}
             hh={hh} mm={mm}
             efficiency={vitals.efficiency}
+            timeToSleep={vitals.timeToSleep}
+            wakeUps={vitals.wakeUps}
+            respRate={vitals.respRate}
           />
           <StagesCard stages={stages} />
           <HeartRateCard vitals={vitals} />
-          <RowMetrics
-            metrics={[
-              { label: 'Fell asleep in', value: `${vitals.timeToSleep}m`, accent: '#8AA1FF' },
-              { label: 'Wake-ups',       value: `${vitals.wakeUps}`,      accent: '#FFC9C0' },
-              { label: 'Respiration',    value: `${vitals.respRate}`, unit: '/min', accent: '#B5C2FF' },
-            ]}
-          />
         </>
       )}
 
-      {entry.text && (
+      {showReflection && (
         <>
-          <SectionTitle>Note</SectionTitle>
-          <div onClick={openEntry} style={{
-            background: W.paper, border: `1px solid ${W.fill}`,
-            borderRadius: 18, padding: '16px 16px',
-            fontSize: 14, lineHeight: 1.5, color: W.ink, cursor: 'pointer',
-          }}>{entry.text}</div>
-        </>
-      )}
-
-      {entry.factors.length > 0 && (
-        <>
-          <SectionTitle>Factors</SectionTitle>
-          <FactorChips ids={entry.factors} />
+          <SectionTitle>Reflection</SectionTitle>
+          {entry.text && (
+            <div onClick={openEntry} style={{
+              background: W.paper, border: `1px solid ${W.fill}`,
+              borderRadius: 18, padding: '16px 16px',
+              fontSize: 14, lineHeight: 1.5, color: W.ink, cursor: 'pointer',
+            }}>{entry.text}</div>
+          )}
+          {entry.factors.length > 0 && (
+            <div style={{ marginTop: entry.text ? 10 : 0 }}>
+              <FactorChips ids={entry.factors} />
+            </div>
+          )}
         </>
       )}
 
@@ -184,31 +183,66 @@ function DayHero({ day, entry, reading, onEditMood }: {
   );
 }
 
-// ─── SLEEP SUMMARY (bed → wake + efficiency ring) ──────────────
-function SleepSummaryCard({ bed, wake, hh, mm, efficiency }: {
-  bed: string; wake: string; hh: number; mm: number; efficiency: number;
+// ─── SLEEP (duration + efficiency + mini stats in one card) ────
+function SleepCard({ bed, wake, hh, mm, efficiency, timeToSleep, wakeUps, respRate }: {
+  bed: string; wake: string;
+  hh: number; mm: number;
+  efficiency: number; timeToSleep: number; wakeUps: number; respRate: number;
 }) {
   return (
     <div style={{
       background: W.paper, border: `1px solid ${W.fill}`,
       borderRadius: 18, padding: '18px 16px',
-      marginTop: 10,
-      display: 'flex', alignItems: 'center', gap: 18,
     }}>
-      <EfficiencyRing pct={efficiency} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          display: 'flex', alignItems: 'baseline', gap: 4,
-          fontVariantNumeric: 'tabular-nums',
-        }}>
-          <span style={{ fontSize: 26, fontWeight: 600, color: W.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>
-            {hh}<span style={{ fontSize: 16, fontWeight: 500, color: W.weak }}>h</span> {String(mm).padStart(2, '0')}<span style={{ fontSize: 16, fontWeight: 500, color: W.weak }}>m</span>
-          </span>
-        </div>
-        <div style={{ fontSize: 12, color: W.weak, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
-          {bed} → {wake}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+        <EfficiencyRing pct={efficiency} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, color: W.weak, fontWeight: 500 }}>Asleep</div>
+          <div style={{
+            display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 4,
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            <span style={{ fontSize: 26, fontWeight: 600, color: W.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {hh}<span style={{ fontSize: 16, fontWeight: 500, color: W.weak }}>h</span> {String(mm).padStart(2, '0')}<span style={{ fontSize: 16, fontWeight: 500, color: W.weak }}>m</span>
+            </span>
+          </div>
+          <div style={{ fontSize: 12, color: W.weak, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
+            {bed} → {wake}
+          </div>
         </div>
       </div>
+
+      <div style={{
+        marginTop: 16, paddingTop: 14, borderTop: `1px solid ${W.fill}`,
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12,
+      }}>
+        <MiniStat value={`${timeToSleep}`} unit="m" label="Asleep in"  accent="#8AA1FF" />
+        <MiniStat value={`${wakeUps}`}                  label="Wake-ups"   accent="#FFC9C0" />
+        <MiniStat value={`${respRate}`} unit="/min"     label="Respiration" accent="#B5C2FF" />
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ value, unit, label, accent }: {
+  value: string; unit?: string; label: string; accent: string;
+}) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <span style={{
+          width: 5, height: 5, borderRadius: 3, background: accent,
+          boxShadow: `0 0 6px ${accent}`, flexShrink: 0,
+        }} />
+        <span style={{
+          fontSize: 17, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em',
+          fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+        }}>
+          {value}
+          {unit && <span style={{ fontSize: 11, color: W.weak, marginLeft: 1, fontWeight: 500 }}>{unit}</span>}
+        </span>
+      </div>
+      <div style={{ fontSize: 10, color: W.weak, marginTop: 6, lineHeight: 1.3 }}>{label}</div>
     </div>
   );
 }
@@ -365,38 +399,6 @@ function HeartRateCard({ vitals }: { vitals: Vitals }) {
   );
 }
 
-// ─── ROW OF 3 MINI METRICS ─────────────────────────────────────
-function RowMetrics({ metrics }: {
-  metrics: { label: string; value: string; unit?: string; accent: string }[];
-}) {
-  return (
-    <div style={{
-      marginTop: 10, display: 'grid',
-      gridTemplateColumns: `repeat(${metrics.length}, 1fr)`, gap: 10,
-    }}>
-      {metrics.map((m) => (
-        <div key={m.label} style={{
-          background: W.paper, border: `1px solid ${W.fill}`,
-          borderRadius: 16, padding: '14px 12px',
-        }}>
-          <div style={{
-            width: 6, height: 6, borderRadius: 3,
-            background: m.accent, marginBottom: 8,
-            boxShadow: `0 0 8px ${m.accent}`,
-          }} />
-          <div style={{
-            fontSize: 18, fontWeight: 600, color: W.ink,
-            fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', lineHeight: 1,
-          }}>
-            {m.value}
-            {m.unit && <span style={{ fontSize: 10, color: W.weak, marginLeft: 2, fontWeight: 500 }}>{m.unit}</span>}
-          </div>
-          <div style={{ fontSize: 10, color: W.weak, marginTop: 6, lineHeight: 1.3 }}>{m.label}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function FactorChips({ ids }: { ids: string[] }) {
   return (

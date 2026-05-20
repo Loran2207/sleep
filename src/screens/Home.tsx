@@ -1,7 +1,7 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  TopPad, LiquidGlassNav,
+  TopPad, LiquidGlassNav, SectionLabel,
 } from '../components/shared';
 import { useBreathSessions, useNightShiftDone, useQuizSession } from '../state/store';
 import { QUIZZES, type Quiz } from '../data/quizzes';
@@ -20,8 +20,10 @@ export function Home() {
         <Greeting />
 
         <div style={{ padding: '8px 16px 0' }}>
+          <SectionLabel>Tonight's tools</SectionLabel>
           <BreathingCard />
           <SoundsCard />
+          <SectionLabel style={{ marginTop: 18 }}>Wind down</SectionLabel>
           <DistractionCard />
           <NightShiftCard />
         </div>
@@ -38,15 +40,17 @@ function Greeting() {
   // session so we lean into the "Tonight" mood. Real app would key off
   // Date.now() and react to morning / midday / evening.
   return (
-    <div style={{ padding: '14px 22px 12px' }}>
-      <div style={{ fontSize: 12, fontWeight: 500, color: W.weak, letterSpacing: 0.3 }}>
-        Tonight
-      </div>
+    <div style={{ padding: '10px 22px 6px' }}>
       <div style={{
         fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15,
-        marginTop: 4, color: W.ink,
+        color: W.ink,
       }}>
-        Tools for a softer landing
+        A softer landing
+      </div>
+      <div style={{
+        fontSize: 13, color: W.weak, marginTop: 4, lineHeight: 1.4,
+      }}>
+        Pick a tool to take you down tonight.
       </div>
     </div>
   );
