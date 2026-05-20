@@ -6,7 +6,7 @@ import { startTracking } from '../state/tracking';
 import { useDraft, useMix } from '../state/store';
 import { lookupSound } from '../data/sounds';
 import { type QuickMix } from '../components/SoundMixerPanel';
-import { SoundsMixerView } from '../components/SoundsMixerView';
+import { SoundsMixerView, SoundsScreenBackdrop } from '../components/SoundsMixerView';
 
 const ACCENT = '#FF8E7C';
 const ACCENT_LIGHT = '#FFE0DA';
@@ -55,33 +55,13 @@ export function SoundsPlayer() {
       position: 'relative', overflow: 'hidden',
     }}>
       <style>{`
-        @keyframes sounds-pulse-a {
-          0%, 100% { transform: scale(0.84); opacity: 0.5; }
-          50% { transform: scale(1.04); opacity: 1; }
-        }
-        @keyframes sounds-pulse-b {
-          0%, 100% { transform: scale(0.96); opacity: 0.6; }
-          50% { transform: scale(0.78); opacity: 0.95; }
-        }
-        @keyframes sounds-bar {
-          0%, 100% { transform: scaleY(0.35); }
-          50% { transform: scaleY(1); }
-        }
         @keyframes sounds-sheet-up {
           from { transform: translateY(40px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
-        @keyframes sounds-twinkle {
-          0%, 100% { opacity: 0.35; }
-          50% { opacity: 0.85; }
-        }
       `}</style>
 
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `
-        radial-gradient(120% 80% at 50% 0%, rgba(255,142,124,0.16) 0%, rgba(255,142,124,0) 55%),
-        radial-gradient(80% 60% at 50% 100%, rgba(138,161,255,0.10) 0%, rgba(138,161,255,0) 60%)`,
-      }} />
-      <StarField />
+      <SoundsScreenBackdrop />
 
       <TopPad />
 
@@ -311,34 +291,6 @@ function NapSheet({ minutes, mixCount, onCancel, onConfirm }: {
   );
 }
 
-function StarField() {
-  const [stars] = useState(() => {
-    const out = [] as { top: string; left: string; size: number; delay: string; dur: string }[];
-    for (let i = 0; i < 26; i++) {
-      out.push({
-        top: `${Math.round(Math.random() * 70)}%`,
-        left: `${Math.round(Math.random() * 100)}%`,
-        size: Math.random() < 0.8 ? 1 : 2,
-        delay: `${(Math.random() * 4).toFixed(2)}s`,
-        dur: `${(2 + Math.random() * 3).toFixed(2)}s`,
-      });
-    }
-    return out;
-  });
-  return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-      {stars.map((s, i) => (
-        <div key={i} style={{
-          position: 'absolute', top: s.top, left: s.left,
-          width: s.size, height: s.size, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.85)',
-          animation: `sounds-twinkle ${s.dur} ease-in-out infinite`,
-          animationDelay: s.delay,
-        }} />
-      ))}
-    </div>
-  );
-}
 
 function hexA(hex: string, a: number) {
   const c = hex.replace('#', '');

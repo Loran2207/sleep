@@ -593,6 +593,7 @@ export function SoundTile({ id, selected, onClick }: {
 // breathing practice) where a floating pill would be a distraction.
 const MINIPLAYER_HIDE_ON = new Set<string>([
   'sounds-player',
+  'schedule-mix',
   'wind-down',
   'tracking-active',
   'tracking-stop-confirm',
