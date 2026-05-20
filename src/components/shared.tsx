@@ -2,14 +2,15 @@ import type { CSSProperties, ReactNode } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  HomeFilled, JournalFilled, CourseFilled, ProfileFilled,
+  ToolsFilled, JournalFilled, CourseFilled, ProfileFilled,
   ChevronRightIcon,
   type IconProps,
 } from './icons';
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
 import { lookupSound } from '../data/sounds';
-import { useNightShiftDone, useWindDownStep, usePracticeDone } from '../state/store';
+import { useNightShiftDone, useWindDownStep, usePracticeDone, useMix } from '../state/store';
+import { useNavigation } from '../state/navigation';
 import { CheckIcon, NightShiftIcon } from './icons';
 import { MoodFace } from './MoodFace';
 import { Avatar } from './Avatar';
@@ -98,7 +99,7 @@ export type NavId = 'home' | 'journal' | 'course' | 'profile' | 'sleep';
 
 export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string }) {
   const tabs: { id: NavId; icon: (p: { size?: number; fill?: string }) => ReactNode; nav: ScreenId }[] = [
-    { id: 'home', icon: HomeFilled, nav: 'home' },
+    { id: 'home', icon: ToolsFilled, nav: 'home' },
     { id: 'journal', icon: JournalFilled, nav: 'journal' },
     { id: 'course', icon: CourseFilled, nav: 'course' },
     { id: 'profile', icon: ProfileFilled, nav: 'profile' },
@@ -580,6 +581,131 @@ export function SoundTile({ id, selected, onClick }: {
         fontWeight: selected ? 500 : 400,
         maxWidth: 70,
       }}>{meta.name}</div>
+    </div>
+  );
+}
+
+// ─── Mini sounds player (Spotify-style bottom widget) ──────────
+// Shown on every primary screen when the user has an active sound
+// mix going, so they can pause / resume / jump back to the full
+// player without losing context. Auto-hides on the sounds player
+// itself and during focus modes (wind-down, active tracking, the
+// breathing practice) where a floating pill would be a distraction.
+const MINIPLAYER_HIDE_ON = new Set<string>([
+  'sounds-player',
+  'wind-down',
+  'tracking-active',
+  'tracking-stop-confirm',
+  'tracking-mixer',
+  'practice-session',
+  'practice-complete',
+]);
+
+export function MiniSoundsPlayer() {
+  const { state, togglePlay } = useMix();
+  const { screenId } = useNavigation();
+  const count = state.mix.length;
+  if (count === 0 || MINIPLAYER_HIDE_ON.has(screenId)) return null;
+
+  const names = state.mix
+    .map((s) => lookupSound(s.id)?.name)
+    .filter((x): x is string => !!x);
+  const label = names.length === 1 ? names[0] : `Mix of ${names.length}`;
+  const sub = state.playing
+    ? (state.timerMin ? `Playing · ${state.timerMin} min left` : 'Playing now')
+    : 'Paused';
+
+  function openPlayer(e: React.MouseEvent) {
+    e.stopPropagation();
+    go('sounds-player');
+  }
+  function onPlayPause(e: React.MouseEvent) {
+    e.stopPropagation();
+    togglePlay();
+  }
+
+  return (
+    <div
+      onClick={openPlayer}
+      style={{
+        position: 'absolute', bottom: 90, left: 14, right: 14, zIndex: 31,
+        fontFamily: W.font, cursor: 'pointer',
+      }}
+    >
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '8px 10px 8px 12px',
+        borderRadius: 18,
+        background: 'rgba(20,16,14,0.78)',
+        border: '1px solid rgba(255,142,124,0.30)',
+        backdropFilter: 'blur(20px) saturate(170%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(170%)',
+        boxShadow: '0 12px 28px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.06) inset',
+      }}>
+        <MiniBars playing={state.playing} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 13, fontWeight: 600, color: W.ink,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>{label}</div>
+          <div style={{
+            fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>{sub}</div>
+        </div>
+        <div
+          onClick={onPlayPause}
+          aria-label={state.playing ? 'Pause' : 'Play'}
+          style={{
+            width: 36, height: 36, borderRadius: 18,
+            background: '#fff', color: '#0E0E11',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(255,255,255,0.18)',
+          }}
+        >
+          {state.playing
+            ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="5" width="4" height="14" rx="1" />
+                <rect x="14" y="5" width="4" height="14" rx="1" />
+              </svg>
+            : <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5l12 7-12 7z" />
+              </svg>}
+        </div>
+      </div>
+      <style>{`
+        @keyframes mini-bar {
+          0%, 100% { transform: scaleY(0.35); }
+          50% { transform: scaleY(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function MiniBars({ playing }: { playing: boolean }) {
+  return (
+    <div style={{
+      width: 36, height: 36, borderRadius: 11,
+      background: 'linear-gradient(135deg, rgba(255,142,124,0.30), rgba(255,142,124,0.10))',
+      border: '1px solid rgba(255,142,124,0.45)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {[0, 0.15, 0.3].map((d, i) => (
+          <div key={i} style={{
+            width: 2.5, height: 12, borderRadius: 1,
+            background: '#FFE0DA',
+            transformOrigin: 'center',
+            animation: playing ? `mini-bar 1.${3 + i}s ease-in-out infinite` : undefined,
+            animationDelay: `${d}s`,
+            transform: playing ? undefined : 'scaleY(0.28)',
+            opacity: playing ? 1 : 0.5,
+          }} />
+        ))}
+      </div>
     </div>
   );
 }

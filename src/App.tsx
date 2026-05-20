@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DeviceFrame } from './components/DeviceFrame';
+import { MiniSoundsPlayer } from './components/shared';
 import { useNavigation, useBrowserBack } from './state/navigation';
 import type { ScreenId } from './tokens';
 
@@ -75,6 +76,7 @@ export function App() {
         background: '#000', color: '#fff',
       }}>
         <Screen />
+        <MiniSoundsPlayer />
       </div>
     );
   }
@@ -88,6 +90,7 @@ export function App() {
     }}>
       <DeviceFrame>
         <Screen />
+        <MiniSoundsPlayer />
       </DeviceFrame>
     </div>
   );
