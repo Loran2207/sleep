@@ -16,10 +16,9 @@ export function Home() {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
       <TopPad h={12} />
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 130 }}>
-        <Greeting />
-
-        <div style={{ padding: '8px 16px 0' }}>
+      <BrandHeader />
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 190 }}>
+        <div style={{ padding: '10px 16px 0' }}>
           <SectionLabel>Tonight's tools</SectionLabel>
           <BreathingCard />
           <SoundsCard />
@@ -35,23 +34,16 @@ export function Home() {
   );
 }
 
-function Greeting() {
-  // Mock current hour for prototype — the seeded "today" is an evening
-  // session so we lean into the "Tonight" mood. Real app would key off
-  // Date.now() and react to morning / midday / evening.
+// "night" wordmark, top-left, no heading copy. Replaces the previous
+// greeting so the Tools surface opens straight onto its tiles.
+function BrandHeader() {
   return (
-    <div style={{ padding: '10px 22px 6px' }}>
+    <div style={{ padding: '4px 22px 6px' }}>
       <div style={{
-        fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15,
-        color: W.ink,
-      }}>
-        A softer landing
-      </div>
-      <div style={{
-        fontSize: 13, color: W.weak, marginTop: 4, lineHeight: 1.4,
-      }}>
-        Pick a tool to take you down tonight.
-      </div>
+        fontSize: 24, fontWeight: 600, letterSpacing: -0.5,
+        fontFamily: '"Times New Roman", Georgia, serif',
+        fontStyle: 'italic', color: W.ink, lineHeight: 1,
+      }}>night</div>
     </div>
   );
 }
@@ -215,7 +207,7 @@ function DistractionCard() {
           Block distracting apps
         </div>
         <div style={{ fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4 }}>
-          Social and games go silent 30 min before bed.
+          Mute apps 30 min before bed.
         </div>
       </div>
       <div style={{

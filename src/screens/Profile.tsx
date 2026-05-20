@@ -29,7 +29,7 @@ export function Profile() {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
       <TopPad />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 130px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 190px' }}>
         <ProfileHero />
 
         <SignInBanner />

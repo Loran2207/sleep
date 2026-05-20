@@ -9,7 +9,7 @@ import {
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
 import { lookupSound } from '../data/sounds';
-import { useNightShiftDone, useWindDownStep, usePracticeDone, useMix } from '../state/store';
+import { useNightShiftDone, useWindDownStep, usePracticeDone, useMix, useMiniPlayerHidden } from '../state/store';
 import { useNavigation } from '../state/navigation';
 import { CheckIcon, NightShiftIcon } from './icons';
 import { MoodFace } from './MoodFace';
@@ -604,8 +604,9 @@ const MINIPLAYER_HIDE_ON = new Set<string>([
 export function MiniSoundsPlayer() {
   const { state, togglePlay } = useMix();
   const { screenId } = useNavigation();
+  const [hidden, setHidden] = useMiniPlayerHidden();
   const count = state.mix.length;
-  if (count === 0 || MINIPLAYER_HIDE_ON.has(screenId)) return null;
+  if (count === 0 || hidden || MINIPLAYER_HIDE_ON.has(screenId)) return null;
 
   const names = state.mix
     .map((s) => lookupSound(s.id)?.name)
@@ -613,7 +614,7 @@ export function MiniSoundsPlayer() {
   const label = names.length === 1 ? names[0] : `Mix of ${names.length}`;
   const sub = state.playing
     ? (state.timerMin ? `Playing · ${state.timerMin} min left` : 'Playing now')
-    : 'Paused';
+    : 'Paused · tap × to hide';
 
   function openPlayer(e: React.MouseEvent) {
     e.stopPropagation();
@@ -623,24 +624,30 @@ export function MiniSoundsPlayer() {
     e.stopPropagation();
     togglePlay();
   }
+  function onDismiss(e: React.MouseEvent) {
+    e.stopPropagation();
+    setHidden(true);
+  }
 
   return (
     <div
       onClick={openPlayer}
       style={{
-        position: 'absolute', bottom: 90, left: 14, right: 14, zIndex: 31,
+        // Sits above the central pearl FAB (FAB top edge ≈ y=96 from
+        // screen bottom) with an 8px gap, so the two never touch.
+        position: 'absolute', bottom: 104, left: 14, right: 14, zIndex: 31,
         fontFamily: W.font, cursor: 'pointer',
       }}
     >
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12,
-        padding: '8px 10px 8px 12px',
+        padding: '8px 6px 8px 10px',
         borderRadius: 18,
-        background: 'rgba(20,16,14,0.78)',
-        border: '1px solid rgba(255,142,124,0.30)',
-        backdropFilter: 'blur(20px) saturate(170%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(170%)',
-        boxShadow: '0 12px 28px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.06) inset',
+        background: 'rgba(20,20,24,0.82)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        backdropFilter: 'blur(22px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(22px) saturate(160%)',
+        boxShadow: '0 12px 28px rgba(0,0,0,0.50), 0 1px 0 rgba(255,255,255,0.05) inset',
       }}>
         <MiniBars playing={state.playing} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -654,14 +661,29 @@ export function MiniSoundsPlayer() {
           }}>{sub}</div>
         </div>
         <div
+          onClick={onDismiss}
+          aria-label="Hide player"
+          style={{
+            width: 28, height: 28, borderRadius: 14,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'rgba(255,255,255,0.55)',
+            cursor: 'pointer', flexShrink: 0,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 6l12 12M18 6l-12 12" />
+          </svg>
+        </div>
+        <div
           onClick={onPlayPause}
           aria-label={state.playing ? 'Pause' : 'Play'}
           style={{
             width: 36, height: 36, borderRadius: 18,
-            background: '#fff', color: '#0E0E11',
+            background: 'rgba(255,255,255,0.94)', color: '#0E0E11',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(255,255,255,0.18)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
           }}
         >
           {state.playing
@@ -688,8 +710,8 @@ function MiniBars({ playing }: { playing: boolean }) {
   return (
     <div style={{
       width: 36, height: 36, borderRadius: 11,
-      background: 'linear-gradient(135deg, rgba(255,142,124,0.30), rgba(255,142,124,0.10))',
-      border: '1px solid rgba(255,142,124,0.45)',
+      background: 'rgba(255,255,255,0.06)',
+      border: '1px solid rgba(255,255,255,0.14)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
     }}>
@@ -697,12 +719,12 @@ function MiniBars({ playing }: { playing: boolean }) {
         {[0, 0.15, 0.3].map((d, i) => (
           <div key={i} style={{
             width: 2.5, height: 12, borderRadius: 1,
-            background: '#FFE0DA',
+            background: 'rgba(255,255,255,0.88)',
             transformOrigin: 'center',
             animation: playing ? `mini-bar 1.${3 + i}s ease-in-out infinite` : undefined,
             animationDelay: `${d}s`,
             transform: playing ? undefined : 'scaleY(0.28)',
-            opacity: playing ? 1 : 0.5,
+            opacity: playing ? 1 : 0.45,
           }} />
         ))}
       </div>
