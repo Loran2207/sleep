@@ -116,14 +116,25 @@ export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string })
   }
 
   return (
-    <div style={{
-      position: 'absolute', bottom: 22, left: 14, right: 14, zIndex: 30,
-      fontFamily: W.font,
-    }}>
-      <NavKeyframes />
-      <div style={{ position: 'relative', height: 60 }}>
-        {/* Pill */}
-        <div style={{
+    <>
+      {/* Soft fade above the bottom UI stack so scrollable content
+          doesn't bleed through the glass nav + floating mini player.
+          Solid bg at the very bottom (under the nav), gradually
+          transparent up to ~170px so it covers the area behind the
+          pill and pearl FAB cleanly. */}
+      <div aria-hidden style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0,
+        height: 180, zIndex: 28, pointerEvents: 'none',
+        background: 'linear-gradient(to top, #0E0E11 0%, #0E0E11 35%, rgba(14,14,17,0.72) 70%, rgba(14,14,17,0) 100%)',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: 22, left: 14, right: 14, zIndex: 30,
+        fontFamily: W.font,
+      }}>
+        <NavKeyframes />
+        <div style={{ position: 'relative', height: 60 }}>
+          {/* Pill */}
+          <div style={{
           position: 'absolute', inset: 0,
           borderRadius: 30,
           background: 'rgba(14,14,17,0.62)',
@@ -184,8 +195,9 @@ export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string })
           }} />
           <SleepGlyph size={26} color={active === 'sleep' ? '#1A1A22' : '#2A2A33'} />
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
