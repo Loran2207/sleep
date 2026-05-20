@@ -127,7 +127,7 @@ function TimerRow({ value, onChange }: { value: number | null; onChange: (m: num
             <path d="M9 2h6" />
             <path d="M12 9v4l3 2" />
           </svg>
-          Sounds stop after
+          Sounds stop after, minutes
         </div>
         <div style={{
           fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
