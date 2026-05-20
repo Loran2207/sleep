@@ -595,6 +595,7 @@ const MINIPLAYER_HIDE_ON = new Set<string>([
   'sounds-player',
   'schedule-mix',
   'wind-down',
+  'place-device',
   'tracking-active',
   'tracking-stop-confirm',
   'tracking-mixer',
