@@ -74,6 +74,12 @@ export function SoundsMixerView({
         <TabSwitcher tab={tab} setTab={setTab} mixCount={mixCount} />
       </div>
 
+      {binding.setTimer && (
+        <div style={{ marginTop: 14 }}>
+          <TimerRow value={binding.timerMin ?? null} onChange={binding.setTimer} />
+        </div>
+      )}
+
       <div style={{ marginTop: 18 }}>
         <SoundMixerPanel
           binding={binding}
@@ -84,6 +90,67 @@ export function SoundsMixerView({
         />
       </div>
     </>
+  );
+}
+
+// Sleep-timer row. Six options stretched on a single line, same shape
+// as the WindDown setup step so the picker reads as the same control
+// in every screen that hosts the mixer.
+const TIMER_PICKS: { label: string; minutes: number | null }[] = [
+  { label: 'Off', minutes: null },
+  { label: '15',  minutes: 15 },
+  { label: '30',  minutes: 30 },
+  { label: '45',  minutes: 45 },
+  { label: '60',  minutes: 60 },
+  { label: '90',  minutes: 90 },
+];
+
+function TimerRow({ value, onChange }: { value: number | null; onChange: (m: number | null) => void }) {
+  return (
+    <div style={{
+      padding: '12px 12px',
+      background: 'rgba(255,255,255,0.04)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 18,
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 4px 10px',
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 500,
+        }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="13" r="8" />
+            <path d="M9 2h6" />
+            <path d="M12 9v4l3 2" />
+          </svg>
+          Sounds stop after
+        </div>
+        <div style={{
+          fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+          color: '#fff',
+        }}>{value ? `${value} min` : 'until you stop'}</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+        {TIMER_PICKS.map((opt) => {
+          const active = opt.minutes === value;
+          return (
+            <div key={opt.label} onClick={() => onChange(opt.minutes)} style={{
+              padding: '9px 0', textAlign: 'center', borderRadius: 12,
+              background: active ? '#fff' : 'rgba(255,255,255,0.06)',
+              color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+              border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              fontVariantNumeric: 'tabular-nums',
+              transition: 'background .12s ease, color .12s ease',
+            }}>{opt.label}</div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

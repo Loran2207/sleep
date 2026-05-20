@@ -17,7 +17,7 @@ const SCHEDULE_QUICK_MIXES: QuickMix[] = [
 // sounds for the night feels identical to the standalone Sounds
 // player on the Tools tab.
 export function ScheduleMix() {
-  const { schedule, mix, setVol, removeSound, toggleSound, clearAll, setMixIds } = useScheduleMix();
+  const { schedule, mix, setVol, removeSound, toggleSound, clearAll, setMixIds, setTimer } = useScheduleMix();
   // We piggy-back on the global mix-store's playing state so the
   // visualizer animates while the user is auditioning sounds elsewhere
   // in the app. (Editing a schedule does not by itself start playback.)
@@ -51,8 +51,12 @@ export function ScheduleMix() {
 
       <div style={{ position: 'relative', flex: 1, padding: '0 20px 40px', overflowY: 'auto' }}>
         <SoundsMixerView
-          binding={{ mix, setVol, toggleSound, removeSound, clearAll, setMixIds }}
+          binding={{
+            mix, setVol, toggleSound, removeSound, clearAll, setMixIds,
+            timerMin: schedule?.timerMin ?? null, setTimer,
+          }}
           playing={state.playing}
+          timerMin={schedule?.timerMin ?? null}
           quickMixes={SCHEDULE_QUICK_MIXES}
           emptyHint="Layer rain, fire, chimes — whatever you'd like to fall asleep to on this schedule. Each sound has its own volume."
         />

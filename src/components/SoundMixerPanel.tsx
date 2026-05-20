@@ -27,6 +27,12 @@ export interface MixBinding {
   removeSound: (id: string) => void;
   clearAll: () => void;
   setMixIds: (ids: string[]) => void;
+  // Optional sleep-timer hook. When provided, the mixer surfaces a
+  // small inline timer control (Off / 15 / 30 / 45 / 60 / 90 min)
+  // right under the Mix / Library tabs so the user can decide how
+  // long the mix plays without leaving the panel.
+  timerMin?: number | null;
+  setTimer?: (m: number | null) => void;
 }
 
 export type QuickMix = { id: string; name: string; sounds: string[] };
