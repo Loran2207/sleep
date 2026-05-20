@@ -5,12 +5,10 @@ import { TopPad, TimerPicker } from '../components/shared';
 import { startTracking } from '../state/tracking';
 import { useDraft, useMix } from '../state/store';
 import { lookupSound } from '../data/sounds';
-import { SoundMixerPanel, type QuickMix } from '../components/SoundMixerPanel';
+import { type QuickMix } from '../components/SoundMixerPanel';
+import { SoundsMixerView } from '../components/SoundsMixerView';
 
 const ACCENT = '#FF8E7C';
-// Inner-glow tint for the icon & visualizer core. Lighter version of
-// the accent — used for stroke colours on the moon glyph and the
-// equalizer bars inside the visualizer.
 const ACCENT_LIGHT = '#FFE0DA';
 
 const QUICK_MIXES: QuickMix[] = [
@@ -31,9 +29,6 @@ export function SoundsPlayer() {
   const [showTimer, setShowTimer] = useState(false);
   const [showNapSheet, setShowNapSheet] = useState(false);
   const [, setDraft] = useDraft();
-  // Default to Library when the mix is empty so the user goes straight
-  // to picking sounds; otherwise lean into the active mix tab.
-  const [tab, setTab] = useState<'mix' | 'library'>(state.mix.length === 0 ? 'library' : 'mix');
 
   function onOpenTimer() { setShowTimer(true); }
   function onTimerSelect(m: number | null) { setTimer(m); setShowTimer(false); }
@@ -51,9 +46,6 @@ export function SoundsPlayer() {
     startTracking();
   }
 
-  const activeNames = state.mix
-    .map((s) => lookupSound(s.id)?.name)
-    .filter((x): x is string => !!x);
   const mixCount = state.mix.length;
 
   return (
@@ -112,50 +104,19 @@ export function SoundsPlayer() {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', position: 'relative', padding: '0 20px 260px' }}>
-        <Visualizer playing={playing} count={mixCount} />
-
-        <div style={{
-          textAlign: 'center', marginTop: 6,
-          fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em',
-        }}>
-          {activeNames.length === 0
-            ? 'Pick a sound'
-            : activeNames.length === 1
-              ? activeNames[0]
-              : `Mix of ${activeNames.length}`}
-        </div>
-        <div style={{
-          textAlign: 'center', marginTop: 6,
-          fontSize: 12, color: W.weak,
-          minHeight: 16,
-        }}>
-          {mixCount === 0
-            ? 'Tap a tile below to start listening.'
-            : playing
-              ? <>Playing{timerMin ? ` · stops in ${timerMin} min` : ' · until you stop'}</>
-              : 'Paused'}
-        </div>
-
-        <div style={{ marginTop: 22 }}>
-          <SoundsTabSwitcher tab={tab} setTab={setTab} mixCount={mixCount} />
-        </div>
-
-        <div style={{ marginTop: 18 }}>
-          <SoundMixerPanel
-            binding={{
-              mix: state.mix,
-              setVol: mix.setVol,
-              toggleSound: mix.toggleSound,
-              removeSound: mix.removeSound,
-              clearAll: mix.clearAll,
-              setMixIds: mix.setMixIds,
-            }}
-            quickMixes={QUICK_MIXES}
-            theme="warm"
-            emptyHint="Switch to Library to pick something soft. Layer as many sounds as you like and balance them here."
-            sections={tab === 'mix' ? ['active'] : ['quickmix', 'library']}
-          />
-        </div>
+        <SoundsMixerView
+          binding={{
+            mix: state.mix,
+            setVol: mix.setVol,
+            toggleSound: mix.toggleSound,
+            removeSound: mix.removeSound,
+            clearAll: mix.clearAll,
+            setMixIds: mix.setMixIds,
+          }}
+          playing={playing}
+          timerMin={timerMin}
+          quickMixes={QUICK_MIXES}
+        />
       </div>
 
       <BottomDock
@@ -182,55 +143,6 @@ export function SoundsPlayer() {
           onCancel={() => setShowNapSheet(false)}
           onConfirm={startNap}
         />
-      )}
-    </div>
-  );
-}
-
-function Visualizer({ playing, count }: { playing: boolean; count: number }) {
-  const bars = [0, 0.18, 0.36, 0.54];
-  return (
-    <div style={{
-      position: 'relative', height: 220,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      marginTop: 14,
-    }}>
-      <div style={{
-        position: 'absolute', width: 196, height: 196, borderRadius: '50%',
-        background: `radial-gradient(circle at 50% 50%, ${hexA(ACCENT, 0.18)}, ${hexA(ACCENT, 0)} 70%)`,
-        animation: playing ? 'sounds-pulse-a 4.6s ease-in-out infinite' : undefined,
-        opacity: playing ? 1 : 0.4,
-      }} />
-      <div style={{
-        position: 'absolute', width: 132, height: 132, borderRadius: '50%',
-        border: `1px dashed ${hexA(ACCENT, 0.40)}`,
-        animation: playing ? 'sounds-pulse-b 3.4s ease-in-out infinite' : undefined,
-        opacity: playing ? 1 : 0.55,
-      }} />
-      <div style={{
-        position: 'absolute', width: 84, height: 84, borderRadius: '50%',
-        background: `linear-gradient(135deg, ${hexA(ACCENT, 0.55)}, ${hexA(ACCENT, 0.18)})`,
-        border: `1px solid ${hexA(ACCENT, 0.65)}`,
-        boxShadow: `0 6px 28px ${hexA(ACCENT, 0.28)} inset, 0 8px 26px ${hexA(ACCENT, 0.25)}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-      }}>
-        {bars.map((d, i) => (
-          <div key={i} style={{
-            width: 3, height: 28, borderRadius: 2,
-            background: ACCENT_LIGHT,
-            transformOrigin: 'center',
-            animation: playing ? `sounds-bar 1.${4 + i}s ease-in-out infinite` : undefined,
-            animationDelay: `${d}s`,
-            transform: playing ? undefined : 'scaleY(0.25)',
-            opacity: playing ? 1 : 0.45,
-          }} />
-        ))}
-      </div>
-      {count === 0 && (
-        <div style={{
-          position: 'absolute', bottom: 6,
-          fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.4,
-        }}>silent</div>
       )}
     </div>
   );
@@ -424,49 +336,6 @@ function StarField() {
           animationDelay: s.delay,
         }} />
       ))}
-    </div>
-  );
-}
-
-function SoundsTabSwitcher({ tab, setTab, mixCount }: {
-  tab: 'mix' | 'library'; setTab: (t: 'mix' | 'library') => void; mixCount: number;
-}) {
-  const tabs: { id: 'mix' | 'library'; label: string; count?: number }[] = [
-    { id: 'mix', label: 'Mix', count: mixCount },
-    { id: 'library', label: 'Library' },
-  ];
-  return (
-    <div style={{
-      display: 'flex', gap: 2, padding: 3,
-      background: 'rgba(255,255,255,0.05)',
-      borderRadius: 12,
-      border: '1px solid rgba(255,255,255,0.08)',
-    }}>
-      {tabs.map((t) => {
-        const active = tab === t.id;
-        return (
-          <div key={t.id} onClick={() => setTab(t.id)} style={{
-            flex: 1, padding: '9px 0', textAlign: 'center',
-            background: active ? '#fff' : 'transparent',
-            color: active ? '#0E0E11' : 'rgba(255,255,255,0.85)',
-            borderRadius: 10,
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            transition: 'background .12s ease, color .12s ease',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}>
-            <span>{t.label}</span>
-            {t.count !== undefined && t.count > 0 && (
-              <span style={{
-                padding: '1px 7px', borderRadius: 999,
-                fontSize: 10, fontWeight: 700,
-                background: active ? '#0E0E11' : 'rgba(255,255,255,0.10)',
-                color: active ? '#fff' : 'rgba(255,255,255,0.75)',
-                fontVariantNumeric: 'tabular-nums',
-              }}>{t.count}</span>
-            )}
-          </div>
-        );
-      })}
     </div>
   );
 }

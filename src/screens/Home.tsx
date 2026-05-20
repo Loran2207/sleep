@@ -194,11 +194,11 @@ function DistractionCard() {
     <div onClick={() => go('routine')} style={{
       ...TILE_BASE,
       background: `
-        radial-gradient(70% 70% at 14% 30%, rgba(127,227,161,0.30) 0%, rgba(127,227,161,0) 70%),
-        radial-gradient(120% 90% at 95% 100%, rgba(127,227,161,0.06) 0%, rgba(127,227,161,0) 60%),
+        radial-gradient(70% 70% at 14% 30%, rgba(93,221,179,0.30) 0%, rgba(93,221,179,0) 70%),
+        radial-gradient(120% 90% at 95% 100%, rgba(93,221,179,0.06) 0%, rgba(93,221,179,0) 60%),
         linear-gradient(180deg, #131A17 0%, #0F1311 100%)`,
-      border: '1px solid rgba(127,227,161,0.26)',
-      boxShadow: '0 14px 30px rgba(127,227,161,0.10)',
+      border: '1px solid rgba(93,221,179,0.26)',
+      boxShadow: '0 14px 30px rgba(93,221,179,0.10)',
     }}>
       <ToolCardKeyframes />
       <FocusOrb />
@@ -212,9 +212,9 @@ function DistractionCard() {
       </div>
       <div style={{
         padding: '8px 14px', borderRadius: 999,
-        background: 'rgba(127,227,161,0.14)',
-        border: '1px solid rgba(127,227,161,0.42)',
-        color: '#B7F0CA', fontSize: 12, fontWeight: 600,
+        background: 'rgba(93,221,179,0.14)',
+        border: '1px solid rgba(93,221,179,0.42)',
+        color: '#A8EBCC', fontSize: 12, fontWeight: 600,
         flexShrink: 0,
       }}>Set up</div>
     </div>
@@ -229,16 +229,16 @@ function FocusOrb() {
     }}>
       <div style={{
         position: 'absolute', inset: 0,
-        borderRadius: '50%', border: '1px dashed rgba(127,227,161,0.50)',
+        borderRadius: '50%', border: '1px dashed rgba(93,221,179,0.50)',
         animation: 'breath-pulse 6s ease-in-out infinite',
       }} />
       <div style={{
         position: 'absolute', width: 32, height: 32, borderRadius: 16,
-        background: 'radial-gradient(circle at 35% 30%, rgba(183,240,202,0.65), rgba(127,227,161,0.10) 65%, transparent 80%)',
-        border: '1px solid rgba(127,227,161,0.60)',
+        background: 'radial-gradient(circle at 35% 30%, rgba(150,235,200,0.65), rgba(93,221,179,0.10) 65%, transparent 80%)',
+        border: '1px solid rgba(93,221,179,0.60)',
       }} />
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-        stroke="#B7F0CA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        stroke="#A8EBCC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
         style={{ position: 'relative' }}>
         <rect x="7" y="3" width="10" height="18" rx="2.5" />
         <path d="M5 4l14 16" />
@@ -248,54 +248,45 @@ function FocusOrb() {
 }
 
 // ─── Night Shift tile (matches Breathing / Sounds) ──────────────
+// Uses the lavender accent from the Anxiety self-check so the four
+// tools tiles stay inside the same quiz-palette family (periwinkle,
+// coral, mint, lavender).
 function NightShiftCard() {
   const [done] = useNightShiftDone();
   return (
     <div onClick={() => go('night-shift-guide')} style={{
       ...TILE_BASE,
-      background: done
-        ? `
-          radial-gradient(70% 70% at 14% 30%, rgba(127,227,161,0.28) 0%, rgba(127,227,161,0) 70%),
-          radial-gradient(120% 90% at 95% 100%, rgba(127,227,161,0.06) 0%, rgba(127,227,161,0) 60%),
-          linear-gradient(180deg, #131A17 0%, #0F1311 100%)`
-        : `
-          radial-gradient(70% 70% at 14% 30%, rgba(255,185,92,0.32) 0%, rgba(255,185,92,0) 70%),
-          radial-gradient(120% 90% at 95% 100%, rgba(255,185,92,0.08) 0%, rgba(255,185,92,0) 60%),
-          linear-gradient(180deg, #1A1611 0%, #15110C 100%)`,
-      border: done
-        ? '1px solid rgba(127,227,161,0.30)'
-        : '1px solid rgba(255,185,92,0.28)',
-      boxShadow: done
-        ? '0 14px 30px rgba(127,227,161,0.10)'
-        : '0 14px 30px rgba(255,185,92,0.12)',
+      background: `
+        radial-gradient(70% 70% at 14% 30%, rgba(201,166,255,0.32) 0%, rgba(201,166,255,0) 70%),
+        radial-gradient(120% 90% at 95% 100%, rgba(201,166,255,0.08) 0%, rgba(201,166,255,0) 60%),
+        linear-gradient(180deg, #18141F 0%, #120F18 100%)`,
+      border: '1px solid rgba(201,166,255,0.28)',
+      boxShadow: '0 14px 30px rgba(201,166,255,0.12)',
     }}>
       <ToolCardKeyframes />
-      <SunsetOrb done={done} />
+      <MoonGlowOrb done={done} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em' }}>
           Night Shift
         </div>
         <div style={{ fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4 }}>
           {done
-            ? <><span style={{ color: '#B7F0CA', fontWeight: 600 }}>On</span> · tap to review.</>
+            ? <><span style={{ color: '#E0CFFF', fontWeight: 600 }}>On</span> · tap to review.</>
             : 'Warm your screen after sunset.'}
         </div>
       </div>
       <div style={{
         padding: '8px 14px', borderRadius: 999,
-        background: done ? 'rgba(127,227,161,0.14)' : 'rgba(255,185,92,0.14)',
-        border: `1px solid ${done ? 'rgba(127,227,161,0.42)' : 'rgba(255,185,92,0.42)'}`,
-        color: done ? '#B7F0CA' : '#FFD58A', fontSize: 12, fontWeight: 600,
+        background: 'rgba(201,166,255,0.14)',
+        border: '1px solid rgba(201,166,255,0.42)',
+        color: '#E0CFFF', fontSize: 12, fontWeight: 600,
         flexShrink: 0,
       }}>{done ? 'Done' : 'How to'}</div>
     </div>
   );
 }
 
-function SunsetOrb({ done }: { done: boolean }) {
-  const accent = done ? 'rgba(127,227,161,' : 'rgba(255,185,92,';
-  const highlight = done ? 'rgba(183,240,202,' : 'rgba(255,210,150,';
-  const glyph = done ? '#B7F0CA' : '#FFD58A';
+function MoonGlowOrb({ done }: { done: boolean }) {
   return (
     <div style={{
       width: 44, height: 44, position: 'relative', flexShrink: 0,
@@ -303,26 +294,24 @@ function SunsetOrb({ done }: { done: boolean }) {
     }}>
       <div style={{
         position: 'absolute', inset: 0,
-        borderRadius: '50%', border: `1px dashed ${accent}0.55)`,
+        borderRadius: '50%', border: '1px dashed rgba(201,166,255,0.55)',
       }} />
       <div style={{
         position: 'absolute', width: 32, height: 32, borderRadius: 16,
-        background: `radial-gradient(circle at 35% 30%, ${highlight}0.65), ${accent}0.10) 65%, transparent 80%)`,
-        border: `1px solid ${accent}0.60)`,
+        background: 'radial-gradient(circle at 35% 30%, rgba(224,207,255,0.65), rgba(201,166,255,0.10) 65%, transparent 80%)',
+        border: '1px solid rgba(201,166,255,0.60)',
         animation: 'sunset-glow 5.5s ease-in-out infinite',
       }} />
       {done ? (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-          stroke={glyph} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+          stroke="#E0CFFF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
           style={{ position: 'relative' }}>
           <path d="M5 12l4 4 10-10" />
         </svg>
       ) : (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-          stroke={glyph} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#E0CFFF"
           style={{ position: 'relative' }}>
-          <circle cx="12" cy="12" r="4" fill={glyph} />
-          <path d="M12 5V3M12 21v-2M5 12H3M21 12h-2M6.5 6.5L5 5M19 19l-1.5-1.5M6.5 17.5L5 19M19 5l-1.5 1.5" />
+          <path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a7 7 0 0 0 10.7 10.7z" />
         </svg>
       )}
     </div>
