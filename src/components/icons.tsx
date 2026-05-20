@@ -59,6 +59,18 @@ export function HomeFilled({ size = 24, fill = '#fff' }: FilledProps) {
     </svg>
   );
 }
+// 4-square grid — reads as "tools / dashboard tiles" without invoking
+// a generic house metaphor. Used by the first nav tab.
+export function ToolsFilled({ size = 24, fill = '#fff' }: FilledProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}>
+      <rect x="3.5"  y="3.5"  width="7.5" height="7.5" rx="2"/>
+      <rect x="13"   y="3.5"  width="7.5" height="7.5" rx="2"/>
+      <rect x="3.5"  y="13"   width="7.5" height="7.5" rx="2"/>
+      <rect x="13"   y="13"   width="7.5" height="7.5" rx="2"/>
+    </svg>
+  );
+}
 export function AnalyticsFilled({ size = 24, fill = '#fff' }: FilledProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}>

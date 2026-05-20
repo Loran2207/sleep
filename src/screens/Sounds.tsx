@@ -31,6 +31,9 @@ export function SoundsPlayer() {
   const [showTimer, setShowTimer] = useState(false);
   const [showNapSheet, setShowNapSheet] = useState(false);
   const [, setDraft] = useDraft();
+  // Default to Library when the mix is empty so the user goes straight
+  // to picking sounds; otherwise lean into the active mix tab.
+  const [tab, setTab] = useState<'mix' | 'library'>(state.mix.length === 0 ? 'library' : 'mix');
 
   function onOpenTimer() { setShowTimer(true); }
   function onTimerSelect(m: number | null) { setTimer(m); setShowTimer(false); }
@@ -133,7 +136,11 @@ export function SoundsPlayer() {
               : 'Paused'}
         </div>
 
-        <div style={{ marginTop: 26 }}>
+        <div style={{ marginTop: 22 }}>
+          <SoundsTabSwitcher tab={tab} setTab={setTab} mixCount={mixCount} />
+        </div>
+
+        <div style={{ marginTop: 18 }}>
           <SoundMixerPanel
             binding={{
               mix: state.mix,
@@ -145,7 +152,8 @@ export function SoundsPlayer() {
             }}
             quickMixes={QUICK_MIXES}
             theme="warm"
-            emptyHint="Tap a sound below to start. Layer as many as you like and balance each independently."
+            emptyHint="Switch to Library to pick something soft. Layer as many sounds as you like and balance them here."
+            sections={tab === 'mix' ? ['active'] : ['quickmix', 'library']}
           />
         </div>
       </div>
@@ -416,6 +424,49 @@ function StarField() {
           animationDelay: s.delay,
         }} />
       ))}
+    </div>
+  );
+}
+
+function SoundsTabSwitcher({ tab, setTab, mixCount }: {
+  tab: 'mix' | 'library'; setTab: (t: 'mix' | 'library') => void; mixCount: number;
+}) {
+  const tabs: { id: 'mix' | 'library'; label: string; count?: number }[] = [
+    { id: 'mix', label: 'Mix', count: mixCount },
+    { id: 'library', label: 'Library' },
+  ];
+  return (
+    <div style={{
+      display: 'flex', gap: 2, padding: 3,
+      background: 'rgba(255,255,255,0.05)',
+      borderRadius: 12,
+      border: '1px solid rgba(255,255,255,0.08)',
+    }}>
+      {tabs.map((t) => {
+        const active = tab === t.id;
+        return (
+          <div key={t.id} onClick={() => setTab(t.id)} style={{
+            flex: 1, padding: '9px 0', textAlign: 'center',
+            background: active ? '#fff' : 'transparent',
+            color: active ? '#0E0E11' : 'rgba(255,255,255,0.85)',
+            borderRadius: 10,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            transition: 'background .12s ease, color .12s ease',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          }}>
+            <span>{t.label}</span>
+            {t.count !== undefined && t.count > 0 && (
+              <span style={{
+                padding: '1px 7px', borderRadius: 999,
+                fontSize: 10, fontWeight: 700,
+                background: active ? '#0E0E11' : 'rgba(255,255,255,0.10)',
+                color: active ? '#fff' : 'rgba(255,255,255,0.75)',
+                fontVariantNumeric: 'tabular-nums',
+              }}>{t.count}</span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

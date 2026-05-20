@@ -33,6 +33,8 @@ export type QuickMix = { id: string; name: string; sounds: string[] };
 
 export type MixerTheme = 'warm' | 'cool';
 
+export type MixerSection = 'active' | 'quickmix' | 'library';
+
 export interface SoundMixerPanelProps {
   binding: MixBinding;
   quickMixes?: QuickMix[];
@@ -41,6 +43,13 @@ export interface SoundMixerPanelProps {
   emptyTitle?: string | null;
   /** Body line shown under the empty title. */
   emptyHint?: string;
+  /**
+   * Which sections to render. Defaults to all three. The Sounds player
+   * splits the panel into "Mix" / "Library" tabs by passing different
+   * subsets — that way adding sounds in Library never reflows the
+   * Mix tab and vice versa.
+   */
+  sections?: MixerSection[];
 }
 
 const THEMES: Record<MixerTheme, {
@@ -72,27 +81,33 @@ export function SoundMixerPanel({
   theme = 'cool',
   emptyTitle = 'Build a mix',
   emptyHint = 'Tap a sound below to start. Layer as many as you like and balance volumes individually.',
+  sections = ['active', 'quickmix', 'library'],
 }: SoundMixerPanelProps) {
   const [cat, setCat] = useState<SoundCategory>('all');
   const activeIds = new Set(binding.mix.map((s) => s.id));
   const visible = cat === 'all' ? SOUND_CATALOG : SOUND_CATALOG.filter((s) => s.cat === cat);
   const t = THEMES[theme];
+  const showActive = sections.includes('active');
+  const showQuick = sections.includes('quickmix');
+  const showLibrary = sections.includes('library');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {binding.mix.length > 0 ? (
-        <ActiveMixSection
-          mix={binding.mix}
-          setVol={binding.setVol}
-          removeSound={binding.removeSound}
-          clearAll={binding.clearAll}
-          theme={theme}
-        />
-      ) : emptyTitle !== null ? (
-        <EmptyHint title={emptyTitle} hint={emptyHint} />
-      ) : null}
+      {showActive && (
+        binding.mix.length > 0 ? (
+          <ActiveMixSection
+            mix={binding.mix}
+            setVol={binding.setVol}
+            removeSound={binding.removeSound}
+            clearAll={binding.clearAll}
+            theme={theme}
+          />
+        ) : emptyTitle !== null ? (
+          <EmptyHint title={emptyTitle} hint={emptyHint} />
+        ) : null
+      )}
 
-      {quickMixes && quickMixes.length > 0 && (
+      {showQuick && quickMixes && quickMixes.length > 0 && (
         <QuickMixesSection
           presets={quickMixes}
           activeIds={activeIds}
@@ -101,7 +116,7 @@ export function SoundMixerPanel({
         />
       )}
 
-      <div>
+      {showLibrary && (<div>
         <SectionLabel>Sound library</SectionLabel>
         <div style={{
           display: 'flex', gap: 8, overflowX: 'auto',
@@ -190,7 +205,7 @@ export function SoundMixerPanel({
             );
           })}
         </div>
-      </div>
+      </div>)}
 
       <style>{`
         @keyframes mxr-bar {
