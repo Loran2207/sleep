@@ -194,17 +194,13 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
 
   return (
     <>
-      <div style={{ position: 'relative', padding: '32px 22px 8px' }}>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Step 1 of 2</div>
-        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15, marginTop: 6 }}>
+      <div style={{ position: 'relative', padding: '36px 22px 8px' }}>
+        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
           Set up tonight
-        </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 8, lineHeight: 1.5 }}>
-          Alarm, sounds and timer — all in one place.
         </div>
       </div>
 
-      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '10px 16px 20px' }}>
+      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
         <SectionTitle>Wake up at</SectionTitle>
         <div style={{
           background: 'rgba(255,255,255,0.04)',
@@ -214,7 +210,7 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
           <WheelPicker hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} />
           <div style={{
             marginTop: 10, textAlign: 'center',
-            fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4,
+            fontSize: 12, color: 'rgba(255,255,255,0.65)',
           }}>
             ≈ <strong style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
               {sleepH}h {String(sleepM).padStart(2, '0')}m
@@ -226,10 +222,9 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
         <div onClick={openMix} style={cardStyle}>
           <SoundsGlyphStack ids={todaySchedule.sounds.map((s) => s.id)} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Tonight's mix</div>
-            <div style={{ fontSize: 14, fontWeight: 600, marginTop: 2, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
             {soundCount > 0 && (
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {todaySchedule.sounds.map((s) => lookupSound(s.id)?.name ?? s.id).join(' · ')}
               </div>
             )}
@@ -237,19 +232,13 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
           <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
         </div>
 
-        <SectionTitle>Sounds stop after</SectionTitle>
+        <SectionTitle>Timer</SectionTitle>
         <div style={{
           padding: '12px 12px',
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 18,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px 10px' }}>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Timer</div>
-            <div style={{ fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#fff' }}>
-              {todaySchedule.timerMin ? `${todaySchedule.timerMin} min` : 'until alarm'}
-            </div>
-          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
             {TIMER_OPTIONS.map((opt) => {
               const active = opt.minutes === todaySchedule.timerMin;
@@ -273,34 +262,30 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
         padding: '12px 16px 24px', position: 'relative',
         background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
       }}>
-        <div onClick={onContinue} style={primaryCtaStyle}>Continue to practice</div>
+        <div onClick={onContinue} style={primaryCtaStyle}>Continue</div>
       </div>
     </>
   );
 }
 
 // ─── Step 2 — practice (4-7-8 breath) ──────────────────────────
+// Two equal-weight actions: a primary "Start practice" that opens
+// the breathing flow, and a secondary "Skip" that goes straight to
+// tracking — same column, same shape, different visual weight, so
+// either choice is one tap away.
 function PracticeStep() {
   const [practiceDone] = usePracticeDone();
-
-  function startSleepTracking() {
-    startTracking();
-  }
+  const startSleepTracking = () => startTracking();
 
   return (
     <>
-      <div style={{ position: 'relative', padding: '32px 22px 8px' }}>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>Step 2 of 2</div>
-        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15, marginTop: 6 }}>
+      <div style={{ position: 'relative', padding: '36px 22px 8px' }}>
+        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
           One slow breath
-        </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 8, lineHeight: 1.5 }}>
-          Settle the body before the lights go out.
         </div>
       </div>
 
-      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
-        <SectionTitle>Practice</SectionTitle>
+      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '20px 16px 20px' }}>
         <div onClick={() => go('practice-intro')} style={{
           ...cardStyle,
           border: practiceDone
@@ -334,37 +319,36 @@ function PracticeStep() {
               )}
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>
-              {practiceDone ? 'Tap to redo' : 'Inhale 4s · hold 7s · exhale 8s'}
+              {practiceDone ? 'Tap to redo' : 'Inhale 4s · hold 7s · exhale 8s · ~3 min'}
             </div>
           </div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', marginRight: 4 }}>~3 min</div>
           <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
-        </div>
-
-        <div style={{
-          marginTop: 14, padding: '14px 14px',
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          borderRadius: 16,
-          display: 'flex', alignItems: 'center', gap: 10,
-          fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 1.45,
-        }}>
-          <HabitGlyph name="bulb" size={16} stroke="rgba(255,255,255,0.7)" />
-          <span>Slow exhales activate the parasympathetic nervous system and drop your heart rate.</span>
         </div>
       </div>
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
         background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
+        display: 'flex', flexDirection: 'column', gap: 10,
       }}>
-        <div onClick={startSleepTracking} style={{
-          ...primaryCtaStyle,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-        }}>
-          <PlayIcon size={14} stroke="#0E1014" />
-          Start tracking
-        </div>
+        {practiceDone ? (
+          <div onClick={startSleepTracking} style={{
+            ...primaryCtaStyle,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+          }}>
+            <PlayIcon size={14} stroke="#0E1014" />
+            Start tracking
+          </div>
+        ) : (
+          <>
+            <div onClick={() => go('practice-intro')} style={primaryCtaStyle}>
+              Start practice
+            </div>
+            <div onClick={startSleepTracking} style={secondaryCtaStyle}>
+              Skip · start tracking
+            </div>
+          </>
+        )}
       </div>
     </>
   );
@@ -584,6 +568,13 @@ const primaryCtaStyle: React.CSSProperties = {
   background: '#fff', color: '#0E1014',
   borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
   boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+};
+
+const secondaryCtaStyle: React.CSSProperties = {
+  padding: '18px 0', textAlign: 'center',
+  background: 'rgba(255,255,255,0.08)', color: '#fff',
+  border: '1px solid rgba(255,255,255,0.16)',
+  borderRadius: 999, fontSize: 15, fontWeight: 500, cursor: 'pointer',
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {

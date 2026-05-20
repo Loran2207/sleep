@@ -7,7 +7,8 @@ import {
 import { TopPad } from '../components/shared';
 import { useMix, useSchedules, useSleepMode, useNapDuration, pickScheduleForDay } from '../state/store';
 import { lookupSound } from '../data/sounds';
-import { SoundMixerPanel, type QuickMix } from '../components/SoundMixerPanel';
+import { type QuickMix } from '../components/SoundMixerPanel';
+import { SoundsMixerView } from '../components/SoundsMixerView';
 
 const TRACKING_QUICK_MIXES: QuickMix[] = [
   { id: 'rainy',   name: 'Rainy night', sounds: ['rain', 'thunder', 'chimes'] },
@@ -288,8 +289,8 @@ export function TrackingMixer() {
         <div style={{ width: 36 }} />
       </div>
 
-      <div style={{ position: 'relative', flex: 1, padding: '12px 20px 130px', overflowY: 'auto' }}>
-        <SoundMixerPanel
+      <div style={{ position: 'relative', flex: 1, padding: '0 20px 130px', overflowY: 'auto' }}>
+        <SoundsMixerView
           binding={{
             mix: state.mix,
             setVol: mix.setVol,
@@ -298,8 +299,9 @@ export function TrackingMixer() {
             clearAll: mix.clearAll,
             setMixIds: mix.setMixIds,
           }}
+          playing={state.playing}
+          timerMin={state.timerMin}
           quickMixes={TRACKING_QUICK_MIXES}
-          theme="warm"
           emptyHint="Layer rain, fire, chimes — whatever puts you under. Each sound has its own volume."
         />
       </div>
