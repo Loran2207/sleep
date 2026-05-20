@@ -8,7 +8,7 @@ import { TopPad } from '../components/shared';
 import { useMix, useSchedules, useSleepMode, useNapDuration, pickScheduleForDay } from '../state/store';
 import { lookupSound } from '../data/sounds';
 import { type QuickMix } from '../components/SoundMixerPanel';
-import { SoundsMixerView } from '../components/SoundsMixerView';
+import { SoundsMixerView, SoundsScreenBackdrop } from '../components/SoundsMixerView';
 
 const TRACKING_QUICK_MIXES: QuickMix[] = [
   { id: 'rainy',   name: 'Rainy night', sounds: ['rain', 'thunder', 'chimes'] },
@@ -270,11 +270,7 @@ export function TrackingMixer() {
       background: '#0E1014', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
-      <div style={{ position: 'absolute', inset: 0, background: `
-        radial-gradient(1px 1px at 18% 25%, rgba(255,255,255,0.4), transparent 50%),
-        radial-gradient(1px 1px at 78% 18%, rgba(255,255,255,0.35), transparent 50%),
-        radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.25), transparent 50%)`,
-      }} />
+      <SoundsScreenBackdrop />
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px' }}>

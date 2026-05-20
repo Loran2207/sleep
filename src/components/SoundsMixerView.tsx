@@ -1,8 +1,10 @@
 // Reusable Sounds player body — the visualizer + title + status +
-// Mix/Library tab switcher + the SoundMixerPanel split by tab. Used
-// by the standalone Sounds player on Home, the wind-down Schedule
-// mixer, and the in-bed Tracking mixer so picking sounds looks and
-// feels identical wherever you do it.
+// Mix/Library tab switcher + the SoundMixerPanel split by tab.
+// Used by the standalone Sounds player on Home, the wind-down
+// Schedule mixer, and the in-bed Tracking mixer so picking sounds
+// looks and feels identical wherever you do it. Pair it with
+// <SoundsScreenBackdrop /> for the matching radial wash + twinkling
+// starfield.
 
 import { useState } from 'react';
 import { W } from '../tokens';
@@ -132,24 +134,24 @@ function Visualizer({ playing, count }: { playing: boolean; count: number }) {
   const bars = [0, 0.18, 0.36, 0.54];
   return (
     <div style={{
-      position: 'relative', height: 200,
+      position: 'relative', height: 220,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      marginTop: 8,
+      marginTop: 14,
     }}>
       <div style={{
-        position: 'absolute', width: 186, height: 186, borderRadius: '50%',
+        position: 'absolute', width: 196, height: 196, borderRadius: '50%',
         background: `radial-gradient(circle at 50% 50%, ${hexA(ACCENT, 0.18)}, ${hexA(ACCENT, 0)} 70%)`,
         animation: playing ? 'sounds-pulse-a 4.6s ease-in-out infinite' : undefined,
         opacity: playing ? 1 : 0.4,
       }} />
       <div style={{
-        position: 'absolute', width: 124, height: 124, borderRadius: '50%',
+        position: 'absolute', width: 132, height: 132, borderRadius: '50%',
         border: `1px dashed ${hexA(ACCENT, 0.40)}`,
         animation: playing ? 'sounds-pulse-b 3.4s ease-in-out infinite' : undefined,
         opacity: playing ? 1 : 0.55,
       }} />
       <div style={{
-        position: 'absolute', width: 80, height: 80, borderRadius: '50%',
+        position: 'absolute', width: 84, height: 84, borderRadius: '50%',
         background: `linear-gradient(135deg, ${hexA(ACCENT, 0.55)}, ${hexA(ACCENT, 0.18)})`,
         border: `1px solid ${hexA(ACCENT, 0.65)}`,
         boxShadow: `0 6px 28px ${hexA(ACCENT, 0.28)} inset, 0 8px 26px ${hexA(ACCENT, 0.25)}`,
@@ -157,7 +159,7 @@ function Visualizer({ playing, count }: { playing: boolean; count: number }) {
       }}>
         {bars.map((d, i) => (
           <div key={i} style={{
-            width: 3, height: 26, borderRadius: 2,
+            width: 3, height: 28, borderRadius: 2,
             background: ACCENT_LIGHT,
             transformOrigin: 'center',
             animation: playing ? `sounds-bar 1.${4 + i}s ease-in-out infinite` : undefined,
@@ -192,7 +194,51 @@ function SoundsMixerKeyframes() {
         0%, 100% { transform: scaleY(0.35); }
         50% { transform: scaleY(1); }
       }
+      @keyframes sounds-twinkle {
+        0%, 100% { opacity: 0.35; }
+        50% { opacity: 0.85; }
+      }
     `}</style>
+  );
+}
+
+// Coral wash + twinkling starfield used as the screen background
+// behind the SoundsMixerView. Lives next to the mixer so every
+// screen that hosts the mixer gets the identical backdrop without
+// having to copy-paste a stack of gradients.
+export function SoundsScreenBackdrop() {
+  const [stars] = useState(() => {
+    const out: { top: string; left: string; size: number; delay: string; dur: string }[] = [];
+    for (let i = 0; i < 26; i++) {
+      out.push({
+        top: `${Math.round(Math.random() * 70)}%`,
+        left: `${Math.round(Math.random() * 100)}%`,
+        size: Math.random() < 0.8 ? 1 : 2,
+        delay: `${(Math.random() * 4).toFixed(2)}s`,
+        dur: `${(2 + Math.random() * 3).toFixed(2)}s`,
+      });
+    }
+    return out;
+  });
+  return (
+    <>
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none', background: `
+          radial-gradient(120% 80% at 50% 0%, rgba(255,142,124,0.16) 0%, rgba(255,142,124,0) 55%),
+          radial-gradient(80% 60% at 50% 100%, rgba(138,161,255,0.10) 0%, rgba(138,161,255,0) 60%)`,
+      }} />
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        {stars.map((s, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: s.top, left: s.left,
+            width: s.size, height: s.size, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.85)',
+            animation: `sounds-twinkle ${s.dur} ease-in-out infinite`,
+            animationDelay: s.delay,
+          }} />
+        ))}
+      </div>
+    </>
   );
 }
 

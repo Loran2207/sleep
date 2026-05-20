@@ -4,7 +4,7 @@ import { TopPad } from '../components/shared';
 import { GlyphChevDn } from '../components/icons';
 import { useScheduleMix, useMix } from '../state/store';
 import { type QuickMix } from '../components/SoundMixerPanel';
-import { SoundsMixerView } from '../components/SoundsMixerView';
+import { SoundsMixerView, SoundsScreenBackdrop } from '../components/SoundsMixerView';
 
 const SCHEDULE_QUICK_MIXES: QuickMix[] = [
   { id: 'rainy',   name: 'Rainy night', sounds: ['rain', 'thunder', 'chimes'] },
@@ -29,6 +29,7 @@ export function ScheduleMix() {
       background: '#0E1014', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
+      <SoundsScreenBackdrop />
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px' }}>
