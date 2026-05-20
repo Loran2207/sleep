@@ -2,14 +2,14 @@ import type { CSSProperties, ReactNode } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  HomeFilled, AnalyticsFilled, JournalFilled, CourseFilled,
+  HomeFilled, JournalFilled, CourseFilled, ProfileFilled,
   ChevronRightIcon,
   type IconProps,
 } from './icons';
 import type { ScreenId } from '../tokens';
 import type { MoodType } from './icons';
 import { lookupSound } from '../data/sounds';
-import { useNightShiftDone } from '../state/store';
+import { useNightShiftDone, useWindDownStep, usePracticeDone } from '../state/store';
 import { CheckIcon, NightShiftIcon } from './icons';
 import { MoodFace } from './MoodFace';
 import { Avatar } from './Avatar';
@@ -90,56 +90,152 @@ export function SettingsCard({ icon, title, desc, onClick }: {
 }
 
 // ─── Liquid Glass bottom navigation ──────────────────────────────
-type NavId = 'home' | 'analytics' | 'journal' | 'course' | 'track';
+// 4 tabs + a raised central "Go to sleep" action. The center button
+// sits in a soft notch above the pill so it reads as the primary
+// action, the way Instagram's "+" or a banking app's "Pay" does.
+export type NavId = 'home' | 'journal' | 'course' | 'profile' | 'sleep';
 
 export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string }) {
-  const items: { id: NavId; icon: (p: { size?: number; fill?: string }) => ReactNode; stub?: boolean; nav: ScreenId | null }[] = [
+  const tabs: { id: NavId; icon: (p: { size?: number; fill?: string }) => ReactNode; nav: ScreenId }[] = [
     { id: 'home', icon: HomeFilled, nav: 'home' },
-    { id: 'analytics', icon: AnalyticsFilled, stub: true, nav: null },
     { id: 'journal', icon: JournalFilled, nav: 'journal' },
     { id: 'course', icon: CourseFilled, nav: 'course' },
+    { id: 'profile', icon: ProfileFilled, nav: 'profile' },
   ];
+  const left = tabs.slice(0, 2);
+  const right = tabs.slice(2);
+
+  const [, setStep] = useWindDownStep();
+  const [, setPracticeDone] = usePracticeDone();
+  function openSleepFlow() {
+    setStep(1);
+    setPracticeDone(false);
+    go('wind-down');
+  }
+
   return (
     <div style={{
       position: 'absolute', bottom: 22, left: 14, right: 14, zIndex: 30,
       fontFamily: W.font,
-      display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <div style={{
-        flex: 1, position: 'relative',
-        height: 56, borderRadius: 28,
-        background: 'rgba(14,14,17,0.55)',
-        backdropFilter: 'blur(28px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: '0 8px 28px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-        padding: '0 6px',
-      }}>
+      <NavKeyframes />
+      <div style={{ position: 'relative', height: 60 }}>
+        {/* Pill */}
         <div style={{
-          position: 'absolute', inset: 0, borderRadius: 28,
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 50%)',
-          pointerEvents: 'none',
-        }} />
-        {items.map((it) => {
-          const isActive = it.id === active;
-          return (
-            <div
-              key={it.id}
-              onClick={() => !it.stub && it.nav && go(it.nav)}
-              style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                height: '100%', cursor: it.stub ? 'default' : 'pointer',
-                opacity: it.stub ? 0.45 : (isActive ? 1 : 0.7),
-                position: 'relative', zIndex: 1,
-              }}
-            >
-              <it.icon size={24} fill={W.ink} />
-            </div>
-          );
-        })}
+          position: 'absolute', inset: 0,
+          borderRadius: 30,
+          background: 'rgba(14,14,17,0.62)',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: '0 10px 32px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.05) inset',
+          display: 'flex', alignItems: 'center',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: 30,
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 55%)',
+            pointerEvents: 'none',
+          }} />
+          <NavCluster items={left} active={active} />
+          <div style={{ width: 76, flexShrink: 0 }} />
+          <NavCluster items={right} active={active} />
+        </div>
+
+        {/* Central Go-to-Sleep FAB */}
+        <div
+          onClick={openSleepFlow}
+          aria-label="Go to sleep"
+          style={{
+            position: 'absolute', left: '50%', top: -14,
+            transform: 'translateX(-50%)',
+            width: 64, height: 64, borderRadius: 32,
+            cursor: 'pointer',
+            background: active === 'sleep'
+              ? 'radial-gradient(circle at 35% 28%, #C4B0FF 0%, #8A7AFF 45%, #4B3FAF 100%)'
+              : 'radial-gradient(circle at 35% 28%, #B5A0FF 0%, #7969F0 45%, #3F359A 100%)',
+            border: '1px solid rgba(255,255,255,0.20)',
+            boxShadow: `
+              0 14px 32px rgba(122,105,240,0.55),
+              0 4px 12px rgba(0,0,0,0.45),
+              inset 0 1px 0 rgba(255,255,255,0.30),
+              inset 0 -8px 18px rgba(40,30,120,0.45)
+            `,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 2,
+          }}
+        >
+          {/* Halo pulse */}
+          <div style={{
+            position: 'absolute', inset: -6, borderRadius: 36,
+            background: 'radial-gradient(circle, rgba(122,105,240,0.40) 0%, rgba(122,105,240,0) 65%)',
+            pointerEvents: 'none',
+            animation: 'sleep-halo 3.4s ease-in-out infinite',
+          }} />
+          <SleepGlyph size={28} />
+        </div>
       </div>
     </div>
+  );
+}
+
+function NavCluster({ items, active }: { items: { id: NavId; icon: (p: { size?: number; fill?: string }) => ReactNode; nav: ScreenId }[]; active: NavId | string }) {
+  return (
+    <div style={{
+      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+      height: '100%', padding: '0 8px', position: 'relative', zIndex: 1,
+    }}>
+      {items.map((it) => {
+        const isActive = it.id === active;
+        return (
+          <div
+            key={it.id}
+            onClick={() => go(it.nav)}
+            style={{
+              width: 56, height: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+              position: 'relative',
+            }}
+          >
+            <div style={{
+              opacity: isActive ? 1 : 0.55,
+              transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
+              transition: 'opacity .15s ease, transform .15s ease',
+            }}>
+              <it.icon size={23} fill={W.ink} />
+            </div>
+            {isActive && (
+              <div style={{
+                position: 'absolute', bottom: 8, left: '50%',
+                transform: 'translateX(-50%)',
+                width: 4, height: 4, borderRadius: 2,
+                background: W.ink,
+              }} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Crescent moon used by the central sleep action.
+function SleepGlyph({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#fff">
+      <path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a7 7 0 0 0 10.7 10.7z" />
+    </svg>
+  );
+}
+
+function NavKeyframes() {
+  return (
+    <style>{`
+      @keyframes sleep-halo {
+        0%, 100% { transform: scale(0.92); opacity: 0.7; }
+        50% { transform: scale(1.05); opacity: 1; }
+      }
+    `}</style>
   );
 }
 

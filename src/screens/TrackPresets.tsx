@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { W } from '../tokens';
 import { startTracking } from '../state/tracking';
 import { BoltIcon, MoonGlyphIcon } from '../components/icons';
-import { StickyTopBar, LiquidGlassNav } from '../components/shared';
+import { HeaderBar, LiquidGlassNav } from '../components/shared';
+import { back } from '../state/navigation';
 import { usePresets, type Preset } from '../state/store';
 
 export function TrackPresets() {
@@ -23,13 +24,7 @@ export function TrackPresets() {
       height: '100%', display: 'flex', flexDirection: 'column',
       background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative',
     }}>
-      <StickyTopBar />
-
-      <div style={{ padding: '18px 20px 10px' }}>
-        <div style={{
-          fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', color: W.ink,
-        }}>Presets</div>
-      </div>
+      <HeaderBar title="Presets" onBack={() => back()} />
 
       <div style={{
         flex: 1, overflowY: 'auto', overflowX: 'hidden',
@@ -47,7 +42,7 @@ export function TrackPresets() {
         <AddPresetCard onAdd={startNewPreset} />
       </div>
 
-      <LiquidGlassNav active="track" />
+      <LiquidGlassNav active="sleep" />
 
       {editing && (() => {
         const p = presets.list.find((x) => x.id === editing);
