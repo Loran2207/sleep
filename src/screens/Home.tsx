@@ -1,10 +1,9 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { PhoneOffIcon } from '../components/icons';
 import {
-  TopPad, LiquidGlassNav, SettingsCard, NightShiftCard,
+  TopPad, LiquidGlassNav,
 } from '../components/shared';
-import { useBreathSessions, useQuizSession } from '../state/store';
+import { useBreathSessions, useNightShiftDone, useQuizSession } from '../state/store';
 import { QUIZZES, type Quiz } from '../data/quizzes';
 import { TODAY_DATE, dayToDate, dayLabel } from '../data/days';
 
@@ -23,14 +22,7 @@ export function Home() {
         <div style={{ padding: '8px 16px 0' }}>
           <BreathingCard />
           <SoundsCard />
-
-          <ToolsSectionHeader title="Wind down" style={{ marginTop: 20 }} />
-          <SettingsCard
-            icon={<PhoneOffIcon size={22} stroke={W.ink} />}
-            title="Block distracting apps"
-            desc="Social and games go silent 30 min before bedtime, until you wake up."
-            onClick={() => go('routine')}
-          />
+          <DistractionCard />
           <NightShiftCard />
         </div>
 
@@ -75,6 +67,10 @@ function ToolCardKeyframes() {
       @keyframes sound-ring {
         0% { transform: scale(0.7); opacity: 0.6; }
         100% { transform: scale(1.5); opacity: 0; }
+      }
+      @keyframes sunset-glow {
+        0%, 100% { transform: scale(0.92); opacity: 0.78; }
+        50% { transform: scale(1.04); opacity: 1; }
       }
     `}</style>
   );
@@ -196,13 +192,144 @@ function SoundOrb() {
   );
 }
 
-function ToolsSectionHeader({ title, style }: { title: string; style?: React.CSSProperties }) {
+// ─── Distraction blocking tile (matches Breathing / Sounds) ─────
+function DistractionCard() {
+  return (
+    <div onClick={() => go('routine')} style={{
+      ...TILE_BASE,
+      background: `
+        radial-gradient(70% 70% at 14% 30%, rgba(127,227,161,0.30) 0%, rgba(127,227,161,0) 70%),
+        radial-gradient(120% 90% at 95% 100%, rgba(127,227,161,0.06) 0%, rgba(127,227,161,0) 60%),
+        linear-gradient(180deg, #131A17 0%, #0F1311 100%)`,
+      border: '1px solid rgba(127,227,161,0.26)',
+      boxShadow: '0 14px 30px rgba(127,227,161,0.10)',
+    }}>
+      <ToolCardKeyframes />
+      <FocusOrb />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em' }}>
+          Block distracting apps
+        </div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4 }}>
+          Social and games go silent 30 min before bed.
+        </div>
+      </div>
+      <div style={{
+        padding: '8px 14px', borderRadius: 999,
+        background: 'rgba(127,227,161,0.14)',
+        border: '1px solid rgba(127,227,161,0.42)',
+        color: '#B7F0CA', fontSize: 12, fontWeight: 600,
+        flexShrink: 0,
+      }}>Set up</div>
+    </div>
+  );
+}
+
+function FocusOrb() {
   return (
     <div style={{
-      padding: '12px 4px 10px',
-      fontSize: 13, color: W.weak, fontWeight: 600,
-      ...style,
-    }}>{title}</div>
+      width: 44, height: 44, position: 'relative', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        borderRadius: '50%', border: '1px dashed rgba(127,227,161,0.50)',
+        animation: 'breath-pulse 6s ease-in-out infinite',
+      }} />
+      <div style={{
+        position: 'absolute', width: 32, height: 32, borderRadius: 16,
+        background: 'radial-gradient(circle at 35% 30%, rgba(183,240,202,0.65), rgba(127,227,161,0.10) 65%, transparent 80%)',
+        border: '1px solid rgba(127,227,161,0.60)',
+      }} />
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="#B7F0CA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        style={{ position: 'relative' }}>
+        <rect x="7" y="3" width="10" height="18" rx="2.5" />
+        <path d="M5 4l14 16" />
+      </svg>
+    </div>
+  );
+}
+
+// ─── Night Shift tile (matches Breathing / Sounds) ──────────────
+function NightShiftCard() {
+  const [done] = useNightShiftDone();
+  return (
+    <div onClick={() => go('night-shift-guide')} style={{
+      ...TILE_BASE,
+      background: done
+        ? `
+          radial-gradient(70% 70% at 14% 30%, rgba(127,227,161,0.28) 0%, rgba(127,227,161,0) 70%),
+          radial-gradient(120% 90% at 95% 100%, rgba(127,227,161,0.06) 0%, rgba(127,227,161,0) 60%),
+          linear-gradient(180deg, #131A17 0%, #0F1311 100%)`
+        : `
+          radial-gradient(70% 70% at 14% 30%, rgba(255,185,92,0.32) 0%, rgba(255,185,92,0) 70%),
+          radial-gradient(120% 90% at 95% 100%, rgba(255,185,92,0.08) 0%, rgba(255,185,92,0) 60%),
+          linear-gradient(180deg, #1A1611 0%, #15110C 100%)`,
+      border: done
+        ? '1px solid rgba(127,227,161,0.30)'
+        : '1px solid rgba(255,185,92,0.28)',
+      boxShadow: done
+        ? '0 14px 30px rgba(127,227,161,0.10)'
+        : '0 14px 30px rgba(255,185,92,0.12)',
+    }}>
+      <ToolCardKeyframes />
+      <SunsetOrb done={done} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: W.ink, letterSpacing: '-0.01em' }}>
+          Night Shift
+        </div>
+        <div style={{ fontSize: 12, color: W.weak, marginTop: 3, lineHeight: 1.4 }}>
+          {done
+            ? <><span style={{ color: '#B7F0CA', fontWeight: 600 }}>On</span> · tap to review.</>
+            : 'Warm your screen after sunset.'}
+        </div>
+      </div>
+      <div style={{
+        padding: '8px 14px', borderRadius: 999,
+        background: done ? 'rgba(127,227,161,0.14)' : 'rgba(255,185,92,0.14)',
+        border: `1px solid ${done ? 'rgba(127,227,161,0.42)' : 'rgba(255,185,92,0.42)'}`,
+        color: done ? '#B7F0CA' : '#FFD58A', fontSize: 12, fontWeight: 600,
+        flexShrink: 0,
+      }}>{done ? 'Done' : 'How to'}</div>
+    </div>
+  );
+}
+
+function SunsetOrb({ done }: { done: boolean }) {
+  const accent = done ? 'rgba(127,227,161,' : 'rgba(255,185,92,';
+  const highlight = done ? 'rgba(183,240,202,' : 'rgba(255,210,150,';
+  const glyph = done ? '#B7F0CA' : '#FFD58A';
+  return (
+    <div style={{
+      width: 44, height: 44, position: 'relative', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        borderRadius: '50%', border: `1px dashed ${accent}0.55)`,
+      }} />
+      <div style={{
+        position: 'absolute', width: 32, height: 32, borderRadius: 16,
+        background: `radial-gradient(circle at 35% 30%, ${highlight}0.65), ${accent}0.10) 65%, transparent 80%)`,
+        border: `1px solid ${accent}0.60)`,
+        animation: 'sunset-glow 5.5s ease-in-out infinite',
+      }} />
+      {done ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke={glyph} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+          style={{ position: 'relative' }}>
+          <path d="M5 12l4 4 10-10" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke={glyph} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+          style={{ position: 'relative' }}>
+          <circle cx="12" cy="12" r="4" fill={glyph} />
+          <path d="M12 5V3M12 21v-2M5 12H3M21 12h-2M6.5 6.5L5 5M19 19l-1.5-1.5M6.5 17.5L5 19M19 5l-1.5 1.5" />
+        </svg>
+      )}
+    </div>
   );
 }
 
