@@ -276,8 +276,7 @@ export function DayStrip({
   return (
     <div style={{
       display: 'flex', gap: 4, padding: '4px 12px 8px',
-      overflowX: 'auto', fontFamily: W.font,
-      WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
+      fontFamily: W.font,
     }}>
       {days.map((d, i) => {
         const isSelected = i === selectedIdx;
@@ -289,8 +288,8 @@ export function DayStrip({
             data-selected={isSelected}
             onClick={() => !isFuture && onSelect && onSelect(i)}
             style={{
-              flex: '0 0 auto', textAlign: 'center', cursor: isFuture ? 'default' : 'pointer',
-              opacity: isFuture ? 0.32 : 1, minWidth: 44,
+              flex: 1, textAlign: 'center', cursor: isFuture ? 'default' : 'pointer',
+              opacity: isFuture ? 0.32 : 1, minWidth: 0,
               padding: '8px 4px', borderRadius: 14,
               background: isSelected ? W.fill : 'transparent',
               transition: 'background 0.15s',
