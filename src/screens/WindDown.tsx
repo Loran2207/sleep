@@ -157,15 +157,22 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
 
   const [hour, setHour] = useState(todaySchedule.wakeHour);
   const [minute, setMinute] = useState(todaySchedule.wakeMinute);
+  const [noAlarm, setNoAlarm] = useState(false);
 
   // Commit alarm + persist on each tick of the wheel so the rest of
   // the app (mix-store, schedule) stays in sync without an explicit
-  // save step.
+  // save step. When the user opts out of an alarm, we clear the
+  // mix-store's alarm string but leave the schedule's wake time
+  // intact so re-enabling the toggle picks the same time back up.
   useEffect(() => {
-    setAlarm(fmt(hour, minute));
-    update(todaySchedule.id, { wakeHour: hour, wakeMinute: minute });
+    if (noAlarm) {
+      setAlarm('');
+    } else {
+      setAlarm(fmt(hour, minute));
+      update(todaySchedule.id, { wakeHour: hour, wakeMinute: minute });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hour, minute]);
+  }, [hour, minute, noAlarm]);
 
   const sleepEst = useMemo(() => {
     const bedMin = todaySchedule.bedHour * 60 + todaySchedule.bedMinute;
@@ -205,16 +212,35 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
         <div style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 22, padding: '14px 16px 16px',
+          borderRadius: 22, padding: '14px 16px 14px',
         }}>
-          <WheelPicker hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} />
+          <div style={{
+            opacity: noAlarm ? 0.32 : 1,
+            pointerEvents: noAlarm ? 'none' : 'auto',
+            transition: 'opacity .18s ease',
+          }}>
+            <WheelPicker hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} />
+          </div>
           <div style={{
             marginTop: 10, textAlign: 'center',
             fontSize: 12, color: 'rgba(255,255,255,0.65)',
           }}>
-            ≈ <strong style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-              {sleepH}h {String(sleepM).padStart(2, '0')}m
-            </strong> of sleep
+            {noAlarm
+              ? <>No alarm · <strong style={{ color: '#fff', fontWeight: 600 }}>wake naturally</strong></>
+              : <>≈ <strong style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  {sleepH}h {String(sleepM).padStart(2, '0')}m
+                </strong> of sleep</>}
+          </div>
+
+          <div style={{
+            marginTop: 14, paddingTop: 14,
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
+              Wake without an alarm
+            </div>
+            <AlarmToggle on={noAlarm} onChange={setNoAlarm} />
           </div>
         </div>
 
@@ -363,6 +389,36 @@ function PracticeStep() {
         )}
       </div>
     </>
+  );
+}
+
+// Small "no alarm" toggle. Matches the visual weight of the Profile
+// settings switch so the control reads as a familiar iOS-style
+// affordance, but uses the wind-down palette (white pill on dark
+// glass) instead of the brighter dashboard one.
+function AlarmToggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div
+      onClick={() => onChange(!on)}
+      role="switch"
+      aria-checked={on}
+      style={{
+        width: 40, height: 24, borderRadius: 12, padding: 2,
+        background: on ? '#fff' : 'rgba(255,255,255,0.14)',
+        border: on ? '1px solid #fff' : '1px solid rgba(255,255,255,0.18)',
+        display: 'flex', alignItems: 'center',
+        cursor: 'pointer', flexShrink: 0,
+        transition: 'background .15s ease',
+      }}
+    >
+      <div style={{
+        width: 18, height: 18, borderRadius: 9,
+        background: on ? '#0E1014' : '#fff',
+        transform: on ? 'translateX(16px)' : 'translateX(0)',
+        transition: 'transform .15s ease, background .15s ease',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.45)',
+      }} />
+    </div>
   );
 }
 
