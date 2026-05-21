@@ -1,15 +1,9 @@
-import { useState } from 'react';
 import { W } from '../tokens';
 import { back as goBack } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { startTracking } from '../state/tracking';
-import { useDraft, useMix } from '../state/store';
-import { lookupSound } from '../data/sounds';
+import { useMix } from '../state/store';
 import { type QuickMix } from '../components/SoundMixerPanel';
 import { SoundsMixerView, SoundsScreenBackdrop } from '../components/SoundsMixerView';
-
-const ACCENT = '#FF8E7C';
-const ACCENT_LIGHT = '#FFE0DA';
 
 const QUICK_MIXES: QuickMix[] = [
   { id: 'rainy', name: 'Rainy night', sounds: ['rain', 'thunder', 'chimes'] },
@@ -19,28 +13,10 @@ const QUICK_MIXES: QuickMix[] = [
 ];
 
 export function SoundsPlayer() {
-  // Player + tracking share the same mix store, so a layered mix
-  // curated here carries straight into a nap with no copying.
   const mix = useMix();
   const { state, togglePlay, setTimer } = mix;
   const playing = state.playing;
   const timerMin = state.timerMin;
-
-  const [showNapSheet, setShowNapSheet] = useState(false);
-  const [, setDraft] = useDraft();
-
-  function startNap() {
-    const names = state.mix
-      .map((s) => lookupSound(s.id)?.name)
-      .filter((x): x is string => !!x);
-    setDraft({
-      kind: 'nap',
-      napMinutes: timerMin && timerMin > 0 ? timerMin : 30,
-      sounds: names.length ? names : ['Rain'],
-    });
-    setShowNapSheet(false);
-    startTracking();
-  }
 
   const mixCount = state.mix.length;
 
@@ -50,13 +26,6 @@ export function SoundsPlayer() {
       background: '#0E0E11', color: W.ink, fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
-      <style>{`
-        @keyframes sounds-sheet-up {
-          from { transform: translateY(40px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-      `}</style>
-
       <SoundsScreenBackdrop />
 
       <TopPad />
@@ -79,7 +48,7 @@ export function SoundsPlayer() {
         <div style={{ width: 36 }} />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', position: 'relative', padding: '0 20px 260px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', position: 'relative', padding: '0 20px 180px' }}>
         <SoundsMixerView
           binding={{
             mix: state.mix,
@@ -97,32 +66,21 @@ export function SoundsPlayer() {
         />
       </div>
 
-      <BottomDock
+      <PlayDock
         playing={playing}
         onTogglePlay={togglePlay}
-        timerMin={timerMin}
-        onAskNap={() => setShowNapSheet(true)}
         hasSounds={mixCount > 0}
       />
-
-      {showNapSheet && (
-        <NapSheet
-          minutes={timerMin && timerMin > 0 ? timerMin : 30}
-          mixCount={mixCount}
-          onCancel={() => setShowNapSheet(false)}
-          onConfirm={startNap}
-        />
-      )}
     </div>
   );
 }
 
-function BottomDock({
-  playing, onTogglePlay, timerMin, onAskNap, hasSounds,
-}: {
-  playing: boolean; onTogglePlay: () => void;
-  timerMin: number | null;
-  onAskNap: () => void; hasSounds: boolean;
+// Minimal bottom dock — just the play / pause control. The
+// "Drifting off? Make this a nap" CTA used to live here; we now
+// keep the Sounds surface pure listening and let the central
+// sleep button on the nav own the bed-time flow.
+function PlayDock({ playing, onTogglePlay, hasSounds }: {
+  playing: boolean; onTogglePlay: () => void; hasSounds: boolean;
 }) {
   return (
     <div style={{
@@ -131,139 +89,34 @@ function BottomDock({
       background: 'linear-gradient(180deg, rgba(14,14,17,0) 0%, rgba(14,14,17,0.85) 35%, rgba(14,14,17,0.96) 100%)',
       backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
       pointerEvents: 'auto',
+      display: 'flex', justifyContent: 'center',
     }}>
-      <div onClick={onAskNap} style={{
-        marginBottom: 12, padding: '12px 14px', borderRadius: 16,
-        background: `linear-gradient(135deg, ${hexA(ACCENT, 0.16)}, ${hexA(ACCENT, 0.04)})`,
-        border: `1px solid ${hexA(ACCENT, 0.32)}`,
-        display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-      }}>
-        <div style={{
-          width: 34, height: 34, borderRadius: 12,
-          background: hexA(ACCENT, 0.22),
-          border: `1px solid ${hexA(ACCENT, 0.50)}`,
+      <div
+        onClick={hasSounds ? onTogglePlay : undefined}
+        aria-label={playing ? 'Pause' : 'Play'}
+        style={{
+          width: 64, height: 64, borderRadius: 32,
+          background: hasSounds ? '#fff' : 'rgba(255,255,255,0.18)',
+          color: '#0E0E11',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: hasSounds ? 'pointer' : 'default',
+          boxShadow: hasSounds ? '0 10px 26px rgba(255,255,255,0.18)' : 'none',
           flexShrink: 0,
-        }}>
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none"
-            stroke={ACCENT_LIGHT} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 14a8 8 0 0 1-10.5 7.5A9 9 0 0 0 21 14z" />
-            <path d="M7 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" />
-          </svg>
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: W.ink }}>
-            Drifting off? Make this a nap
-          </div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>
-            We'll wake you {timerMin ? `in ${timerMin} min` : 'after 30 min'} and log the rest.
-          </div>
-        </div>
-        <svg width={14} height={14} viewBox="0 0 24 24" fill="none"
-          stroke="rgba(255,255,255,0.55)" strokeWidth={2.4}
-          strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 6l6 6-6 6" />
-        </svg>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div
-          onClick={hasSounds ? onTogglePlay : undefined}
-          aria-label={playing ? 'Pause' : 'Play'}
-          style={{
-            width: 64, height: 64, borderRadius: 32,
-            background: hasSounds ? '#fff' : 'rgba(255,255,255,0.18)',
-            color: '#0E0E11',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: hasSounds ? 'pointer' : 'default',
-            boxShadow: hasSounds ? '0 10px 26px rgba(255,255,255,0.18)' : 'none',
-            flexShrink: 0,
-          }}
-        >
-          {playing
-            ? (
-              <svg width={24} height={24} viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="5" width="4" height="14" rx="1" />
-                <rect x="14" y="5" width="4" height="14" rx="1" />
-              </svg>
-            )
-            : (
-              <svg width={24} height={24} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5l12 7-12 7z" />
-              </svg>
-            )}
-        </div>
+        }}
+      >
+        {playing
+          ? (
+            <svg width={24} height={24} viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="5" width="4" height="14" rx="1" />
+              <rect x="14" y="5" width="4" height="14" rx="1" />
+            </svg>
+          )
+          : (
+            <svg width={24} height={24} viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5l12 7-12 7z" />
+            </svg>
+          )}
       </div>
     </div>
   );
-}
-
-function NapSheet({ minutes, mixCount, onCancel, onConfirm }: {
-  minutes: number; mixCount: number; onCancel: () => void; onConfirm: () => void;
-}) {
-  return (
-    <div onClick={onCancel} style={{
-      position: 'absolute', inset: 0, zIndex: 90,
-      background: 'rgba(8,9,12,0.62)',
-      backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
-      display: 'flex', alignItems: 'flex-end',
-    }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        width: '100%', background: W.bg,
-        borderTopLeftRadius: 24, borderTopRightRadius: 24,
-        padding: '14px 20px calc(20px + env(safe-area-inset-bottom))',
-        boxShadow: '0 -10px 40px rgba(0,0,0,0.45)',
-        color: W.ink, fontFamily: W.font,
-        animation: 'sounds-sheet-up .26s ease',
-      }}>
-        <div style={{
-          width: 40, height: 4, borderRadius: 2,
-          background: W.fill, margin: '0 auto 16px',
-        }} />
-        <div style={{
-          width: 56, height: 56, borderRadius: 18,
-          background: `linear-gradient(135deg, ${hexA(ACCENT, 0.55)}, ${hexA(ACCENT, 0.18)})`,
-          border: `1px solid ${hexA(ACCENT, 0.65)}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 12px',
-        }}>
-          <svg width={26} height={26} viewBox="0 0 24 24" fill="none"
-            stroke={ACCENT_LIGHT} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 14a8 8 0 0 1-10.5 7.5A9 9 0 0 0 21 14z" />
-            <path d="M7 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" />
-          </svg>
-        </div>
-        <div style={{
-          fontSize: 20, fontWeight: 600, letterSpacing: '-0.01em', textAlign: 'center',
-        }}>Turn this into a nap?</div>
-        <div style={{
-          fontSize: 13, color: W.weak, lineHeight: 1.5, textAlign: 'center',
-          marginTop: 6, padding: '0 8px',
-        }}>
-          We'll keep your {mixCount > 0 ? `${mixCount}-sound mix` : 'sounds'} going, wake you in {minutes} min,
-          and log this as a nap.
-        </div>
-
-        <div onClick={onConfirm} style={{
-          marginTop: 18, padding: '16px 0', textAlign: 'center',
-          background: W.ink, color: W.bg, borderRadius: 999,
-          fontSize: 15, fontWeight: 600, cursor: 'pointer',
-          boxShadow: '0 8px 22px rgba(0,0,0,0.22)',
-        }}>Start nap · {minutes} min</div>
-        <div onClick={onCancel} style={{
-          marginTop: 10, padding: '14px 0', textAlign: 'center',
-          fontSize: 14, color: W.weak, cursor: 'pointer',
-        }}>Keep listening</div>
-      </div>
-    </div>
-  );
-}
-
-
-function hexA(hex: string, a: number) {
-  const c = hex.replace('#', '');
-  const r = parseInt(c.slice(0, 2), 16);
-  const g = parseInt(c.slice(2, 4), 16);
-  const b = parseInt(c.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
