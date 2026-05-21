@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
@@ -12,43 +12,35 @@ import {
 } from '../state/store';
 import { lookupFactor } from '../data/factors';
 import { readMood } from '../data/mood';
-import { DAYS as days, TODAY_IDX as todayIdx, dayToDate, dayLabel } from '../data/days';
+import { DAYS, TODAY_IDX, dayToDate, dayLabel } from '../data/days';
+
+// Show the last 7 days ending at today on the strip. Anything further
+// back stays in the data set (so historic entries are still findable)
+// but the strip itself reads as "this week" rather than a paginated
+// month — same convention Apple Health's Sleep tab uses.
+const STRIP_DAYS = DAYS.slice(Math.max(0, TODAY_IDX - 6), TODAY_IDX + 1);
+const STRIP_TODAY_IDX = STRIP_DAYS.length - 1;
 
 // Journal is one continuous per-day surface. The day strip at the top
-// is the only navigation; today and any past day share the same
-// layout — picking a day rebuilds the body with that day's mood
-// reading and the sleep numbers you logged for that night.
+// is the only navigation; picking a day rebuilds the body. The mood
+// reading, sleep numbers and reflection (note + factors) all live
+// inside the same card so the page reads as one block per day.
 //
 // What we surface mirrors what Apple Health gives you when no Apple
 // Watch (or third-party tracker) is connected: bed time, wake time,
 // time in bed, sleep goal. Heart rate, sleep stages and respiratory
 // rate need a watch, so we don't pretend.
 export function Journal() {
-  const [selected, setSelected] = useState(todayIdx);
-  const stripRef = useRef<HTMLDivElement | null>(null);
-  const didCenter = useRef(false);
-  useEffect(() => {
-    if (didCenter.current) return;
-    const container = stripRef.current?.firstChild as HTMLDivElement | undefined;
-    const el = stripRef.current?.querySelector<HTMLElement>('[data-selected="true"]');
-    if (container && el) {
-      container.scrollLeft = el.offsetLeft - container.clientWidth / 2 + el.clientWidth / 2;
-      didCenter.current = true;
-    }
-  });
-
-  const selectedDay = days[selected];
-  const isFuture = selected > todayIdx;
+  const [selected, setSelected] = useState(STRIP_TODAY_IDX);
+  const selectedDay = STRIP_DAYS[selected];
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
       <TopPad h={6} />
-      <div ref={stripRef}>
-        <DayStrip days={days} todayIdx={todayIdx} selectedIdx={selected} onSelect={setSelected} />
-      </div>
+      <DayStrip days={STRIP_DAYS} todayIdx={STRIP_TODAY_IDX} selectedIdx={selected} onSelect={setSelected} />
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ padding: '4px 16px 0' }}>
-          {isFuture ? <FutureDay day={selectedDay} /> : <DayView day={selectedDay} />}
+          <DayView day={selectedDay} />
         </div>
         <div style={{ height: 190 }} />
       </div>
@@ -57,7 +49,10 @@ export function Journal() {
   );
 }
 
-// ─── DAY VIEW (same for today + past) ──────────────────────────
+// ─── DAY VIEW ──────────────────────────────────────────────────
+// Renders the selected day. Missing days surface the fill-in card;
+// logged days roll mood + sleep + reflection into one card and put
+// any breath sessions in their own section underneath.
 function DayView({ day }: { day: Day }) {
   const { list, add } = useJournal();
   const breath = useBreathSessions();
@@ -88,40 +83,9 @@ function DayView({ day }: { day: Day }) {
     go('journal-entry');
   }
 
-  const reading = readMood(entry.moodX, entry.moodY);
-  const hasSleep = !!(entry.bedTime && entry.wakeTime);
-  const totalMin = hasSleep ? minutesBetween(entry.bedTime!, entry.wakeTime!) : 0;
-
-  const showReflection = !!entry.text || entry.factors.length > 0;
-
   return (
     <>
-      <DayHero day={day} entry={entry} reading={reading} onEditMood={openEntry} />
-
-      {hasSleep && (
-        <>
-          <SectionTitle>Sleep</SectionTitle>
-          <SleepCard bed={entry.bedTime!} wake={entry.wakeTime!} totalMin={totalMin} />
-        </>
-      )}
-
-      {showReflection && (
-        <>
-          <SectionTitle>Reflection</SectionTitle>
-          {entry.text && (
-            <div onClick={openEntry} style={{
-              background: W.paper, border: `1px solid ${W.fill}`,
-              borderRadius: 18, padding: '16px 16px',
-              fontSize: 14, lineHeight: 1.5, color: W.ink, cursor: 'pointer',
-            }}>{entry.text}</div>
-          )}
-          {entry.factors.length > 0 && (
-            <div style={{ marginTop: entry.text ? 10 : 0 }}>
-              <FactorChips ids={entry.factors} />
-            </div>
-          )}
-        </>
-      )}
+      <DayCard day={day} entry={entry} onEdit={openEntry} />
 
       {sessions.length > 0 && (
         <>
@@ -133,11 +97,18 @@ function DayView({ day }: { day: Day }) {
   );
 }
 
-function DayHero({ day, entry, reading, onEditMood }: {
-  day: Day; entry: JournalEntry;
-  reading: ReturnType<typeof readMood>;
-  onEditMood: () => void;
+// ─── DAY CARD ──────────────────────────────────────────────────
+// Single combined card holding mood + sleep + reflection. Sections
+// are separated by hairline dividers; each section is hidden when it
+// has no data so the card collapses cleanly for sparse days.
+function DayCard({ day, entry, onEdit }: {
+  day: Day; entry: JournalEntry; onEdit: () => void;
 }) {
+  const reading = readMood(entry.moodX, entry.moodY);
+  const hasSleep = !!(entry.bedTime && entry.wakeTime);
+  const totalMin = hasSleep ? minutesBetween(entry.bedTime!, entry.wakeTime!) : 0;
+  const hasReflection = !!entry.text || entry.factors.length > 0;
+
   return (
     <div style={{
       position: 'relative', overflow: 'hidden',
@@ -151,35 +122,65 @@ function DayHero({ day, entry, reading, onEditMood }: {
         position: 'absolute', inset: 0, pointerEvents: 'none',
         background: `radial-gradient(75% 70% at 80% 0%, ${hexA(reading.tint, 0.26)}, transparent 70%)`,
       }} />
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
-        <MoodFace tint={reading.tint} x={entry.moodX} y={entry.moodY} size={72} glow />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
-          <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 4 }}>
-            {reading.feeling}
-          </div>
-          <div style={{ fontSize: 13, color: W.weak, marginTop: 2 }}>{reading.desc}</div>
+
+      <MoodSection day={day} entry={entry} reading={reading} onEdit={onEdit} />
+
+      {hasSleep && (
+        <>
+          <SectionDivider />
+          <SleepSection bed={entry.bedTime!} wake={entry.wakeTime!} totalMin={totalMin} />
+        </>
+      )}
+
+      {hasReflection && (
+        <>
+          <SectionDivider />
+          <ReflectionSection text={entry.text} factors={entry.factors} onClick={onEdit} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function SectionDivider() {
+  return (
+    <div style={{
+      position: 'relative',
+      height: 1, margin: '18px -20px',
+      background: W.fill,
+    }} />
+  );
+}
+
+function MoodSection({ day, entry, reading, onEdit }: {
+  day: Day; entry: JournalEntry;
+  reading: ReturnType<typeof readMood>;
+  onEdit: () => void;
+}) {
+  return (
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
+      <MoodFace tint={reading.tint} x={entry.moodX} y={entry.moodY} size={72} glow />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
+        <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 4 }}>
+          {reading.feeling}
         </div>
-        <div onClick={onEditMood} aria-label="Edit" style={{
-          position: 'relative',
-          width: 32, height: 32, borderRadius: 16,
-          background: W.fill, border: `1px solid ${W.veryweak}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', flexShrink: 0,
-        }}>
-          <PencilIcon size={14} stroke={W.ink} />
-        </div>
+        <div style={{ fontSize: 13, color: W.weak, marginTop: 2 }}>{reading.desc}</div>
+      </div>
+      <div onClick={onEdit} aria-label="Edit" style={{
+        position: 'relative',
+        width: 32, height: 32, borderRadius: 16,
+        background: W.fill, border: `1px solid ${W.veryweak}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', flexShrink: 0,
+      }}>
+        <PencilIcon size={14} stroke={W.ink} />
       </div>
     </div>
   );
 }
 
-// ─── SLEEP CARD ─────────────────────────────────────────────────
-// Goal ring + total duration up top, bed/wake row below. No HR, no
-// stages — those need a wearable. The ring shows progress toward the
-// user's sleep goal; we cap the visible arc at 100% so a long lie-in
-// doesn't sweep past the start.
-function SleepCard({ bed, wake, totalMin }: { bed: string; wake: string; totalMin: number }) {
+function SleepSection({ bed, wake, totalMin }: { bed: string; wake: string; totalMin: number }) {
   const [goalH] = useSleepGoal();
   const goalMin = goalH * 60;
   const hh = Math.floor(totalMin / 60);
@@ -202,10 +203,7 @@ function SleepCard({ bed, wake, totalMin }: { bed: string; wake: string; totalMi
   }
 
   return (
-    <div style={{
-      background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 18, padding: '18px 16px',
-    }}>
+    <div style={{ position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
         <GoalRing pct={ringPct} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -235,7 +233,7 @@ function SleepCard({ bed, wake, totalMin }: { bed: string; wake: string; totalMi
       </div>
 
       <div style={{
-        marginTop: 16, paddingTop: 14, borderTop: `1px solid ${W.fill}`,
+        marginTop: 14,
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
       }}>
         <TimeBlock label="Bed" time={bed} kind="moon" />
@@ -245,6 +243,42 @@ function SleepCard({ bed, wake, totalMin }: { bed: string; wake: string; totalMi
         }} />
         <TimeBlock label="Wake" time={wake} kind="sun" />
       </div>
+    </div>
+  );
+}
+
+function ReflectionSection({ text, factors, onClick }: {
+  text: string; factors: string[]; onClick: () => void;
+}) {
+  return (
+    <div style={{ position: 'relative' }} onClick={onClick}>
+      {text && (
+        <div style={{
+          fontSize: 14, lineHeight: 1.5, color: W.ink, cursor: 'pointer',
+        }}>{text}</div>
+      )}
+      {factors.length > 0 && (
+        <div style={{
+          marginTop: text ? 14 : 0,
+          display: 'flex', flexWrap: 'wrap', gap: 6,
+        }}>
+          {factors.map((id) => {
+            const f = lookupFactor(id);
+            if (!f) return null;
+            return (
+              <span key={id} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 12px', borderRadius: 999,
+                background: W.fill, border: `1px solid ${W.veryweak}`,
+                fontSize: 12, color: W.ink,
+              }}>
+                <HabitGlyph name={f.glyph} size={12} stroke={W.weak} />
+                {f.label}
+              </span>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -317,33 +351,7 @@ function GoalRing({ pct }: { pct: number }) {
   );
 }
 
-function FactorChips({ ids }: { ids: string[] }) {
-  return (
-    <div style={{
-      background: W.paper, border: `1px solid ${W.fill}`,
-      borderRadius: 18, padding: '14px 14px',
-      display: 'flex', flexWrap: 'wrap', gap: 6,
-    }}>
-      {ids.map((id) => {
-        const f = lookupFactor(id);
-        if (!f) return null;
-        return (
-          <span key={id} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '6px 12px', borderRadius: 999,
-            background: W.fill, border: `1px solid ${W.veryweak}`,
-            fontSize: 12, color: W.ink,
-          }}>
-            <HabitGlyph name={f.glyph} size={12} stroke={W.weak} />
-            {f.label}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── MISSING / FUTURE PLACEHOLDERS ─────────────────────────────
+// ─── MISSING DAY PLACEHOLDER ───────────────────────────────────
 function MissingDayCard({ day, onFill, sessions }: {
   day: Day; onFill: () => void; sessions: BreathSession[];
 }) {
@@ -389,22 +397,6 @@ function MissingDayCard({ day, onFill, sessions }: {
         </>
       )}
     </>
-  );
-}
-
-function FutureDay({ day }: { day: Day }) {
-  return (
-    <div style={{
-      background: W.paper, border: `1px dashed ${W.veryweak}`,
-      borderRadius: 22, padding: '36px 22px',
-      textAlign: 'center', marginTop: 8,
-    }}>
-      <div style={{ fontSize: 12, color: W.weak, fontWeight: 500 }}>{dayLabel(day.n)}</div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: W.ink, marginTop: 8 }}>Still ahead</div>
-      <div style={{ fontSize: 13, color: W.weak, marginTop: 6, maxWidth: 260, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>
-        Sleep happens here later. We'll log it when you do.
-      </div>
-    </div>
   );
 }
 
