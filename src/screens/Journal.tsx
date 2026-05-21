@@ -85,7 +85,18 @@ function DayView({ day }: { day: Day }) {
 
   return (
     <>
-      <DayCard day={day} entry={entry} onEdit={openEntry} />
+      <MoodCard day={day} entry={entry} onEdit={openEntry} />
+
+      {!!(entry.bedTime && entry.wakeTime) && (
+        <>
+          <SectionTitle>Sleep</SectionTitle>
+          <SleepCard
+            bed={entry.bedTime!}
+            wake={entry.wakeTime!}
+            totalMin={minutesBetween(entry.bedTime!, entry.wakeTime!)}
+          />
+        </>
+      )}
 
       {sessions.length > 0 && (
         <>
@@ -97,16 +108,15 @@ function DayView({ day }: { day: Day }) {
   );
 }
 
-// ─── DAY CARD ──────────────────────────────────────────────────
-// Single combined card holding mood + sleep + reflection. Sections
-// are separated by hairline dividers; each section is hidden when it
-// has no data so the card collapses cleanly for sparse days.
-function DayCard({ day, entry, onEdit }: {
+// ─── MOOD CARD ─────────────────────────────────────────────────
+// Holds the mood reading (face + feeling) plus the user's
+// reflection — note text + factor chips — inside the same
+// mood-tinted card. Sleep stats live in their own neutral card
+// below so the day reads as "how I felt" → "how I slept".
+function MoodCard({ day, entry, onEdit }: {
   day: Day; entry: JournalEntry; onEdit: () => void;
 }) {
   const reading = readMood(entry.moodX, entry.moodY);
-  const hasSleep = !!(entry.bedTime && entry.wakeTime);
-  const totalMin = hasSleep ? minutesBetween(entry.bedTime!, entry.wakeTime!) : 0;
   const hasReflection = !!entry.text || entry.factors.length > 0;
 
   return (
@@ -124,13 +134,6 @@ function DayCard({ day, entry, onEdit }: {
       }} />
 
       <MoodSection day={day} entry={entry} reading={reading} onEdit={onEdit} />
-
-      {hasSleep && (
-        <>
-          <SectionDivider />
-          <SleepSection bed={entry.bedTime!} wake={entry.wakeTime!} totalMin={totalMin} />
-        </>
-      )}
 
       {hasReflection && (
         <>
@@ -180,7 +183,11 @@ function MoodSection({ day, entry, reading, onEdit }: {
   );
 }
 
-function SleepSection({ bed, wake, totalMin }: { bed: string; wake: string; totalMin: number }) {
+// ─── SLEEP CARD ────────────────────────────────────────────────
+// Standalone card below the mood card. Goal ring + total time in
+// bed on top, bed → wake row on the bottom. Neutral border so the
+// emotional mood card stays the only tinted surface of the day.
+function SleepCard({ bed, wake, totalMin }: { bed: string; wake: string; totalMin: number }) {
   const [goalH] = useSleepGoal();
   const goalMin = goalH * 60;
   const hh = Math.floor(totalMin / 60);
@@ -203,7 +210,10 @@ function SleepSection({ bed, wake, totalMin }: { bed: string; wake: string; tota
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{
+      background: W.paper, border: `1px solid ${W.fill}`,
+      borderRadius: 18, padding: '18px 16px',
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
         <GoalRing pct={ringPct} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -233,7 +243,7 @@ function SleepSection({ bed, wake, totalMin }: { bed: string; wake: string; tota
       </div>
 
       <div style={{
-        marginTop: 14,
+        marginTop: 16, paddingTop: 14, borderTop: `1px solid ${W.fill}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
       }}>
         <TimeBlock label="Bed" time={bed} kind="moon" />
