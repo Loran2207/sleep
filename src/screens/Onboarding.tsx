@@ -567,13 +567,6 @@ function WelcomeBody() {
         }}>
           A calm, science-backed toolkit for falling asleep faster and waking up genuinely rested.
         </div>
-        <div style={{
-          marginTop: 26, paddingTop: 18,
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-          fontSize: 12.5, color: 'rgba(255,255,255,0.42)', letterSpacing: 0.2,
-        }}>
-          Soundscapes&nbsp;&nbsp;·&nbsp;&nbsp;Breathing&nbsp;&nbsp;·&nbsp;&nbsp;Journal&nbsp;&nbsp;·&nbsp;&nbsp;Sleep&nbsp;score
-        </div>
       </div>
     </div>
   );
@@ -647,7 +640,7 @@ function ToolStack() {
     { accent: PERIWINKLE, title: 'Breathing', sub: '4-7-8 wind-down', cta: 'Start', glyph: 'orb', top: 86, rot: -2, scale: 1, z: 3 },
   ];
   return (
-    <div style={{ position: 'absolute', top: '11%', left: '50%', transform: 'translateX(-50%)', width: 300, height: 250, zIndex: 1 }}>
+    <div style={{ position: 'absolute', top: '18%', left: '50%', transform: 'translateX(-50%)', width: 300, height: 250, zIndex: 1 }}>
       {cards.map((c, i) => (
         <div key={i} style={{
           position: 'absolute', top: c.top, left: '50%', zIndex: c.z,
