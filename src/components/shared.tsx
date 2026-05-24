@@ -23,31 +23,30 @@ export function TopPad({ h = 8 }: { h?: number }) {
   return <div style={{ height: `calc(${h}px + env(safe-area-inset-top))`, flexShrink: 0 }} />;
 }
 
-// Welcome-style ambient for the top of a screen: a slow white glow in the
-// top-right corner plus a few motes of light drifting up and down. Drop it
-// as the first child of a position:relative, overflow:hidden screen and put
-// the real content above it with zIndex.
-export function HeaderAmbient({ height = 230 }: { height?: number }) {
-  // Fewer motes, no per-element will-change — transform/opacity animations
-  // are auto-composited, and a pile of will-change layers was the source of
-  // the jank. The glow is two cross-fading layers (warm + cool) so the
-  // corner light visibly shimmers.
+// Welcome-style ambient for the top of a screen: a slow, shimmering white
+// glow in the top-right corner plus a steady stream of light motes that
+// rise from the bottom, linger and fade. Drop it as the first child of a
+// position:relative, overflow:hidden screen, with real content above it.
+// Anchored to the bottom of its own box so the motion reads identically on
+// every screen regardless of what content sits on top.
+export function HeaderAmbient({ height = 240 }: { height?: number }) {
   const motes = [
-    { x: '20%', top: 122, dir: 'up', d: 0, dur: 13 },
-    { x: '36%', top: 42, dir: 'dn', d: 3.5, dur: 15 },
-    { x: '52%', top: 140, dir: 'up', d: 1.5, dur: 14 },
-    { x: '68%', top: 34, dir: 'dn', d: 5.5, dur: 16 },
-    { x: '80%', top: 124, dir: 'up', d: 2.5, dur: 13 },
-    { x: '88%', top: 56, dir: 'dn', d: 7, dur: 17 },
-    { x: '12%', top: 64, dir: 'dn', d: 8.5, dur: 15 },
+    { x: '12%', bottom: 24, s: 2.5, dur: 11, d: 0, v: 'a' },
+    { x: '26%', bottom: 66, s: 2, dur: 13, d: 2.4, v: 'b' },
+    { x: '39%', bottom: 14, s: 3, dur: 10, d: 1, v: 'a' },
+    { x: '50%', bottom: 54, s: 2, dur: 14, d: 4, v: 'b' },
+    { x: '62%', bottom: 30, s: 2.5, dur: 12, d: 1.8, v: 'a' },
+    { x: '74%', bottom: 74, s: 2, dur: 15, d: 5.6, v: 'b' },
+    { x: '85%', bottom: 22, s: 2.5, dur: 11, d: 3, v: 'a' },
+    { x: '32%', bottom: 92, s: 2, dur: 13, d: 6.6, v: 'b' },
   ];
   return (
     <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
       <style>{`
-        @keyframes amb-shimmer-a { 0%, 100% { opacity: .4; transform: scale(.95); } 50% { opacity: .9; transform: scale(1.09); } }
-        @keyframes amb-shimmer-b { 0%, 100% { opacity: .65; transform: scale(1.07); } 50% { opacity: .18; transform: scale(.93); } }
-        @keyframes amb-mote-up { 0% { transform: translate3d(0,0,0); opacity: 0; } 16% { opacity: .7; } 85% { opacity: .45; } 100% { transform: translate3d(0,-130px,0); opacity: 0; } }
-        @keyframes amb-mote-dn { 0% { transform: translate3d(0,0,0); opacity: 0; } 16% { opacity: .7; } 85% { opacity: .45; } 100% { transform: translate3d(0,130px,0); opacity: 0; } }
+        @keyframes amb-shimmer-a { 0%, 100% { opacity: .35; transform: scale(.95); } 50% { opacity: .92; transform: scale(1.1); } }
+        @keyframes amb-shimmer-b { 0%, 100% { opacity: .6; transform: translate(0,0) scale(1.08); } 50% { opacity: .14; transform: translate(-10px,7px) scale(.92); } }
+        @keyframes amb-rise-a { 0% { transform: translate3d(0,0,0); opacity: 0; } 14% { opacity: .75; } 72% { opacity: .5; } 100% { transform: translate3d(10px,-200px,0); opacity: 0; } }
+        @keyframes amb-rise-b { 0% { transform: translate3d(0,0,0); opacity: 0; } 14% { opacity: .75; } 72% { opacity: .5; } 100% { transform: translate3d(-10px,-200px,0); opacity: 0; } }
       `}</style>
       <div style={{ position: 'absolute', top: -80, right: -60, width: 260, height: 260 }}>
         <div style={{
@@ -57,17 +56,17 @@ export function HeaderAmbient({ height = 230 }: { height?: number }) {
           animation: 'amb-shimmer-a 7s ease-in-out infinite',
         }} />
         <div style={{
-          position: 'absolute', inset: -12, borderRadius: '50%',
-          background: 'radial-gradient(circle at 58% 42%, rgba(222,230,255,0.16), rgba(222,230,255,0) 60%)',
+          position: 'absolute', inset: -14, borderRadius: '50%',
+          background: 'radial-gradient(circle at 58% 42%, rgba(216,226,255,0.18), rgba(216,226,255,0) 60%)',
           filter: 'blur(10px)', willChange: 'transform, opacity',
           animation: 'amb-shimmer-b 9.5s ease-in-out .6s infinite',
         }} />
       </div>
       {motes.map((m, i) => (
         <div key={i} style={{
-          position: 'absolute', left: m.x, top: m.top, width: 2.5, height: 2.5, borderRadius: 3,
-          background: 'rgba(255,255,255,0.6)',
-          animation: `${m.dir === 'up' ? 'amb-mote-up' : 'amb-mote-dn'} ${m.dur}s ease-in-out ${m.d}s infinite`,
+          position: 'absolute', left: m.x, bottom: m.bottom, width: m.s, height: m.s, borderRadius: 3,
+          background: 'rgba(255,255,255,0.65)',
+          animation: `${m.v === 'a' ? 'amb-rise-a' : 'amb-rise-b'} ${m.dur}s ease-in-out ${m.d}s infinite`,
         }} />
       ))}
     </div>
