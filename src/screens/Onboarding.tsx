@@ -535,13 +535,20 @@ function Eyebrow({ children, accent }: { children: ReactNode; accent: string }) 
 }
 
 // ─── Step bodies ─────────────────────────────────────────────────
+const WELCOME_VARIANTS = ['Aurora', 'Halo', 'Cards', 'Dawn'];
+
 function WelcomeBody() {
+  // Four interchangeable backdrops to choose between. The switcher in the
+  // top-right is a temporary picker; once a direction is chosen the rest
+  // can be removed.
+  const [variant, setVariant] = useState(0);
   return (
     <div style={{
       position: 'relative', minHeight: '100%', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', padding: '8px 26px 0',
     }}>
-      <WelcomeAtmosphere />
+      <WelcomeVariant variant={variant} />
+      <VariantSwitcher value={variant} onChange={setVariant} />
 
       <div style={{ position: 'relative', zIndex: 2, paddingTop: 24 }}>
         <Logo size={23} />
@@ -561,14 +568,14 @@ function WelcomeBody() {
         </h1>
         <div style={{
           marginTop: 18, maxWidth: 340,
-          fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5,
+          fontSize: 16, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5,
         }}>
           A calm, science-backed toolkit for falling asleep faster and waking up genuinely rested.
         </div>
         <div style={{
           marginTop: 26, paddingTop: 18,
           borderTop: '1px solid rgba(255,255,255,0.08)',
-          fontSize: 12.5, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.2,
+          fontSize: 12.5, color: 'rgba(255,255,255,0.42)', letterSpacing: 0.2,
         }}>
           Soundscapes&nbsp;&nbsp;·&nbsp;&nbsp;Breathing&nbsp;&nbsp;·&nbsp;&nbsp;Journal&nbsp;&nbsp;·&nbsp;&nbsp;Sleep&nbsp;score
         </div>
@@ -577,59 +584,227 @@ function WelcomeBody() {
   );
 }
 
-// Editorial atmosphere with a living, breathing halo borrowed from the
-// in-app sleep screen — large faint rings that breathe on a slow stagger,
-// a soft glow and a little drifting stardust. Restrained and monochrome,
-// so the type still leads; the motion just makes it feel alive.
-function WelcomeAtmosphere() {
-  const motes = [
-    { x: '24%', d: 0, dur: 12 }, { x: '44%', d: 4, dur: 14 },
-    { x: '62%', d: 2, dur: 11 }, { x: '78%', d: 6.5, dur: 15 }, { x: '34%', d: 8.5, dur: 13 },
+function VariantSwitcher({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div style={{
+      position: 'absolute', top: 'calc(10px + env(safe-area-inset-top))', right: 14, zIndex: 6,
+      display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6,
+    }}>
+      <div style={{
+        display: 'flex', gap: 2, padding: 3, borderRadius: 999,
+        background: 'rgba(18,18,24,0.6)', border: '1px solid rgba(255,255,255,0.12)',
+        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+      }}>
+        {WELCOME_VARIANTS.map((_, i) => {
+          const on = value === i;
+          return (
+            <div key={i} onClick={() => onChange(i)} style={{
+              width: 26, height: 24, borderRadius: 999,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              background: on ? '#fff' : 'transparent',
+              color: on ? '#0B0B0F' : 'rgba(255,255,255,0.7)',
+            }}>{i + 1}</div>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.3, paddingRight: 4 }}>
+        {WELCOME_VARIANTS[value]}
+      </div>
+    </div>
+  );
+}
+
+function WelcomeVariant({ variant }: { variant: number }) {
+  if (variant === 1) return <VariantHalo />;
+  if (variant === 2) return <VariantCards />;
+  if (variant === 3) return <VariantDawn />;
+  return <VariantAurora />;
+}
+
+// Shared, cheap finishing layers.
+function Grain() {
+  return (
+    <div aria-hidden style={{
+      position: 'absolute', inset: 0,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E")`,
+      backgroundSize: '170px 170px', opacity: 0.04, filter: 'grayscale(1)',
+    }} />
+  );
+}
+function Scrim() {
+  return (
+    <div aria-hidden style={{
+      position: 'absolute', inset: 0,
+      background: 'linear-gradient(to top, #0B0B0F 2%, rgba(11,11,15,0.55) 26%, transparent 54%)',
+    }} />
+  );
+}
+
+// 1 — Aurora: a slow mesh of soft colour fields drifting behind the type.
+function VariantAurora() {
+  const blobs = [
+    { c: 'rgba(138,161,255,0.30)', w: 380, top: '4%', left: '-18%', a: 'ob-driftA', dur: 22 },
+    { c: 'rgba(201,166,255,0.26)', w: 360, top: '12%', left: '46%', a: 'ob-driftB', dur: 26 },
+    { c: 'rgba(255,142,124,0.18)', w: 340, top: '44%', left: '-10%', a: 'ob-driftC', dur: 24 },
+    { c: 'rgba(93,221,179,0.16)', w: 320, top: '40%', left: '52%', a: 'ob-driftA', dur: 28 },
   ];
   return (
-    <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, #141622 0%, #0C0D12 52%, #0B0B0F 100%)',
-      }} />
+    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: '#09090D' }} />
+      {blobs.map((b, i) => (
+        <div key={i} style={{
+          position: 'absolute', top: b.top, left: b.left, width: b.w, height: b.w, borderRadius: '50%',
+          background: `radial-gradient(circle, ${b.c}, transparent 62%)`,
+          filter: 'blur(26px)', willChange: 'transform',
+          animation: `${b.a} ${b.dur}s ease-in-out ${i * 1.5}s infinite`,
+        }} />
+      ))}
+      <Scrim />
+      <Grain />
+    </div>
+  );
+}
 
+// 2 — Halo: the in-app breathing rings, refined for performance.
+function VariantHalo() {
+  const motes = [
+    { x: '26%', d: 0, dur: 13 }, { x: '48%', d: 4, dur: 15 },
+    { x: '70%', d: 2, dur: 12 }, { x: '80%', d: 7, dur: 16 },
+  ];
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #141622 0%, #0C0D12 52%, #0B0B0F 100%)' }} />
       <div style={{ position: 'absolute', top: '34%', left: '50%', width: 0, height: 0 }}>
         <div style={{
-          position: 'absolute', left: '50%', top: '50%', width: 380, height: 380,
+          position: 'absolute', left: '50%', top: '50%', width: 360, height: 360,
           transform: 'translate(-50%,-50%)', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(122,142,236,0.22), transparent 60%)',
-          filter: 'blur(20px)', animation: 'ob-aura 16s ease-in-out infinite',
+          willChange: 'opacity', animation: 'ob-aura 16s ease-in-out infinite',
         }} />
         {[0, 1, 2, 3].map((i) => (
           <div key={i} style={{
             position: 'absolute', left: '50%', top: '50%',
             width: 200 + i * 116, height: 200 + i * 116, borderRadius: '50%',
-            border: '1px solid rgba(192,202,255,0.13)',
+            border: '1px solid rgba(192,202,255,0.13)', willChange: 'transform, opacity',
             animation: `ob-ring 9s ease-in-out ${i * 1.6}s infinite`,
           }} />
         ))}
       </div>
-
-      <div style={{
-        position: 'absolute', bottom: '-20%', left: '-18%', width: 420, height: 360, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(150,120,210,0.12), transparent 64%)',
-        filter: 'blur(26px)',
-      }} />
-
       {motes.map((m, i) => (
         <div key={i} style={{
-          position: 'absolute', left: m.x, bottom: '30%', width: 2.5, height: 2.5, borderRadius: 3,
-          background: 'rgba(205,212,255,0.55)',
+          position: 'absolute', left: m.x, bottom: '32%', width: 2.5, height: 2.5, borderRadius: 3,
+          background: 'rgba(205,212,255,0.5)', willChange: 'transform, opacity',
           animation: `ob-mote ${m.dur}s ease-in-out ${m.d}s infinite`,
         }} />
       ))}
+      <Scrim />
+      <Grain />
+    </div>
+  );
+}
 
+// 3 — Cards: a floating stack of the app's own tool cards, reusing the
+// Home gradient-tile look the user likes.
+function VariantCards() {
+  const cards = [
+    { accent: LAVENDER, title: 'Night Shift', sub: 'Warm your screen', cta: 'How to', glyph: 'moon', top: 0, rot: -7, scale: 0.88, op: 0.55, z: 1 },
+    { accent: CORAL, title: 'Sounds', sub: 'Rain, fire or waves', cta: 'Listen', glyph: 'music', top: 44, rot: 5, scale: 0.94, op: 0.82, z: 2 },
+    { accent: PERIWINKLE, title: 'Breathing', sub: '4-7-8 wind-down', cta: 'Start', glyph: 'orb', top: 92, rot: -2, scale: 1, op: 1, z: 3 },
+  ];
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: '#0A0A0E' }} />
       <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize: '160px 160px',
-        opacity: 0.045, mixBlendMode: 'overlay', filter: 'grayscale(1)',
+        position: 'absolute', top: '-6%', left: '-10%', width: 340, height: 340, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(138,161,255,0.16), transparent 64%)', filter: 'blur(24px)',
       }} />
+      <div style={{
+        position: 'absolute', top: '20%', right: '-14%', width: 320, height: 320, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,142,124,0.12), transparent 66%)', filter: 'blur(26px)',
+      }} />
+      <div style={{ position: 'absolute', top: '12%', left: '50%', transform: 'translateX(-50%)', width: 300, height: 240 }}>
+        {cards.map((c, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: c.top, left: '50%', zIndex: c.z,
+            transform: `translateX(-50%) rotate(${c.rot}deg) scale(${c.scale})`, opacity: c.op,
+          }}>
+            <div style={{ willChange: 'transform', animation: `ob-bob ${4 + i * 0.7}s ease-in-out ${i * 0.5}s infinite` }}>
+              <MiniToolCard accent={c.accent} title={c.title} sub={c.sub} cta={c.cta} glyph={c.glyph} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <Scrim />
+      <Grain />
+    </div>
+  );
+}
+
+function MiniToolCard({ accent, title, sub, cta, glyph }: {
+  accent: string; title: string; sub: string; cta: string; glyph: string;
+}) {
+  return (
+    <div style={{
+      width: 288, padding: '13px 14px', borderRadius: 18,
+      background: `linear-gradient(135deg, ${hexA(accent, 0.18)} 0%, ${hexA(accent, 0.05)} 52%, rgba(18,18,24,0.92) 100%)`,
+      border: `1px solid ${hexA(accent, 0.34)}`,
+      boxShadow: `0 18px 44px rgba(0,0,0,0.5), 0 0 30px ${hexA(accent, 0.10)}`,
+      display: 'flex', alignItems: 'center', gap: 13,
+    }}>
+      <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: `1px dashed ${hexA(accent, 0.4)}` }} />
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: `radial-gradient(circle at 38% 32%, ${hexA(accent, 0.55)}, ${hexA(accent, 0.12)})`,
+          border: `1px solid ${hexA(accent, 0.45)}`, boxShadow: `0 0 16px ${hexA(accent, 0.4)}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {glyph === 'music' ? <MusicIcon size={18} stroke="#fff" />
+            : glyph === 'moon' ? <MoonIcon size={18} stroke="#fff" />
+            : <div style={{ width: 14, height: 14, borderRadius: 7, background: '#fff', boxShadow: '0 0 8px rgba(255,255,255,0.8)' }} />}
+        </div>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{sub}</div>
+      </div>
+      <div style={{
+        padding: '7px 14px', borderRadius: 999, flexShrink: 0,
+        border: `1px solid ${hexA(accent, 0.5)}`, color: accent,
+        fontSize: 12, fontWeight: 600,
+      }}>{cta}</div>
+    </div>
+  );
+}
+
+// 4 — Dawn: a calm horizon glow rising from the foot of the screen.
+function VariantDawn() {
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #0D0F1E 0%, #0B0B12 46%, #0B0B0F 100%)' }} />
+      <div style={{
+        position: 'absolute', bottom: '-26%', left: '50%', transform: 'translateX(-50%)',
+        width: 620, height: 440, borderRadius: '50%',
+        background: 'radial-gradient(ellipse at center, rgba(140,158,236,0.26), rgba(140,158,236,0) 64%)',
+        filter: 'blur(20px)', willChange: 'opacity', animation: 'ob-aura 14s ease-in-out infinite',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-12%', left: '50%', transform: 'translateX(-50%)',
+        width: 460, height: 280, borderRadius: '50%',
+        background: 'radial-gradient(ellipse at center, rgba(255,176,138,0.12), rgba(255,176,138,0) 66%)',
+        filter: 'blur(18px)',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '30%', left: '8%', right: '8%', height: 1,
+        background: 'linear-gradient(90deg, transparent, rgba(206,214,255,0.5) 50%, transparent)',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: 'calc(30% - 1px)', left: '24%', right: '24%', height: 60,
+        background: 'radial-gradient(ellipse at center top, rgba(170,185,255,0.22), transparent 70%)',
+        filter: 'blur(6px)',
+      }} />
+      <Grain />
     </div>
   );
 }
@@ -1317,6 +1492,10 @@ function Keyframes() {
       @keyframes ob-aura { 0%, 100% { opacity: .5; } 50% { opacity: .85; } }
       @keyframes ob-ring { 0%, 100% { transform: translate(-50%,-50%) scale(.82); opacity: .4; } 50% { transform: translate(-50%,-50%) scale(1.16); opacity: .05; } }
       @keyframes ob-mote { 0% { transform: translateY(0); opacity: 0; } 18% { opacity: .6; } 85% { opacity: .5; } 100% { transform: translateY(-120px); opacity: 0; } }
+      @keyframes ob-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+      @keyframes ob-driftA { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(24px,18px) scale(1.12); } }
+      @keyframes ob-driftB { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-26px,14px) scale(1.1); } }
+      @keyframes ob-driftC { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(16px,-20px) scale(1.14); } }
       @keyframes ob-eq { 0%, 100% { transform: scaleY(.32); } 50% { transform: scaleY(1); } }
       @keyframes ob-fill { 0% { stroke-dashoffset: 94; } 55% { stroke-dashoffset: 14; } 100% { stroke-dashoffset: 94; } }
     `}</style>
