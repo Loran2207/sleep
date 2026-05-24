@@ -14,10 +14,11 @@ export { dayToDate, dayLabel };
 // to the bottom-nav central action and the Journal screen respectively.
 export function Home() {
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative', overflow: 'hidden' }}>
+      <HeaderAmbient />
       <TopPad h={12} />
       <BrandHeader />
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 190 }}>
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', paddingBottom: 190 }}>
         <div style={{ padding: '10px 16px 0' }}>
           <SectionLabel>Tonight's tools</SectionLabel>
           <BreathingCard />
@@ -34,16 +35,72 @@ export function Home() {
   );
 }
 
-// "night" wordmark, top-left, no heading copy. Replaces the previous
-// greeting so the Tools surface opens straight onto its tiles.
+function greetingFor(hour: number): string {
+  if (hour < 5) return 'Good night';
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  if (hour < 22) return 'Good evening';
+  return 'Good night';
+}
+
+// Two-layer header: the serif wordmark over a warm, time-aware greeting,
+// sitting above the ambient glow.
 function BrandHeader() {
+  const greeting = greetingFor(new Date().getHours());
   return (
-    <div style={{ padding: '4px 22px 6px' }}>
+    <div style={{ position: 'relative', zIndex: 1, padding: '2px 22px 8px' }}>
       <div style={{
-        fontSize: 24, fontWeight: 600, letterSpacing: -0.5,
-        fontFamily: '"Times New Roman", Georgia, serif',
-        fontStyle: 'italic', color: W.ink, lineHeight: 1,
+        fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
+        fontFamily: '"Times New Roman", Georgia, serif', fontStyle: 'italic',
+        color: 'rgba(255,255,255,0.5)', lineHeight: 1,
       }}>night</div>
+      <div style={{
+        fontSize: 25, fontWeight: 600, letterSpacing: '-0.02em',
+        color: W.ink, lineHeight: 1.1, marginTop: 6,
+      }}>
+        {greeting},{' '}
+        <span style={{ fontFamily: '"Times New Roman", Georgia, serif', fontStyle: 'italic', fontWeight: 500 }}>
+          Kirill
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Welcome-style ambient for the top of the screen: a slow white glow in
+// the top-right corner and a few motes of light drifting up and down.
+function HeaderAmbient() {
+  const motes = [
+    { x: '18%', top: 120, dir: 'up', d: 0, dur: 11 },
+    { x: '30%', top: 40, dir: 'dn', d: 3, dur: 13 },
+    { x: '46%', top: 150, dir: 'up', d: 1.5, dur: 12 },
+    { x: '62%', top: 30, dir: 'dn', d: 5, dur: 14 },
+    { x: '72%', top: 130, dir: 'up', d: 2.5, dur: 11 },
+    { x: '84%', top: 52, dir: 'dn', d: 6.5, dur: 15 },
+    { x: '90%', top: 124, dir: 'up', d: 4, dur: 13 },
+    { x: '10%', top: 60, dir: 'dn', d: 7.5, dur: 14 },
+    { x: '54%', top: 112, dir: 'up', d: 8.5, dur: 12 },
+    { x: '38%', top: 34, dir: 'dn', d: 2, dur: 16 },
+  ];
+  return (
+    <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 230, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      <style>{`
+        @keyframes home-glow { 0%, 100% { opacity: .5; } 50% { opacity: .9; } }
+        @keyframes home-mote-up { 0% { transform: translateY(0); opacity: 0; } 18% { opacity: .7; } 85% { opacity: .5; } 100% { transform: translateY(-130px); opacity: 0; } }
+        @keyframes home-mote-dn { 0% { transform: translateY(0); opacity: 0; } 18% { opacity: .7; } 85% { opacity: .5; } 100% { transform: translateY(130px); opacity: 0; } }
+      `}</style>
+      <div style={{
+        position: 'absolute', top: -70, right: -50, width: 240, height: 240, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,252,245,0.16), rgba(255,250,240,0.05) 44%, transparent 70%)',
+        filter: 'blur(8px)', willChange: 'opacity', animation: 'home-glow 12s ease-in-out infinite',
+      }} />
+      {motes.map((m, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: m.x, top: m.top, width: 2.5, height: 2.5, borderRadius: 3,
+          background: 'rgba(255,255,255,0.6)', willChange: 'transform, opacity',
+          animation: `${m.dir === 'up' ? 'home-mote-up' : 'home-mote-dn'} ${m.dur}s ease-in-out ${m.d}s infinite`,
+        }} />
+      ))}
     </div>
   );
 }
