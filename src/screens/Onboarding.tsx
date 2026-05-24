@@ -567,6 +567,25 @@ function WelcomeBody() {
         }}>
           A calm, science-backed toolkit for falling asleep faster and waking up genuinely rested.
         </div>
+        <div style={{ marginTop: 22, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {[
+            { l: 'Soundscapes', c: CORAL },
+            { l: 'Breathing', c: PERIWINKLE },
+            { l: 'Journal', c: LAVENDER },
+            { l: 'Sleep score', c: MINT },
+          ].map((t) => (
+            <div key={t.l} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 11px', borderRadius: 999,
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.10)',
+              fontSize: 11.5, color: 'rgba(255,255,255,0.72)', fontWeight: 500,
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: 3, background: t.c, boxShadow: `0 0 6px ${t.c}` }} />
+              {t.l}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -579,6 +598,10 @@ function SpotlightBackdrop() {
   const motes = [
     { x: '64%', y: '20%', d: 0, dur: 14 }, { x: '78%', y: '14%', d: 4, dur: 16 },
     { x: '54%', y: '30%', d: 2.5, dur: 13 }, { x: '70%', y: '36%', d: 6.5, dur: 17 },
+    { x: '46%', y: '16%', d: 1.5, dur: 15 }, { x: '86%', y: '26%', d: 5.5, dur: 18 },
+    { x: '38%', y: '34%', d: 3.5, dur: 14 }, { x: '60%', y: '10%', d: 8, dur: 16 },
+    { x: '30%', y: '22%', d: 6, dur: 19 }, { x: '74%', y: '44%', d: 2, dur: 15 },
+    { x: '50%', y: '40%', d: 9, dur: 17 }, { x: '84%', y: '38%', d: 4.5, dur: 20 },
   ];
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
@@ -613,18 +636,25 @@ function SpotlightBackdrop() {
   );
 }
 
+// Three overlapping light shafts raking down across the cards and the
+// headline, each shimmering on its own slow rhythm.
 function LightRays() {
-  const rays = [-12, -2, 9, 21, 34];
+  const rays = [
+    { deg: 2, w: 130, peak: 0.18, dur: 11, delay: 0 },
+    { deg: 15, w: 96, peak: 0.15, dur: 14, delay: 3 },
+    { deg: 27, w: 160, peak: 0.11, dur: 9, delay: 1.5 },
+  ];
   return (
-    <div style={{ position: 'absolute', top: -170, right: -30, width: 0, height: 0 }}>
-      {rays.map((deg, i) => (
+    <div style={{ position: 'absolute', top: -190, right: -20, width: 0, height: 0 }}>
+      {rays.map((r, i) => (
         <div key={i} style={{
           position: 'absolute', top: 0, left: 0,
-          width: 64 + i * 8, height: 960,
-          background: 'linear-gradient(to bottom, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.03) 36%, transparent 66%)',
+          width: r.w, height: 1040,
+          background: `linear-gradient(to bottom, rgba(255,255,255,${r.peak}) 0%, rgba(255,255,255,${r.peak * 0.25}) 40%, transparent 72%)`,
           filter: 'blur(30px)',
-          transform: `rotate(${deg}deg)`, transformOrigin: 'top center',
-          opacity: 0.9 - i * 0.13,
+          transform: `rotate(${r.deg}deg)`, transformOrigin: 'top center',
+          willChange: 'opacity',
+          animation: `ob-shimmer ${r.dur}s ease-in-out ${r.delay}s infinite`,
         }} />
       ))}
     </div>
@@ -635,12 +665,12 @@ function LightRays() {
 // the shadow, in the Home gradient-tile style.
 function ToolStack() {
   const cards = [
-    { accent: LAVENDER, title: 'Night Shift', sub: 'Warm your screen', cta: 'How to', glyph: 'moon', top: 0, rot: -6, scale: 0.9, z: 1 },
-    { accent: CORAL, title: 'Sounds', sub: 'Rain, fire & waves', cta: 'Listen', glyph: 'music', top: 42, rot: 4, scale: 0.95, z: 2 },
-    { accent: PERIWINKLE, title: 'Breathing', sub: '4-7-8 wind-down', cta: 'Start', glyph: 'orb', top: 86, rot: -2, scale: 1, z: 3 },
+    { accent: LAVENDER, title: 'Night Shift', sub: 'Warm your screen', cta: 'How to', glyph: 'moon', top: 0, rot: -6, scale: 0.92, z: 1 },
+    { accent: CORAL, title: 'Sounds', sub: 'Rain, fire & waves', cta: 'Listen', glyph: 'music', top: 58, rot: 4, scale: 0.96, z: 2 },
+    { accent: PERIWINKLE, title: 'Breathing', sub: '4-7-8 wind-down', cta: 'Start', glyph: 'orb', top: 116, rot: -2, scale: 1, z: 3 },
   ];
   return (
-    <div style={{ position: 'absolute', top: '18%', left: '50%', transform: 'translateX(-50%)', width: 300, height: 250, zIndex: 1 }}>
+    <div style={{ position: 'absolute', top: '17%', left: '50%', transform: 'translateX(-50%)', width: 300, height: 300, zIndex: 1 }}>
       {cards.map((c, i) => (
         <div key={i} style={{
           position: 'absolute', top: c.top, left: '50%', zIndex: c.z,
@@ -713,8 +743,8 @@ type FeatureKind = 'sound' | 'breath' | 'journal' | 'course' | 'schedule';
 
 function FeaturesBody() {
   const items: { kind: FeatureKind; accent: string; title: string; desc: string }[] = [
-    { kind: 'sound', accent: PERIWINKLE, title: 'Soundscapes', desc: 'Layer rain, waves and fire into your own sleep mix.' },
-    { kind: 'breath', accent: CORAL, title: 'Wind-down breathing', desc: 'Slow 4-7-8 sessions that settle your nervous system.' },
+    { kind: 'breath', accent: PERIWINKLE, title: 'Wind-down breathing', desc: 'Slow 4-7-8 sessions that settle your nervous system.' },
+    { kind: 'sound', accent: CORAL, title: 'Soundscapes', desc: 'Layer rain, waves and fire into your own sleep mix.' },
     { kind: 'journal', accent: LAVENDER, title: 'Sleep journal', desc: 'Track mood and nights to see what truly helps.' },
     { kind: 'course', accent: MINT, title: 'Guided course', desc: 'The science of sleep, one short lesson at a time.' },
     { kind: 'schedule', accent: PERIWINKLE, title: 'Smart schedules', desc: 'Bed and wake times that adapt to your week.' },
@@ -726,16 +756,21 @@ function FeaturesBody() {
       <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {items.map((it, i) => (
           <div key={it.title} style={{
-            display: 'flex', alignItems: 'center', gap: 15,
-            padding: '14px 15px', borderRadius: 18,
-            background: `linear-gradient(135deg, ${hexA(it.accent, 0.10)} 0%, ${W.paper} 58%)`,
-            border: `1px solid ${hexA(it.accent, 0.22)}`,
+            position: 'relative', overflow: 'hidden',
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '15px', borderRadius: 18,
+            background: `
+              radial-gradient(75% 75% at 16% 28%, ${hexA(it.accent, 0.30)} 0%, ${hexA(it.accent, 0)} 70%),
+              radial-gradient(120% 90% at 95% 100%, ${hexA(it.accent, 0.08)} 0%, ${hexA(it.accent, 0)} 60%),
+              linear-gradient(180deg, ${hexA(it.accent, 0.06)} 0%, #131318 100%)`,
+            border: `1px solid ${hexA(it.accent, 0.26)}`,
+            boxShadow: `0 14px 30px ${hexA(it.accent, 0.10)}`,
             animation: 'ob-rise .5s ease both', animationDelay: `${i * 90}ms`,
           }}>
-            <FeaturePreview kind={it.kind} accent={it.accent} />
+            <FeatureOrb kind={it.kind} accent={it.accent} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 600 }}>{it.title}</div>
-              <div style={{ fontSize: 13, color: W.weak, marginTop: 3, lineHeight: 1.4 }}>{it.desc}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>{it.title}</div>
+              <div style={{ fontSize: 12.5, color: W.weak, marginTop: 3, lineHeight: 1.4 }}>{it.desc}</div>
             </div>
           </div>
         ))}
@@ -744,68 +779,55 @@ function FeaturesBody() {
   );
 }
 
-// Each feature gets a tiny live preview of itself instead of a flat
-// icon — showing the user what the tool actually does.
-function FeaturePreview({ kind, accent }: { kind: FeatureKind; accent: string }) {
-  const box: React.CSSProperties = {
-    width: 58, height: 58, borderRadius: 16, flexShrink: 0, position: 'relative',
-    background: hexA(accent, 0.12), border: `1px solid ${hexA(accent, 0.28)}`,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-  };
-  if (kind === 'sound') {
-    return (
-      <div style={box}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3, height: 26 }}>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} style={{
-              width: 4, height: 26, borderRadius: 2, background: accent, transformOrigin: 'center',
-              animation: `ob-eq 1s ease-in-out ${i * 0.13}s infinite`,
-            }} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-  if (kind === 'breath') {
-    return (
-      <div style={box}>
-        <div style={{ position: 'absolute', width: 34, height: 34, borderRadius: '50%', border: `1px solid ${hexA(accent, 0.5)}`, animation: 'ob-breathe 3.4s ease-in-out infinite' }} />
-        <div style={{ width: 14, height: 14, borderRadius: '50%', background: accent, boxShadow: `0 0 10px ${hexA(accent, 0.7)}`, animation: 'ob-breathe 3.4s ease-in-out infinite' }} />
-      </div>
-    );
-  }
-  if (kind === 'journal') {
-    return (
-      <div style={box}>
-        <svg width="38" height="26" viewBox="0 0 38 26">
-          <polyline points="3,20 13,13 23,16 35,5" fill="none" stroke={hexA(accent, 0.6)} strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round" strokeDasharray="60" strokeDashoffset="60"
-            style={{ animation: 'ob-draw 1.4s ease .2s forwards' }} />
-          {[[3, 20], [13, 13], [23, 16]].map((p, i) => (
-            <circle key={i} cx={p[0]} cy={p[1]} r="2.4" fill={accent} opacity="0.85" />
-          ))}
-          <circle cx="35" cy="5" r="3" fill={accent} style={{ transformOrigin: '35px 5px', animation: 'ob-glow 2s ease-in-out 1.2s infinite' }} />
-        </svg>
-      </div>
-    );
-  }
-  if (kind === 'course') {
-    return (
-      <div style={box}>
-        <svg width="32" height="32" viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="18" cy="18" r="15" fill="none" stroke={hexA(accent, 0.2)} strokeWidth="3.5" />
-          <circle cx="18" cy="18" r="15" fill="none" stroke={accent} strokeWidth="3.5" strokeLinecap="round"
-            strokeDasharray="94" strokeDashoffset="94" style={{ animation: 'ob-fill 2.6s ease-in-out infinite' }} />
-        </svg>
-        <div style={{ position: 'absolute', width: 0, height: 0, borderLeft: `7px solid ${accent}`, borderTop: '5px solid transparent', borderBottom: '5px solid transparent', marginLeft: 2 }} />
-      </div>
-    );
-  }
+// Reuses the Home tiles' glowing orb (dashed ring + radial core) and puts
+// a tiny live preview of each feature inside it.
+function FeatureOrb({ kind, accent }: { kind: FeatureKind; accent: string }) {
+  const light = hexA(accent, 0.95);
   return (
-    <div style={box}>
-      <div style={{ position: 'relative', width: 32, height: 32, borderRadius: '50%', border: `1.5px solid ${hexA(accent, 0.5)}` }}>
-        <div style={{ position: 'absolute', top: 4, left: '50%', width: 2, height: 12, marginLeft: -1, background: accent, borderRadius: 1, transformOrigin: 'bottom center', animation: 'ob-spin 5s linear infinite' }} />
-        <div style={{ position: 'absolute', top: '50%', left: '50%', width: 4, height: 4, marginLeft: -2, marginTop: -2, borderRadius: 2, background: accent }} />
+    <div style={{ width: 46, height: 46, position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: '50%',
+        border: `1px dashed ${hexA(accent, 0.5)}`,
+        animation: kind === 'breath' ? 'ob-breathe 4.2s ease-in-out infinite' : undefined,
+      }} />
+      <div style={{
+        position: 'absolute', width: 34, height: 34, borderRadius: 17,
+        background: `radial-gradient(circle at 35% 30%, ${hexA(accent, 0.7)}, ${hexA(accent, 0.1)} 65%, transparent 80%)`,
+        border: `1px solid ${hexA(accent, 0.6)}`,
+        animation: kind === 'breath' ? 'ob-breathe 4.2s ease-in-out infinite' : undefined,
+      }} />
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {kind === 'sound' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{
+                width: 2.5, height: 14, borderRadius: 1, background: light, transformOrigin: 'center',
+                animation: `ob-eq 1.${4 + i}s ease-in-out ${i * 0.16}s infinite`,
+              }} />
+            ))}
+          </div>
+        )}
+        {kind === 'journal' && (
+          <svg width="26" height="16" viewBox="0 0 26 16">
+            <polyline points="2,13 9,8 16,10 24,3" fill="none" stroke={light} strokeWidth="1.8"
+              strokeLinecap="round" strokeLinejoin="round" strokeDasharray="46" strokeDashoffset="46"
+              style={{ animation: 'ob-draw 1.4s ease .2s forwards' }} />
+            <circle cx="24" cy="3" r="2.4" fill={light} style={{ transformOrigin: '24px 3px', animation: 'ob-glow 2s ease-in-out 1.2s infinite' }} />
+          </svg>
+        )}
+        {kind === 'course' && (
+          <svg width="30" height="30" viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="18" cy="18" r="15" fill="none" stroke={hexA(accent, 0.25)} strokeWidth="3" />
+            <circle cx="18" cy="18" r="15" fill="none" stroke={light} strokeWidth="3" strokeLinecap="round"
+              strokeDasharray="94" strokeDashoffset="94" style={{ animation: 'ob-fill 2.6s ease-in-out infinite' }} />
+          </svg>
+        )}
+        {kind === 'schedule' && (
+          <div style={{ position: 'relative', width: 22, height: 22 }}>
+            <div style={{ position: 'absolute', top: 2, left: '50%', width: 2, height: 9, marginLeft: -1, background: light, borderRadius: 1, transformOrigin: 'bottom center', animation: 'ob-spin 5s linear infinite' }} />
+            <div style={{ position: 'absolute', top: '50%', left: '50%', width: 3.5, height: 3.5, marginLeft: -1.75, marginTop: -1.75, borderRadius: 2, background: light }} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1390,6 +1412,7 @@ function Keyframes() {
       @keyframes ob-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
       @keyframes ob-glow { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
       @keyframes ob-aura { 0%, 100% { opacity: .5; } 50% { opacity: .85; } }
+      @keyframes ob-shimmer { 0%, 100% { opacity: .42; } 50% { opacity: 1; } }
       @keyframes ob-mote { 0% { transform: translateY(0); opacity: 0; } 18% { opacity: .6; } 85% { opacity: .5; } 100% { transform: translateY(-120px); opacity: 0; } }
       @keyframes ob-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
       @keyframes ob-emerge { 0% { opacity: 0; transform: translateY(34px); } 100% { opacity: 1; transform: translateY(0); } }
