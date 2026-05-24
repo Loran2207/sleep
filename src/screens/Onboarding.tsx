@@ -293,7 +293,7 @@ export function Onboarding() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0B0B0F', color: W.ink, fontFamily: W.font,
+      background: '#000000', color: W.ink, fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <Keyframes />
@@ -475,7 +475,7 @@ function Footer({ children }: { children: ReactNode }) {
     <div style={{
       position: 'relative', flexShrink: 0,
       padding: '12px 20px calc(22px + env(safe-area-inset-bottom))',
-      background: 'linear-gradient(180deg, rgba(11,11,15,0) 0%, rgba(11,11,15,0.85) 32%, #0B0B0F 100%)',
+      background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 32%, #000000 100%)',
     }}>
       {children}
     </div>
@@ -488,7 +488,7 @@ function PrimaryButton({ label, onClick, disabled }: { label: string; onClick: (
       padding: '17px 0', textAlign: 'center', borderRadius: 999,
       fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em',
       background: disabled ? 'rgba(255,255,255,0.10)' : '#fff',
-      color: disabled ? 'rgba(255,255,255,0.4)' : '#0B0B0F',
+      color: disabled ? 'rgba(255,255,255,0.4)' : '#000000',
       cursor: disabled ? 'default' : 'pointer',
       boxShadow: disabled ? 'none' : '0 10px 28px rgba(0,0,0,0.5)',
       transition: 'background .15s ease, color .15s ease',
@@ -1063,7 +1063,7 @@ function GoalBody({ value, onChange, accent }: { value: number; onChange: (v: nu
         }}>
           <div style={{
             minWidth: 76, height: 76, padding: '0 6px', borderRadius: 38,
-            background: '#0B0B0F', border: `2px solid ${accent}`,
+            background: '#000000', border: `2px solid ${accent}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: `0 12px 28px ${hexA(accent, 0.3)}`,
             fontSize: 22, fontWeight: 600, color: W.ink,

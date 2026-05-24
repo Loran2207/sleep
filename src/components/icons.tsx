@@ -207,11 +207,11 @@ export function MoodBlob({ type, size = 28 }: { type: MoodType; size?: number })
     );
   }
   const palette = {
-    great: { fill: '#7FE3A1', stroke: '#0E1014' },
-    good: { fill: '#9BE3B8', stroke: '#0E1014' },
-    meh: { fill: '#E5E067', stroke: '#0E1014' },
-    bad: { fill: '#E59A6F', stroke: '#0E1014' },
-    awful: { fill: '#E57070', stroke: '#0E1014' },
+    great: { fill: '#7FE3A1', stroke: '#000000' },
+    good: { fill: '#9BE3B8', stroke: '#000000' },
+    meh: { fill: '#E5E067', stroke: '#000000' },
+    bad: { fill: '#E59A6F', stroke: '#000000' },
+    awful: { fill: '#E57070', stroke: '#000000' },
   }[type];
   const eye = (cx: number) => <circle cx={cx} cy="11" r="0.9" fill={palette.stroke} />;
   const mouth = {

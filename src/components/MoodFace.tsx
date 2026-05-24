@@ -34,26 +34,26 @@ export function MoodFace({ tint, x, y, size = 96, glow = false }: {
         />
         <path
           d={`M 30 ${36 - browTilt} L 40 ${36 + browTilt * 0.4}`}
-          stroke="#0E0E11" strokeWidth="2.5" strokeLinecap="round" fill="none"
+          stroke="#000000" strokeWidth="2.5" strokeLinecap="round" fill="none"
         />
         <path
           d={`M 56 ${36 + browTilt * 0.4} L 66 ${36 - browTilt}`}
-          stroke="#0E0E11" strokeWidth="2.5" strokeLinecap="round" fill="none"
+          stroke="#000000" strokeWidth="2.5" strokeLinecap="round" fill="none"
         />
         {sleepy ? (
           <>
-            <path d="M 32 50 Q 36 53 40 50" stroke="#0E0E11" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-            <path d="M 56 50 Q 60 53 64 50" stroke="#0E0E11" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+            <path d="M 32 50 Q 36 53 40 50" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+            <path d="M 56 50 Q 60 53 64 50" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" fill="none" />
           </>
         ) : (
           <>
-            <circle cx="36" cy="48" r="2.6" fill="#0E0E11" />
-            <circle cx="60" cy="48" r="2.6" fill="#0E0E11" />
+            <circle cx="36" cy="48" r="2.6" fill="#000000" />
+            <circle cx="60" cy="48" r="2.6" fill="#000000" />
           </>
         )}
         <path
           d={`M 38 64 Q 48 ${64 + smile} 58 64`}
-          stroke="#0E0E11" strokeWidth="2.5" strokeLinecap="round" fill="none"
+          stroke="#000000" strokeWidth="2.5" strokeLinecap="round" fill="none"
         />
       </svg>
     </div>

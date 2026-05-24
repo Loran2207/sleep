@@ -269,7 +269,7 @@ function CreateHabitSheet({ onCancel, onCreate }: {
   return (
     <div onClick={onCancel} style={{
       position: 'absolute', inset: 0, zIndex: 60,
-      background: 'rgba(14,14,17,0.55)',
+      background: 'rgba(0,0,0,0.55)',
       backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'flex-end',
     }}>

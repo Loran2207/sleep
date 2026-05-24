@@ -77,7 +77,7 @@ const THEMES: Record<MixerTheme, {
     accentSoft: 'rgba(255,255,255,0.10)',
     accentBorder: 'rgba(255,255,255,0.32)',
     catActiveBg: '#FFFFFF',
-    catActiveText: '#0E1014',
+    catActiveText: '#000000',
   },
 };
 
@@ -171,7 +171,7 @@ export function SoundMixerPanel({
                   <Glyph
                     size={22}
                     stroke={on
-                      ? (theme === 'warm' ? '#FFE0DA' : '#0E1014')
+                      ? (theme === 'warm' ? '#FFE0DA' : '#000000')
                       : 'rgba(255,255,255,0.78)'}
                   />
                   {on && theme === 'warm' && (
@@ -194,7 +194,7 @@ export function SoundMixerPanel({
                     <div style={{
                       position: 'absolute', top: -3, right: -3,
                       width: 16, height: 16, borderRadius: 8,
-                      background: '#0E1014', border: '1px solid #fff',
+                      background: '#000000', border: '1px solid #fff',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 10, color: '#fff', fontWeight: 700, lineHeight: 1,
                     }}>·</div>

@@ -26,7 +26,7 @@ export function ScheduleMix() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E1014', color: '#fff', fontFamily: W.font,
+      background: '#000000', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <SoundsScreenBackdrop />

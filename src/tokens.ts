@@ -7,7 +7,7 @@ export const W = {
   paper: '#1A1A1E',
   fill: '#26262C',
   fillDark: '#33333A',
-  bg: '#0E0E11',
+  bg: '#000000',
   font: '-apple-system, system-ui, "Helvetica Neue", sans-serif',
 } as const;
 

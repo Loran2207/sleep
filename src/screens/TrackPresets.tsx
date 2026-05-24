@@ -118,14 +118,14 @@ function PresetCard({ preset, onEdit, onStart }: {
           onClick={(e) => { e.stopPropagation(); onStart(); }}
           style={{
             width: 52, height: 52, borderRadius: 26,
-            background: '#fff', color: '#0E0E11',
+            background: '#fff', color: '#000000',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', flexShrink: 0,
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
           }}
           aria-label="Start"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#0E0E11">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#000000">
             <path d="M7 5l12 7-12 7z" />
           </svg>
         </div>
@@ -168,7 +168,7 @@ function AddPresetCard({ onAdd }: { onAdd: () => void }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
       }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E0E11" strokeWidth="2.4" strokeLinecap="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.4" strokeLinecap="round">
           <path d="M12 5v14M5 12h14" />
         </svg>
       </div>
@@ -190,7 +190,7 @@ function Toggle({ on, onChange, color = '#fff' }: { on: boolean; onChange: (v: b
     }}>
       <div style={{
         width: 26, height: 26, borderRadius: 13,
-        background: on ? '#0E0E11' : '#fff',
+        background: on ? '#000000' : '#fff',
         boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
         transform: on ? 'translateX(20px)' : 'translateX(0)',
         transition: 'transform 0.2s, background 0.2s',
@@ -240,7 +240,7 @@ function PresetEditSheet({ preset, onChange, onDelete, onClose }: {
 
       <div className="preset-sheet" style={{
         flex: 1,
-        background: '#0E0E11',
+        background: '#000000',
         borderTopLeftRadius: 28, borderTopRightRadius: 28,
         margin: '8px 0 0',
         display: 'flex', flexDirection: 'column',
@@ -287,7 +287,7 @@ function PresetEditSheet({ preset, onChange, onDelete, onClose }: {
                   flex: 1, padding: '9px 0', textAlign: 'center',
                   borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer',
                   background: active ? '#fff' : 'transparent',
-                  color: active ? '#0E0E11' : 'rgba(255,255,255,0.6)',
+                  color: active ? '#000000' : 'rgba(255,255,255,0.6)',
                   transition: 'background 0.15s, color 0.15s',
                 }}>{opt.label}</div>
               );
@@ -389,10 +389,10 @@ function PresetEditSheet({ preset, onChange, onDelete, onClose }: {
 
         <div style={{
           padding: '12px 20px 28px',
-          background: 'linear-gradient(to top, #0E0E11 60%, transparent)',
+          background: 'linear-gradient(to top, #000000 60%, transparent)',
         }}>
           <div onClick={onClose} style={{
-            background: '#fff', color: '#0E0E11',
+            background: '#fff', color: '#000000',
             padding: '15px 0', borderRadius: 999, fontSize: 16, fontWeight: 500,
             cursor: 'pointer', textAlign: 'center',
           }}>Done</div>
@@ -442,7 +442,7 @@ function SoundPicker({ selected, onSelect }: { selected: string; onSelect: (name
               padding: '8px 14px', borderRadius: 999,
               fontSize: 13, fontWeight: 500, cursor: 'pointer',
               background: on ? '#fff' : 'rgba(255,255,255,0.06)',
-              color: on ? '#0E0E11' : 'rgba(255,255,255,0.75)',
+              color: on ? '#000000' : 'rgba(255,255,255,0.75)',
               border: on ? '1px solid #fff' : '1px solid rgba(255,255,255,0.04)',
               transition: 'background 0.15s, color 0.15s',
             }}>{s}</div>
@@ -467,7 +467,7 @@ function DurationPicker({ minutes, onChange }: { minutes: number; onChange: (v: 
           <div key={o} onClick={() => onChange(o)} style={{
             padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 500,
             background: o === minutes ? '#fff' : 'rgba(255,255,255,0.08)',
-            color: o === minutes ? '#0E0E11' : 'rgba(255,255,255,0.7)',
+            color: o === minutes ? '#000000' : 'rgba(255,255,255,0.7)',
             cursor: 'pointer',
           }}>{o}m</div>
         ))}

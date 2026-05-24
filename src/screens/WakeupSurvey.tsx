@@ -140,7 +140,7 @@ export function WakeupSurvey() {
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
-        background: 'linear-gradient(to top, rgba(14,14,17,0.95) 60%, transparent)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {step === 'note' && (
@@ -149,12 +149,12 @@ export function WakeupSurvey() {
           <div onClick={next} style={{
             flex: step === 'note' ? 2 : 1,
             padding: '16px 0', textAlign: 'center',
-            background: reading.tint, color: '#0E0E11',
+            background: reading.tint, color: '#000000',
             borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
             boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
-            {isLast && <CheckIcon size={14} stroke="#0E0E11" />}
+            {isLast && <CheckIcon size={14} stroke="#000000" />}
             {isLast ? 'Save & finish' : 'Continue'}
           </div>
         </div>
