@@ -58,6 +58,19 @@ export function useNightShiftDone(): [boolean, (v: boolean) => void] {
   return [v, nightShiftStore.set];
 }
 
+// ─── ONBOARDING GATE ────────────────────────────────────────────
+// Whether the first-run onboarding has been completed (or skipped).
+// Kept in memory — like the rest of this prototype's state it resets
+// on reload, so the flow is easy to review. A real build would persist
+// this to storage so users only see it once.
+const onboardingDoneStore = createStore<boolean>(false);
+export function useOnboardingDone(): boolean {
+  return useSyncExternalStore(onboardingDoneStore.subscribe, onboardingDoneStore.get, onboardingDoneStore.get);
+}
+export function completeOnboarding() {
+  onboardingDoneStore.set(true);
+}
+
 // ─── PROFILE PREFS ──────────────────────────────────────────────
 // Target hours of sleep — shown on Profile, used as guidance when
 // editing schedules.
