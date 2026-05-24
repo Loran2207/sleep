@@ -423,7 +423,9 @@ function AlarmToggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => 
 }
 
 // ─── Apple-style time wheel ────────────────────────────────────
-function WheelPicker({ hour, minute, onChange }: {
+// Exported so the onboarding's "what time do you wake up?" step can
+// reuse the exact same control instead of rebuilding it.
+export function WheelPicker({ hour, minute, onChange }: {
   hour: number; minute: number;
   onChange: (h: number, m: number) => void;
 }) {

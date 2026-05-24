@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import { W } from '../tokens';
 import { back, go, goHome, replace } from '../state/navigation';
 import { TopPad } from '../components/shared';
-import { CheckIcon, GlyphChevDn } from '../components/icons';
+import { GlyphChevDn } from '../components/icons';
 import { lookupQuiz, resultBand, type Quiz } from '../data/quizzes';
 import { useQuizSession } from '../state/store';
+import { OptionCard } from '../components/QuizCard';
 
 // ─── Intro ────────────────────────────────────────────────────────
 export function QuizIntro() {
@@ -207,40 +208,15 @@ export function QuizSession() {
         <div style={{
           marginTop: 22, display: 'flex', flexDirection: 'column', gap: 10,
         }}>
-          {q.options.map((opt) => {
-            const on = answer === opt.value;
-            return (
-              <div key={opt.label} onClick={() => pickOption(opt.value)} style={{
-                padding: '15px 16px',
-                background: on
-                  ? `linear-gradient(135deg, ${hexA(quiz.accent, 0.16)} 0%, ${hexA(quiz.accent, 0.05)} 100%)`
-                  : W.paper,
-                border: `1px solid ${on ? hexA(quiz.accent, 0.65) : W.fill}`,
-                borderRadius: 14, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 12,
-                transition: 'background .14s ease, border-color .14s ease, box-shadow .14s ease',
-                boxShadow: on ? `0 8px 22px ${hexA(quiz.accent, 0.18)}` : 'none',
-              }}>
-                <div style={{
-                  flex: 1, minWidth: 0, fontSize: 15, fontWeight: 500,
-                  color: on ? W.ink : W.ink,
-                }}>
-                  {opt.label}
-                </div>
-                <div style={{
-                  width: 22, height: 22, borderRadius: 11,
-                  background: on ? quiz.accent : 'transparent',
-                  border: `1.5px solid ${on ? quiz.accent : W.veryweak}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: on ? `0 0 0 4px ${hexA(quiz.accent, 0.18)}` : 'none',
-                  transition: 'background .14s ease, border-color .14s ease, box-shadow .14s ease',
-                }}>
-                  {on && <CheckIcon size={12} stroke={W.bg} strokeWidth={3} />}
-                </div>
-              </div>
-            );
-          })}
+          {q.options.map((opt) => (
+            <OptionCard
+              key={opt.label}
+              label={opt.label}
+              selected={answer === opt.value}
+              accent={quiz.accent}
+              onClick={() => pickOption(opt.value)}
+            />
+          ))}
         </div>
       </div>
 

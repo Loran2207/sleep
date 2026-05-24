@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { DeviceFrame } from './components/DeviceFrame';
 import { MiniSoundsPlayer } from './components/shared';
 import { useNavigation, useBrowserBack } from './state/navigation';
+import { useOnboardingDone } from './state/store';
+import { Onboarding } from './screens/Onboarding';
 import type { ScreenId } from './tokens';
 
 import { Home } from './screens/Home';
@@ -65,8 +67,16 @@ export function App() {
   useBrowserBack();
   const { screenId } = useNavigation();
   const isMobileViewport = useIsMobileViewport();
+  const onboardingDone = useOnboardingDone();
 
   const Screen = SCREENS[screenId] || SCREENS['home'];
+
+  // Before the app proper, run the first-run onboarding. It renders
+  // inside the same frame so the phone chrome stays consistent, but
+  // without the bottom nav / mini player.
+  const body = onboardingDone
+    ? <><Screen /><MiniSoundsPlayer /></>
+    : <Onboarding />;
 
   // Mobile: render full-bleed (no device frame). Desktop: show framed phone.
   if (isMobileViewport) {
@@ -75,8 +85,7 @@ export function App() {
         position: 'fixed', inset: 0, overflow: 'hidden',
         background: '#000', color: '#fff',
       }}>
-        <Screen />
-        <MiniSoundsPlayer />
+        {body}
       </div>
     );
   }
@@ -89,8 +98,7 @@ export function App() {
       padding: '40px 20px',
     }}>
       <DeviceFrame>
-        <Screen />
-        <MiniSoundsPlayer />
+        {body}
       </DeviceFrame>
     </div>
   );
