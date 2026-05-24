@@ -306,7 +306,6 @@ export function Onboarding() {
         progress={progress}
         accent={step.accent}
         isWelcome={idx === 0}
-        onLogin={next}
       />
 
       <div key={idx} style={{
@@ -393,21 +392,25 @@ export function Onboarding() {
 }
 
 // ─── Header ──────────────────────────────────────────────────────
-function Header({ showBack, onBack, onSkip, progress, accent, isWelcome, onLogin }: {
+function Header({ showBack, onBack, onSkip, progress, accent, isWelcome }: {
   showBack: boolean;
   onBack: () => void;
   onSkip: () => void;
   progress: number | null;
   accent: string;
   isWelcome: boolean;
-  onLogin: () => void;
 }) {
+  // The welcome screen stays chrome-free — no controls in the corners.
+  if (isWelcome) {
+    return <div style={{ height: 'calc(8px + env(safe-area-inset-top))', flexShrink: 0 }} />;
+  }
+
   const left = showBack
     ? <RoundBtn onClick={onBack} label="Back"><ChevronLeftIcon size={16} stroke="#fff" /></RoundBtn>
     : <SkipPill onClick={onSkip} />;
   const right = showBack
     ? <SkipPill onClick={onSkip} />
-    : (isWelcome ? <LoginLink onClick={onLogin} /> : <div style={{ width: 56 }} />);
+    : <div style={{ width: 56 }} />;
 
   return (
     <>
@@ -449,21 +452,6 @@ function SkipPill({ onClick }: { onClick: () => void }) {
       fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
       cursor: 'pointer',
     }}>skip</div>
-  );
-}
-
-function LoginLink({ onClick }: { onClick: () => void }) {
-  return (
-    <div onClick={onClick} style={{
-      flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
-      color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-    }}>
-      Log in
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 6l6 6-6 6" />
-      </svg>
-    </div>
   );
 }
 
@@ -551,84 +539,84 @@ function WelcomeBody() {
   return (
     <div style={{
       position: 'relative', minHeight: '100%', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column', padding: '8px 24px 0',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+      padding: '8px 30px 0',
     }}>
-      <CosmicScene />
+      <WelcomeWash />
 
-      <div style={{ position: 'relative', zIndex: 2, paddingTop: 18 }}>
-        <Logo size={28} />
+      <div style={{ position: 'relative', zIndex: 2, paddingTop: 26 }}>
+        <Logo size={24} />
       </div>
 
       <div style={{
-        position: 'relative', zIndex: 2, flex: 1,
-        display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 6,
+        position: 'relative', zIndex: 2, flex: 1, width: '100%',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       }}>
-        <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.2, color: 'rgba(255,255,255,0.55)', marginBottom: 14 }}>
-          Your nightly companion
+        <BreathingOrb />
+        <div style={{ marginTop: 48 }}>
+          <Title size={34}>{'Sleep is a skill.\nLet’s build yours.'}</Title>
         </div>
-        <Title size={36}>{'Sleep is a skill.\nLet’s build yours.'}</Title>
-        <Sub>Calm a racing mind, fall asleep faster, and wake up genuinely rested — with tools made for the way you sleep.</Sub>
+        <div style={{
+          marginTop: 14, maxWidth: 300,
+          fontSize: 15, color: 'rgba(255,255,255,0.6)', lineHeight: 1.55,
+        }}>
+          Calm your mind, fall asleep faster, and wake up restored.
+        </div>
       </div>
     </div>
   );
 }
 
-// Animated deep-space backdrop for the welcome screen: drifting nebulae,
-// a glowing planet with a tilted orbit + travelling satellite, the odd
-// shooting star. Pure CSS/SVG, no assets.
-function CosmicScene() {
+// A single luminous orb that slowly breathes, ringed by concentric
+// ripples on the same rhythm — a quiet nod to the app's 4-7-8 wind-down.
+function BreathingOrb() {
   return (
-    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      <div style={{
-        position: 'absolute', top: '-6%', left: '-14%', width: 300, height: 300, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(138,161,255,0.32), transparent 65%)',
-        filter: 'blur(8px)', animation: 'ob-drift1 18s ease-in-out infinite',
-      }} />
-      <div style={{
-        position: 'absolute', top: '8%', right: '-18%', width: 320, height: 320, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(201,166,255,0.26), transparent 65%)',
-        filter: 'blur(12px)', animation: 'ob-drift2 23s ease-in-out infinite',
-      }} />
-      <div style={{
-        position: 'absolute', top: '34%', left: '24%', width: 220, height: 220, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(93,221,179,0.12), transparent 70%)',
-        filter: 'blur(16px)', animation: 'ob-drift1 28s ease-in-out infinite',
-      }} />
-
-      <div style={{
-        position: 'absolute', top: '11%', left: '-14%', width: 130, height: 2, borderRadius: 2,
-        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9))',
-        animation: 'ob-shoot 7s ease-in-out 1.4s infinite',
-      }} />
-
-      <svg viewBox="0 0 300 300" style={{
-        position: 'absolute', top: '15%', left: '50%', width: 300, height: 300,
-        transform: 'translateX(-50%)', overflow: 'visible',
-      }}>
-        <g transform="rotate(-16 150 150)">
-          <path d="M30 150 a120 46 0 1 0 240 0 a120 46 0 1 0 -240 0"
-            fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="1" />
-          <circle cx="30" cy="150" r="3.5" fill="#E7ECFF">
-            <animateMotion dur="16s" repeatCount="indefinite" rotate="auto"
-              path="M30 150 a120 46 0 1 0 240 0 a120 46 0 1 0 -240 0" />
-          </circle>
-        </g>
-      </svg>
-
-      <div style={{ position: 'absolute', top: '15%', left: '50%', width: 300, height: 300, transform: 'translateX(-50%)' }}>
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%', width: 176, height: 176, marginLeft: -88, marginTop: -88,
-          borderRadius: '50%', background: 'radial-gradient(circle, rgba(138,161,255,0.32), transparent 70%)',
-          animation: 'ob-halo 4.5s ease-in-out infinite',
+    <div style={{
+      position: 'relative', width: 188, height: 188,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      {[0, 1, 2].map((i) => (
+        <div key={i} style={{
+          position: 'absolute', width: 150, height: 150, borderRadius: '50%',
+          border: '1px solid rgba(170,185,255,0.30)',
+          animation: `ob-ripple 7s ease-out ${i * 2.33}s infinite`,
         }} />
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%', width: 108, height: 108, marginLeft: -54, marginTop: -54,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle at 36% 30%, #ffffff 0%, #D7DDFB 30%, #8FA2F2 64%, #4E5AA8 100%)',
-          boxShadow: '0 0 64px 12px rgba(138,161,255,0.45), inset -10px -12px 28px rgba(15,15,40,0.55)',
-          animation: 'ob-bob 7s ease-in-out infinite',
-        }} />
-      </div>
+      ))}
+      <div style={{
+        position: 'absolute', width: 210, height: 210, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(138,161,255,0.30), transparent 66%)',
+        filter: 'blur(6px)', animation: 'ob-glow 7s ease-in-out infinite',
+      }} />
+      <div style={{
+        position: 'relative', width: 124, height: 124, borderRadius: '50%',
+        background: 'radial-gradient(circle at 36% 30%, #ffffff 0%, #EAEDFF 22%, #C3B0FF 54%, #8AA1FF 80%, rgba(138,161,255,0) 100%)',
+        boxShadow: '0 0 72px 16px rgba(138,161,255,0.40), inset -8px -10px 30px rgba(45,30,95,0.30)',
+        animation: 'ob-breathe 7s ease-in-out infinite',
+      }} />
+    </div>
+  );
+}
+
+function WelcomeWash() {
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      <div style={{
+        position: 'absolute', top: '40%', left: '50%', width: 380, height: 380,
+        transform: 'translate(-50%,-50%)', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(138,161,255,0.16), transparent 64%)',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-14%', left: '50%', width: 440, height: 300,
+        transform: 'translateX(-50%)', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(201,166,255,0.12), transparent 70%)',
+        filter: 'blur(10px)',
+      }} />
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundSize: '140px 140px',
+        opacity: 0.05, mixBlendMode: 'overlay', filter: 'grayscale(1)',
+      }} />
     </div>
   );
 }
@@ -1245,11 +1233,9 @@ function Keyframes() {
       @keyframes ob-spin { to { transform: rotate(360deg); } }
       @keyframes ob-draw { to { stroke-dashoffset: 0; } }
       @keyframes ob-pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
-      @keyframes ob-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-      @keyframes ob-halo { 0%, 100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.16); opacity: .85; } }
-      @keyframes ob-drift1 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(16px,12px); } }
-      @keyframes ob-drift2 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-18px,10px); } }
-      @keyframes ob-shoot { 0% { transform: translate(0,0) rotate(18deg); opacity: 0; } 8% { opacity: 1; } 22% { opacity: 0; } 100% { transform: translate(440px,150px) rotate(18deg); opacity: 0; } }
+      @keyframes ob-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+      @keyframes ob-glow { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+      @keyframes ob-ripple { 0% { transform: scale(.62); opacity: .5; } 80% { opacity: 0; } 100% { transform: scale(2); opacity: 0; } }
     `}</style>
   );
 }
