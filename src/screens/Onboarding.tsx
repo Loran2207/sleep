@@ -568,25 +568,75 @@ function WelcomeBody() {
           A calm, science-backed toolkit for falling asleep faster and waking up genuinely rested.
         </div>
         <div style={{ marginTop: 22, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {[
-            { l: 'Soundscapes', c: CORAL },
-            { l: 'Breathing', c: PERIWINKLE },
-            { l: 'Journal', c: LAVENDER },
-            { l: 'Sleep score', c: MINT },
-          ].map((t) => (
+          {([
+            { l: 'Breathing', kind: 'breath', c: PERIWINKLE },
+            { l: 'Soundscapes', kind: 'sound', c: CORAL },
+            { l: 'Journal', kind: 'journal', c: LAVENDER },
+            { l: 'Course', kind: 'course', c: MINT },
+            { l: 'Schedules', kind: 'schedule', c: PERIWINKLE },
+          ] as { l: string; kind: FeatureKind; c: string }[]).map((t) => (
             <div key={t.l} style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 11px', borderRadius: 999,
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '6px 11px 6px 9px', borderRadius: 999,
               background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.10)',
-              fontSize: 11.5, color: 'rgba(255,255,255,0.72)', fontWeight: 500,
+              border: `1px solid ${hexA(t.c, 0.2)}`,
+              fontSize: 11.5, color: 'rgba(255,255,255,0.78)', fontWeight: 500,
             }}>
-              <span style={{ width: 5, height: 5, borderRadius: 3, background: t.c, boxShadow: `0 0 6px ${t.c}` }} />
+              <ChipAnim kind={t.kind} accent={t.c} />
               {t.l}
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Tiny live glyph inside each footer chip — a miniature of the same
+// motion used on the features step.
+function ChipAnim({ kind, accent }: { kind: FeatureKind; accent: string }) {
+  if (kind === 'sound') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 1.5, height: 11, width: 12, justifyContent: 'center' }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{
+            width: 1.8, height: 11, borderRadius: 1, background: accent, transformOrigin: 'center',
+            animation: `ob-eq 1.${4 + i}s ease-in-out ${i * 0.15}s infinite`,
+          }} />
+        ))}
+      </div>
+    );
+  }
+  if (kind === 'breath') {
+    return (
+      <div style={{ position: 'relative', width: 12, height: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `1px solid ${hexA(accent, 0.5)}`, animation: 'ob-breathe 3.4s ease-in-out infinite' }} />
+        <div style={{ width: 5, height: 5, borderRadius: 3, background: accent, boxShadow: `0 0 5px ${accent}`, animation: 'ob-breathe 3.4s ease-in-out infinite' }} />
+      </div>
+    );
+  }
+  if (kind === 'journal') {
+    return (
+      <svg width="14" height="11" viewBox="0 0 16 11" style={{ overflow: 'visible' }}>
+        <polyline points="1,9 5,5 9,6 15,2" fill="none" stroke={accent} strokeWidth="1.4"
+          strokeLinecap="round" strokeLinejoin="round" strokeDasharray="28" strokeDashoffset="28"
+          style={{ animation: 'ob-draw 1.4s ease .2s forwards' }} />
+        <circle cx="15" cy="2" r="1.6" fill={accent} style={{ transformOrigin: '15px 2px', animation: 'ob-glow 2s ease-in-out 1.2s infinite' }} />
+      </svg>
+    );
+  }
+  if (kind === 'course') {
+    return (
+      <svg width="12" height="12" viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="18" cy="18" r="15" fill="none" stroke={hexA(accent, 0.25)} strokeWidth="5" />
+        <circle cx="18" cy="18" r="15" fill="none" stroke={accent} strokeWidth="5" strokeLinecap="round"
+          strokeDasharray="94" strokeDashoffset="94" style={{ animation: 'ob-fill 2.6s ease-in-out infinite' }} />
+      </svg>
+    );
+  }
+  return (
+    <div style={{ position: 'relative', width: 12, height: 12, borderRadius: '50%', border: `1px solid ${hexA(accent, 0.5)}` }}>
+      <div style={{ position: 'absolute', top: 1.5, left: '50%', width: 1.3, height: 4.5, marginLeft: -0.65, background: accent, borderRadius: 1, transformOrigin: 'bottom center', animation: 'ob-spin 5s linear infinite' }} />
     </div>
   );
 }
@@ -670,7 +720,7 @@ function ToolStack() {
     { accent: PERIWINKLE, title: 'Breathing', sub: '4-7-8 wind-down', cta: 'Start', glyph: 'orb', top: 116, rot: -2, scale: 1, z: 3 },
   ];
   return (
-    <div style={{ position: 'absolute', top: '17%', left: '50%', transform: 'translateX(-50%)', width: 300, height: 300, zIndex: 1 }}>
+    <div style={{ position: 'absolute', top: '14%', left: '50%', transform: 'translateX(-50%)', width: 300, height: 300, zIndex: 1 }}>
       {cards.map((c, i) => (
         <div key={i} style={{
           position: 'absolute', top: c.top, left: '50%', zIndex: c.z,
