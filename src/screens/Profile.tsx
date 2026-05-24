@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad, LiquidGlassNav } from '../components/shared';
+import { TopPad, LiquidGlassNav, HeaderAmbient } from '../components/shared';
 import {
   CheckIcon, ChevronRightIcon, MoonIcon, BellIcon,
   NightShiftIcon, PhoneOffIcon,
@@ -26,10 +26,11 @@ export function Profile() {
   const [sheet, setSheet] = useState<'goal' | 'language' | null>(null);
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative', overflow: 'hidden' }}>
+      <HeaderAmbient />
       <TopPad />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 190px' }}>
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', padding: '8px 16px 190px' }}>
         <ProfileHero />
 
         <SignInBanner />
