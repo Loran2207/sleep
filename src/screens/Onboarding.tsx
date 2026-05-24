@@ -577,25 +577,53 @@ function WelcomeBody() {
   );
 }
 
-// Restrained, editorial atmosphere — a deep vertical wash and one slow,
-// low-saturation glow. No objects, no sparkle; the type carries the screen.
+// Editorial atmosphere with a living, breathing halo borrowed from the
+// in-app sleep screen — large faint rings that breathe on a slow stagger,
+// a soft glow and a little drifting stardust. Restrained and monochrome,
+// so the type still leads; the motion just makes it feel alive.
 function WelcomeAtmosphere() {
+  const motes = [
+    { x: '24%', d: 0, dur: 12 }, { x: '44%', d: 4, dur: 14 },
+    { x: '62%', d: 2, dur: 11 }, { x: '78%', d: 6.5, dur: 15 }, { x: '34%', d: 8.5, dur: 13 },
+  ];
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(180deg, #141622 0%, #0C0D12 52%, #0B0B0F 100%)',
       }} />
-      <div style={{
-        position: 'absolute', top: '-14%', right: '-22%', width: 460, height: 460, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(122,142,236,0.20), transparent 60%)',
-        filter: 'blur(22px)', animation: 'ob-aura 18s ease-in-out infinite',
-      }} />
+
+      <div style={{ position: 'absolute', top: '34%', left: '50%', width: 0, height: 0 }}>
+        <div style={{
+          position: 'absolute', left: '50%', top: '50%', width: 380, height: 380,
+          transform: 'translate(-50%,-50%)', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(122,142,236,0.22), transparent 60%)',
+          filter: 'blur(20px)', animation: 'ob-aura 16s ease-in-out infinite',
+        }} />
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} style={{
+            position: 'absolute', left: '50%', top: '50%',
+            width: 200 + i * 116, height: 200 + i * 116, borderRadius: '50%',
+            border: '1px solid rgba(192,202,255,0.13)',
+            animation: `ob-ring 9s ease-in-out ${i * 1.6}s infinite`,
+          }} />
+        ))}
+      </div>
+
       <div style={{
         position: 'absolute', bottom: '-20%', left: '-18%', width: 420, height: 360, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(150,120,210,0.12), transparent 64%)',
         filter: 'blur(26px)',
       }} />
+
+      {motes.map((m, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: m.x, bottom: '30%', width: 2.5, height: 2.5, borderRadius: 3,
+          background: 'rgba(205,212,255,0.55)',
+          animation: `ob-mote ${m.dur}s ease-in-out ${m.d}s infinite`,
+        }} />
+      ))}
+
       <div style={{
         position: 'absolute', inset: 0,
         backgroundImage: `url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E")`,
@@ -1286,7 +1314,9 @@ function Keyframes() {
       @keyframes ob-pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
       @keyframes ob-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
       @keyframes ob-glow { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
-      @keyframes ob-aura { 0%, 100% { opacity: .55; transform: translate(0,0); } 50% { opacity: .9; transform: translate(-14px,10px); } }
+      @keyframes ob-aura { 0%, 100% { opacity: .5; } 50% { opacity: .85; } }
+      @keyframes ob-ring { 0%, 100% { transform: translate(-50%,-50%) scale(.82); opacity: .4; } 50% { transform: translate(-50%,-50%) scale(1.16); opacity: .05; } }
+      @keyframes ob-mote { 0% { transform: translateY(0); opacity: 0; } 18% { opacity: .6; } 85% { opacity: .5; } 100% { transform: translateY(-120px); opacity: 0; } }
       @keyframes ob-eq { 0%, 100% { transform: scaleY(.32); } 50% { transform: scaleY(1); } }
       @keyframes ob-fill { 0% { stroke-dashoffset: 94; } 55% { stroke-dashoffset: 14; } 100% { stroke-dashoffset: 94; } }
     `}</style>
