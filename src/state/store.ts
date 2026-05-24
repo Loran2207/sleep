@@ -70,6 +70,9 @@ export function useOnboardingDone(): boolean {
 export function completeOnboarding() {
   onboardingDoneStore.set(true);
 }
+export function resetOnboarding() {
+  onboardingDoneStore.set(false);
+}
 
 // ─── PROFILE PREFS ──────────────────────────────────────────────
 // Target hours of sleep — shown on Profile, used as guidance when

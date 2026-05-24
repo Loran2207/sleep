@@ -540,8 +540,8 @@ function Sub({ children }: { children: ReactNode }) {
 function Eyebrow({ children, accent }: { children: ReactNode; accent: string }) {
   return (
     <div style={{
-      fontSize: 12, fontWeight: 600, letterSpacing: 0.4,
-      textTransform: 'uppercase', color: accent, marginBottom: 8,
+      fontSize: 13, fontWeight: 600, letterSpacing: 0.2,
+      color: accent, marginBottom: 8,
     }}>{children}</div>
   );
 }
@@ -550,50 +550,85 @@ function Eyebrow({ children, accent }: { children: ReactNode; accent: string }) 
 function WelcomeBody() {
   return (
     <div style={{
-      minHeight: '100%', display: 'flex', flexDirection: 'column',
-      padding: '8px 24px 0', position: 'relative',
+      position: 'relative', minHeight: '100%', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', padding: '8px 24px 0',
     }}>
-      <div style={{ paddingTop: 18 }}><Logo size={28} /></div>
+      <CosmicScene />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 2 }}>
-        <div style={{
-          fontSize: 13, fontWeight: 600, letterSpacing: 0.5,
-          color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 14,
-        }}>Your nightly companion</div>
+      <div style={{ position: 'relative', zIndex: 2, paddingTop: 18 }}>
+        <Logo size={28} />
+      </div>
+
+      <div style={{
+        position: 'relative', zIndex: 2, flex: 1,
+        display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 6,
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.2, color: 'rgba(255,255,255,0.55)', marginBottom: 14 }}>
+          Your nightly companion
+        </div>
         <Title size={36}>{'Sleep is a skill.\nLet’s build yours.'}</Title>
         <Sub>Calm a racing mind, fall asleep faster, and wake up genuinely rested — with tools made for the way you sleep.</Sub>
       </div>
-
-      <MountainHero />
     </div>
   );
 }
 
-function MountainHero() {
+// Animated deep-space backdrop for the welcome screen: drifting nebulae,
+// a glowing planet with a tilted orbit + travelling satellite, the odd
+// shooting star. Pure CSS/SVG, no assets.
+function CosmicScene() {
   return (
-    <div aria-hidden style={{ position: 'relative', height: 220, margin: '0 -24px -1px', pointerEvents: 'none' }}>
+    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
       <div style={{
-        position: 'absolute', left: '50%', top: 26, transform: 'translateX(-50%)',
-        width: 96, height: 96, borderRadius: 48,
-        background: 'radial-gradient(circle at 38% 34%, #ffffff 0%, #E7ECFF 42%, #AEB9E8 100%)',
-        boxShadow: '0 0 70px 14px rgba(138,161,255,0.35)',
-        animation: 'ob-float 7s ease-in-out infinite',
+        position: 'absolute', top: '-6%', left: '-14%', width: 300, height: 300, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(138,161,255,0.32), transparent 65%)',
+        filter: 'blur(8px)', animation: 'ob-drift1 18s ease-in-out infinite',
       }} />
-      <svg width="100%" height="220" viewBox="0 0 390 220" preserveAspectRatio="xMidYMax slice"
-        style={{ position: 'absolute', inset: 0 }}>
-        <defs>
-          <linearGradient id="ob-m1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#23304F" />
-            <stop offset="1" stopColor="#141A2C" />
-          </linearGradient>
-          <linearGradient id="ob-m2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#1A2138" />
-            <stop offset="1" stopColor="#0B0B0F" />
-          </linearGradient>
-        </defs>
-        <path d="M0 150 L70 96 L150 150 L230 70 L300 138 L390 92 L390 220 L0 220 Z" fill="url(#ob-m1)" opacity="0.9" />
-        <path d="M0 178 L90 132 L180 184 L260 138 L340 186 L390 158 L390 220 L0 220 Z" fill="url(#ob-m2)" />
+      <div style={{
+        position: 'absolute', top: '8%', right: '-18%', width: 320, height: 320, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(201,166,255,0.26), transparent 65%)',
+        filter: 'blur(12px)', animation: 'ob-drift2 23s ease-in-out infinite',
+      }} />
+      <div style={{
+        position: 'absolute', top: '34%', left: '24%', width: 220, height: 220, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(93,221,179,0.12), transparent 70%)',
+        filter: 'blur(16px)', animation: 'ob-drift1 28s ease-in-out infinite',
+      }} />
+
+      <div style={{
+        position: 'absolute', top: '11%', left: '-14%', width: 130, height: 2, borderRadius: 2,
+        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9))',
+        animation: 'ob-shoot 7s ease-in-out 1.4s infinite',
+      }} />
+
+      <svg viewBox="0 0 300 300" style={{
+        position: 'absolute', top: '15%', left: '50%', width: 300, height: 300,
+        transform: 'translateX(-50%)', overflow: 'visible',
+      }}>
+        <g transform="rotate(-16 150 150)">
+          <path d="M30 150 a120 46 0 1 0 240 0 a120 46 0 1 0 -240 0"
+            fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="1" />
+          <circle cx="30" cy="150" r="3.5" fill="#E7ECFF">
+            <animateMotion dur="16s" repeatCount="indefinite" rotate="auto"
+              path="M30 150 a120 46 0 1 0 240 0 a120 46 0 1 0 -240 0" />
+          </circle>
+        </g>
       </svg>
+
+      <div style={{ position: 'absolute', top: '15%', left: '50%', width: 300, height: 300, transform: 'translateX(-50%)' }}>
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', width: 176, height: 176, marginLeft: -88, marginTop: -88,
+          borderRadius: '50%', background: 'radial-gradient(circle, rgba(138,161,255,0.32), transparent 70%)',
+          animation: 'ob-halo 4.5s ease-in-out infinite',
+        }} />
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', width: 108, height: 108, marginLeft: -54, marginTop: -54,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 36% 30%, #ffffff 0%, #D7DDFB 30%, #8FA2F2 64%, #4E5AA8 100%)',
+          boxShadow: '0 0 64px 12px rgba(138,161,255,0.45), inset -10px -12px 28px rgba(15,15,40,0.55)',
+          animation: 'ob-bob 7s ease-in-out infinite',
+        }} />
+      </div>
     </div>
   );
 }
@@ -728,8 +763,8 @@ function SectionBody({ step }: { step: Step }) {
       padding: '8px 30px 0',
     }}>
       <div style={{
-        fontSize: 13, fontWeight: 600, letterSpacing: 0.6,
-        color: step.accent, textTransform: 'uppercase', marginBottom: 16,
+        fontSize: 13, fontWeight: 600, letterSpacing: 0.3,
+        color: step.accent, marginBottom: 16,
       }}>Part {step.part} of {step.total}</div>
       <Title size={32}>{step.section}</Title>
       {step.sub && (
@@ -1043,16 +1078,16 @@ function AnalysisBody({ band, accent }: { band: Band; accent: string }) {
 
       <div style={{
         marginTop: 14, padding: '18px 18px', borderRadius: 18,
-        background: '#fff', color: '#0B0B0F',
+        background: W.paper, border: `1px solid ${W.fill}`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>9 in 10</span>
-        </div>
-        <div style={{ fontSize: 14, color: '#3A3A40', lineHeight: 1.5, marginTop: 8, fontWeight: 500 }}>
+        <div style={{
+          fontSize: 40, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: W.ink,
+        }}>9 in 10</div>
+        <div style={{ fontSize: 14, color: W.weak, lineHeight: 1.5, marginTop: 8 }}>
           people who stick with night feel more rested within their first three weeks.*
         </div>
         <ProjectionChart accent={accent} />
-        <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 12 }}>
+        <div style={{ fontSize: 11, color: W.veryweak, marginTop: 12 }}>
           *Based on self-reported check-ins. Your results will vary.
         </div>
       </div>
@@ -1075,7 +1110,7 @@ function ProjectionChart({ accent }: { accent: string }) {
             <stop offset="1" stopColor="rgba(255,255,255,0)" />
           </linearGradient>
         </defs>
-        <line x1="20" y1="120" x2="288" y2="120" stroke="#ECECEF" strokeWidth="1" />
+        <line x1="20" y1="120" x2="288" y2="120" stroke="rgba(255,255,255,0.10)" strokeWidth="1" />
         <path d="M20 112 C90 108 120 86 158 74 S250 36 288 24 L288 120 L20 120 Z" fill="url(#ob-fill)" />
         <path d="M20 112 C90 108 120 86 158 74 S250 36 288 24" fill="none" stroke="url(#ob-line)"
           strokeWidth="4" strokeLinecap="round"
@@ -1085,7 +1120,7 @@ function ProjectionChart({ accent }: { accent: string }) {
         <circle cx="288" cy="24" r="6" fill="#34C77B" stroke="#fff" strokeWidth="2.5" />
       </svg>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-        <span style={{ fontSize: 11, color: '#9A9AA2', fontWeight: 600 }}>Now</span>
+        <span style={{ fontSize: 11, color: W.weak, fontWeight: 600 }}>Now</span>
         <span style={{ fontSize: 11, color: '#34C77B', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
           Your ideal sleep
           <CheckIcon size={12} stroke="#34C77B" strokeWidth={3} />
@@ -1207,10 +1242,14 @@ function Keyframes() {
     <style>{`
       @keyframes ob-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
       @keyframes ob-fade { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes ob-float { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-7px); } }
       @keyframes ob-spin { to { transform: rotate(360deg); } }
       @keyframes ob-draw { to { stroke-dashoffset: 0; } }
       @keyframes ob-pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+      @keyframes ob-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+      @keyframes ob-halo { 0%, 100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.16); opacity: .85; } }
+      @keyframes ob-drift1 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(16px,12px); } }
+      @keyframes ob-drift2 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-18px,10px); } }
+      @keyframes ob-shoot { 0% { transform: translate(0,0) rotate(18deg); opacity: 0; } 8% { opacity: 1; } 22% { opacity: 0; } 100% { transform: translate(440px,150px) rotate(18deg); opacity: 0; } }
     `}</style>
   );
 }
