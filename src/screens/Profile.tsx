@@ -9,7 +9,7 @@ import {
 import { Avatar } from '../components/Avatar';
 import {
   useSleepGoal, useLanguage, useNotifications,
-  useSchedules, useSubscription,
+  useSchedules, useSubscription, resetOnboarding,
 } from '../state/store';
 
 const PROFILE_NAME = 'Kirill Kuts';
@@ -53,6 +53,18 @@ export function Profile() {
             title="Schedule"
             value={`${schedules.length} preset${schedules.length === 1 ? '' : 's'}`}
             onClick={() => go('sleep-schedule')}
+          />
+          <Divider />
+          <Row
+            icon={(
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={W.ink}
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 2.6-6.3" /><path d="M3 4v4h4" />
+              </svg>
+            )}
+            title="Retake sleep quiz"
+            value=""
+            onClick={resetOnboarding}
           />
         </Group>
 
