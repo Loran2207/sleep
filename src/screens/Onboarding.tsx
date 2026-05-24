@@ -8,7 +8,7 @@ import { OptionCard, hexA } from '../components/QuizCard';
 import { WheelPicker } from './WindDown';
 import {
   MusicIcon, WindIcon, PencilIcon, MoonIcon, BellIcon,
-  CheckIcon, ChevronLeftIcon, PhoneOffIcon, GlyphBook,
+  CheckIcon, ChevronLeftIcon, PhoneOffIcon,
 } from '../components/icons';
 
 // Onboarding lives entirely outside the main nav stack — App renders it
@@ -542,7 +542,7 @@ function WelcomeBody() {
       display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
       padding: '8px 30px 0',
     }}>
-      <WelcomeWash />
+      <WelcomeBackdrop />
 
       <div style={{ position: 'relative', zIndex: 2, paddingTop: 26 }}>
         <Logo size={24} />
@@ -552,8 +552,8 @@ function WelcomeBody() {
         position: 'relative', zIndex: 2, flex: 1, width: '100%',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       }}>
-        <BreathingOrb />
-        <div style={{ marginTop: 48 }}>
+        <MoonHero />
+        <div style={{ marginTop: 44 }}>
           <Title size={34}>{'Sleep is a skill.\nLet’s build yours.'}</Title>
         </div>
         <div style={{
@@ -567,50 +567,117 @@ function WelcomeBody() {
   );
 }
 
-// A single luminous orb that slowly breathes, ringed by concentric
-// ripples on the same rhythm — a quiet nod to the app's 4-7-8 wind-down.
-function BreathingOrb() {
+// A detailed, softly-lit moon with craters, a rim of light and a
+// breathing halo — the centrepiece of the welcome screen.
+function MoonHero() {
+  const sparkles = [
+    { x: 10, y: 22, s: 3, d: 0 }, { x: 168, y: 34, s: 2, d: 0.8 },
+    { x: 150, y: 150, s: 3, d: 1.6 }, { x: 24, y: 140, s: 2, d: 2.2 },
+    { x: 184, y: 96, s: 2, d: 1.1 }, { x: 2, y: 84, s: 2, d: 2.6 },
+  ];
   return (
-    <div style={{
-      position: 'relative', width: 188, height: 188,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      {[0, 1, 2].map((i) => (
-        <div key={i} style={{
-          position: 'absolute', width: 150, height: 150, borderRadius: '50%',
-          border: '1px solid rgba(170,185,255,0.30)',
-          animation: `ob-ripple 7s ease-out ${i * 2.33}s infinite`,
-        }} />
+    <div style={{ position: 'relative', width: 200, height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{
+        position: 'absolute', width: 224, height: 224, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(170,185,255,0.30), transparent 66%)',
+        filter: 'blur(10px)', animation: 'ob-glow 6s ease-in-out infinite',
+      }} />
+      {sparkles.map((s, i) => (
+        <Sparkle key={i} x={s.x} y={s.y} size={s.s} delay={s.d} />
       ))}
-      <div style={{
-        position: 'absolute', width: 210, height: 210, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(138,161,255,0.30), transparent 66%)',
-        filter: 'blur(6px)', animation: 'ob-glow 7s ease-in-out infinite',
-      }} />
-      <div style={{
-        position: 'relative', width: 124, height: 124, borderRadius: '50%',
-        background: 'radial-gradient(circle at 36% 30%, #ffffff 0%, #EAEDFF 22%, #C3B0FF 54%, #8AA1FF 80%, rgba(138,161,255,0) 100%)',
-        boxShadow: '0 0 72px 16px rgba(138,161,255,0.40), inset -8px -10px 30px rgba(45,30,95,0.30)',
-        animation: 'ob-breathe 7s ease-in-out infinite',
-      }} />
+      <div style={{ position: 'relative', animation: 'ob-float 8s ease-in-out infinite' }}>
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <defs>
+            <radialGradient id="moon-face" cx="38%" cy="32%" r="78%">
+              <stop offset="0" stopColor="#FFFFFF" />
+              <stop offset="0.42" stopColor="#E9ECFF" />
+              <stop offset="1" stopColor="#9AA6E0" />
+            </radialGradient>
+            <radialGradient id="moon-shade" cx="72%" cy="74%" r="72%">
+              <stop offset="0.55" stopColor="rgba(30,30,72,0)" />
+              <stop offset="1" stopColor="rgba(24,26,64,0.5)" />
+            </radialGradient>
+            <radialGradient id="moon-crater" cx="40%" cy="36%" r="72%">
+              <stop offset="0" stopColor="rgba(150,160,205,0.08)" />
+              <stop offset="0.7" stopColor="rgba(78,86,132,0.34)" />
+              <stop offset="1" stopColor="rgba(170,182,225,0.20)" />
+            </radialGradient>
+          </defs>
+          <circle cx="75" cy="75" r="64" fill="url(#moon-face)" />
+          <ellipse cx="55" cy="50" rx="13" ry="11" fill="url(#moon-crater)" />
+          <ellipse cx="99" cy="62" rx="7" ry="6" fill="url(#moon-crater)" />
+          <ellipse cx="72" cy="95" rx="15" ry="13" fill="url(#moon-crater)" />
+          <ellipse cx="103" cy="98" rx="6" ry="5" fill="url(#moon-crater)" />
+          <ellipse cx="48" cy="88" rx="5" ry="4.5" fill="url(#moon-crater)" />
+          <circle cx="75" cy="75" r="64" fill="url(#moon-shade)" />
+          <path d="M15 60 A64 64 0 0 1 90 13" fill="none"
+            stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </div>
     </div>
   );
 }
 
-function WelcomeWash() {
+function Sparkle({ x, y, size, delay }: { x: number; y: number; size: number; delay: number }) {
+  return (
+    <div style={{
+      position: 'absolute', left: x, top: y, width: size, height: size, borderRadius: size,
+      background: '#fff', boxShadow: '0 0 6px rgba(255,255,255,0.8)',
+      animation: `ob-twinkle 3.4s ease-in-out ${delay}s infinite`,
+    }} />
+  );
+}
+
+// Animated welcome backdrop: drifting aurora, a twinkling starfield and
+// a few motes of stardust rising slowly through the frame.
+function WelcomeBackdrop() {
+  const stars = [
+    { x: '12%', y: '14%', s: 2, d: 0 }, { x: '82%', y: '10%', s: 1.5, d: 1.2 },
+    { x: '68%', y: '20%', s: 2, d: 0.6 }, { x: '30%', y: '26%', s: 1.5, d: 2.1 },
+    { x: '90%', y: '30%', s: 2, d: 1.7 }, { x: '6%', y: '40%', s: 1.5, d: 0.9 },
+    { x: '50%', y: '12%', s: 1.5, d: 2.6 }, { x: '20%', y: '66%', s: 2, d: 1.4 },
+    { x: '88%', y: '62%', s: 1.5, d: 0.3 }, { x: '74%', y: '78%', s: 2, d: 2.3 },
+    { x: '40%', y: '82%', s: 1.5, d: 1.0 }, { x: '14%', y: '84%', s: 2, d: 1.9 },
+  ];
+  const motes = [
+    { x: '22%', d: 0, dur: 11 }, { x: '46%', d: 3.5, dur: 13 },
+    { x: '64%', d: 1.8, dur: 10 }, { x: '80%', d: 5, dur: 14 }, { x: '34%', d: 6.5, dur: 12 },
+  ];
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
       <div style={{
-        position: 'absolute', top: '40%', left: '50%', width: 380, height: 380,
-        transform: 'translate(-50%,-50%)', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(138,161,255,0.16), transparent 64%)',
+        position: 'absolute', top: '6%', left: '-16%', width: 320, height: 320, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(138,161,255,0.22), transparent 64%)',
+        filter: 'blur(14px)', animation: 'ob-drift 20s ease-in-out infinite',
       }} />
       <div style={{
-        position: 'absolute', bottom: '-14%', left: '50%', width: 440, height: 300,
-        transform: 'translateX(-50%)', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(201,166,255,0.12), transparent 70%)',
-        filter: 'blur(10px)',
+        position: 'absolute', top: '20%', right: '-20%', width: 340, height: 340, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(201,166,255,0.18), transparent 65%)',
+        filter: 'blur(16px)', animation: 'ob-drift 26s ease-in-out infinite reverse',
       }} />
+      <div style={{
+        position: 'absolute', bottom: '-16%', left: '50%', width: 460, height: 320,
+        transform: 'translateX(-50%)', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(93,221,179,0.10), transparent 70%)',
+        filter: 'blur(14px)', animation: 'ob-drift 30s ease-in-out infinite',
+      }} />
+
+      {stars.map((st, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: st.x, top: st.y, width: st.s, height: st.s, borderRadius: st.s,
+          background: '#fff', boxShadow: '0 0 5px rgba(255,255,255,0.7)',
+          animation: `ob-twinkle 3.6s ease-in-out ${st.d}s infinite`,
+        }} />
+      ))}
+
+      {motes.map((m, i) => (
+        <div key={`m${i}`} style={{
+          position: 'absolute', left: m.x, bottom: '6%', width: 3, height: 3, borderRadius: 3,
+          background: 'rgba(200,210,255,0.8)', filter: 'blur(0.4px)',
+          animation: `ob-mote ${m.dur}s linear ${m.d}s infinite`,
+        }} />
+      ))}
+
       <div style={{
         position: 'absolute', inset: 0,
         backgroundImage: `url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E")`,
@@ -621,37 +688,103 @@ function WelcomeWash() {
   );
 }
 
+type FeatureKind = 'sound' | 'breath' | 'journal' | 'course' | 'schedule';
+
 function FeaturesBody() {
-  const items = [
-    { icon: <MusicIcon size={20} stroke={PERIWINKLE} />, accent: PERIWINKLE, title: 'Soundscapes', desc: 'Layer rain, waves and fire into your own sleep mix.' },
-    { icon: <WindIcon size={20} stroke={CORAL} />, accent: CORAL, title: 'Wind-down breathing', desc: 'Slow 4-7-8 sessions that settle your nervous system.' },
-    { icon: <PencilIcon size={20} stroke={LAVENDER} />, accent: LAVENDER, title: 'Sleep journal', desc: 'Track mood and nights to see what truly helps.' },
-    { icon: <GlyphBook size={20} stroke={MINT} />, accent: MINT, title: 'Guided course', desc: 'Learn the science of sleep, one short lesson at a time.' },
-    { icon: <MoonIcon size={20} stroke={PERIWINKLE} />, accent: PERIWINKLE, title: 'Smart schedules', desc: 'Bed and wake times that adapt to your week.' },
+  const items: { kind: FeatureKind; accent: string; title: string; desc: string }[] = [
+    { kind: 'sound', accent: PERIWINKLE, title: 'Soundscapes', desc: 'Layer rain, waves and fire into your own sleep mix.' },
+    { kind: 'breath', accent: CORAL, title: 'Wind-down breathing', desc: 'Slow 4-7-8 sessions that settle your nervous system.' },
+    { kind: 'journal', accent: LAVENDER, title: 'Sleep journal', desc: 'Track mood and nights to see what truly helps.' },
+    { kind: 'course', accent: MINT, title: 'Guided course', desc: 'The science of sleep, one short lesson at a time.' },
+    { kind: 'schedule', accent: PERIWINKLE, title: 'Smart schedules', desc: 'Bed and wake times that adapt to your week.' },
   ];
   return (
     <div style={{ padding: '14px 22px 8px' }}>
       <Title>Everything for a better night</Title>
       <Sub>A calm toolkit you’ll actually reach for.</Sub>
-      <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {items.map((it, i) => (
           <div key={it.title} style={{
-            display: 'flex', alignItems: 'center', gap: 14,
-            padding: '14px 14px', borderRadius: 16,
-            background: W.paper, border: `1px solid ${W.fill}`,
-            animation: 'ob-rise .5s ease both', animationDelay: `${i * 80}ms`,
+            display: 'flex', alignItems: 'center', gap: 15,
+            padding: '14px 15px', borderRadius: 18,
+            background: `linear-gradient(135deg, ${hexA(it.accent, 0.10)} 0%, ${W.paper} 58%)`,
+            border: `1px solid ${hexA(it.accent, 0.22)}`,
+            animation: 'ob-rise .5s ease both', animationDelay: `${i * 90}ms`,
           }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 13, flexShrink: 0,
-              background: hexA(it.accent, 0.14), border: `1px solid ${hexA(it.accent, 0.32)}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{it.icon}</div>
+            <FeaturePreview kind={it.kind} accent={it.accent} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 600 }}>{it.title}</div>
-              <div style={{ fontSize: 13, color: W.weak, marginTop: 2, lineHeight: 1.4 }}>{it.desc}</div>
+              <div style={{ fontSize: 13, color: W.weak, marginTop: 3, lineHeight: 1.4 }}>{it.desc}</div>
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Each feature gets a tiny live preview of itself instead of a flat
+// icon — showing the user what the tool actually does.
+function FeaturePreview({ kind, accent }: { kind: FeatureKind; accent: string }) {
+  const box: React.CSSProperties = {
+    width: 58, height: 58, borderRadius: 16, flexShrink: 0, position: 'relative',
+    background: hexA(accent, 0.12), border: `1px solid ${hexA(accent, 0.28)}`,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  };
+  if (kind === 'sound') {
+    return (
+      <div style={box}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, height: 26 }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} style={{
+              width: 4, height: 26, borderRadius: 2, background: accent, transformOrigin: 'center',
+              animation: `ob-eq 1s ease-in-out ${i * 0.13}s infinite`,
+            }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (kind === 'breath') {
+    return (
+      <div style={box}>
+        <div style={{ position: 'absolute', width: 34, height: 34, borderRadius: '50%', border: `1px solid ${hexA(accent, 0.5)}`, animation: 'ob-breathe 3.4s ease-in-out infinite' }} />
+        <div style={{ width: 14, height: 14, borderRadius: '50%', background: accent, boxShadow: `0 0 10px ${hexA(accent, 0.7)}`, animation: 'ob-breathe 3.4s ease-in-out infinite' }} />
+      </div>
+    );
+  }
+  if (kind === 'journal') {
+    return (
+      <div style={box}>
+        <svg width="38" height="26" viewBox="0 0 38 26">
+          <polyline points="3,20 13,13 23,16 35,5" fill="none" stroke={hexA(accent, 0.6)} strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" strokeDasharray="60" strokeDashoffset="60"
+            style={{ animation: 'ob-draw 1.4s ease .2s forwards' }} />
+          {[[3, 20], [13, 13], [23, 16]].map((p, i) => (
+            <circle key={i} cx={p[0]} cy={p[1]} r="2.4" fill={accent} opacity="0.85" />
+          ))}
+          <circle cx="35" cy="5" r="3" fill={accent} style={{ transformOrigin: '35px 5px', animation: 'ob-glow 2s ease-in-out 1.2s infinite' }} />
+        </svg>
+      </div>
+    );
+  }
+  if (kind === 'course') {
+    return (
+      <div style={box}>
+        <svg width="32" height="32" viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="18" cy="18" r="15" fill="none" stroke={hexA(accent, 0.2)} strokeWidth="3.5" />
+          <circle cx="18" cy="18" r="15" fill="none" stroke={accent} strokeWidth="3.5" strokeLinecap="round"
+            strokeDasharray="94" strokeDashoffset="94" style={{ animation: 'ob-fill 2.6s ease-in-out infinite' }} />
+        </svg>
+        <div style={{ position: 'absolute', width: 0, height: 0, borderLeft: `7px solid ${accent}`, borderTop: '5px solid transparent', borderBottom: '5px solid transparent', marginLeft: 2 }} />
+      </div>
+    );
+  }
+  return (
+    <div style={box}>
+      <div style={{ position: 'relative', width: 32, height: 32, borderRadius: '50%', border: `1.5px solid ${hexA(accent, 0.5)}` }}>
+        <div style={{ position: 'absolute', top: 4, left: '50%', width: 2, height: 12, marginLeft: -1, background: accent, borderRadius: 1, transformOrigin: 'bottom center', animation: 'ob-spin 5s linear infinite' }} />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', width: 4, height: 4, marginLeft: -2, marginTop: -2, borderRadius: 2, background: accent }} />
       </div>
     </div>
   );
@@ -1235,7 +1368,12 @@ function Keyframes() {
       @keyframes ob-pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
       @keyframes ob-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
       @keyframes ob-glow { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
-      @keyframes ob-ripple { 0% { transform: scale(.62); opacity: .5; } 80% { opacity: 0; } 100% { transform: scale(2); opacity: 0; } }
+      @keyframes ob-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+      @keyframes ob-twinkle { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+      @keyframes ob-drift { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(16px,12px); } }
+      @keyframes ob-mote { 0% { transform: translateY(0); opacity: 0; } 12% { opacity: .9; } 86% { opacity: .9; } 100% { transform: translateY(-150px); opacity: 0; } }
+      @keyframes ob-eq { 0%, 100% { transform: scaleY(.32); } 50% { transform: scaleY(1); } }
+      @keyframes ob-fill { 0% { stroke-dashoffset: 94; } 55% { stroke-dashoffset: 14; } 100% { stroke-dashoffset: 94; } }
     `}</style>
   );
 }
