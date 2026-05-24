@@ -37,7 +37,7 @@ export function CourseList() {
           position: 'relative', overflow: 'hidden',
           padding: '0 20px 28px',
         }}>
-          <HeaderAmbient height={280} />
+          <HeaderAmbient />
           <TopPad h={6} />
 
           <div style={{ position: 'relative', zIndex: 1, paddingTop: 14 }}>
