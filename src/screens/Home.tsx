@@ -1,7 +1,7 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  TopPad, LiquidGlassNav, SectionLabel,
+  TopPad, LiquidGlassNav, SectionLabel, HeaderAmbient,
 } from '../components/shared';
 import { useBreathSessions, useNightShiftDone, useQuizSession } from '../state/store';
 import { QUIZZES, type Quiz } from '../data/quizzes';
@@ -14,10 +14,11 @@ export { dayToDate, dayLabel };
 // to the bottom-nav central action and the Journal screen respectively.
 export function Home() {
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative', overflow: 'hidden' }}>
+      <HeaderAmbient />
       <TopPad h={12} />
       <BrandHeader />
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 190 }}>
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', paddingBottom: 190 }}>
         <div style={{ padding: '10px 16px 0' }}>
           <SectionLabel>Tonight's tools</SectionLabel>
           <BreathingCard />
@@ -34,19 +35,38 @@ export function Home() {
   );
 }
 
-// "night" wordmark, top-left, no heading copy. Replaces the previous
-// greeting so the Tools surface opens straight onto its tiles.
+function greetingFor(hour: number): string {
+  if (hour < 5) return 'Good night';
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  if (hour < 22) return 'Good evening';
+  return 'Good night';
+}
+
+// Two-layer header: the serif wordmark over a warm, time-aware greeting,
+// sitting above the ambient glow.
 function BrandHeader() {
+  const greeting = greetingFor(new Date().getHours());
   return (
-    <div style={{ padding: '4px 22px 6px' }}>
+    <div style={{ position: 'relative', zIndex: 1, padding: '2px 22px 8px' }}>
       <div style={{
-        fontSize: 24, fontWeight: 600, letterSpacing: -0.5,
-        fontFamily: '"Times New Roman", Georgia, serif',
-        fontStyle: 'italic', color: W.ink, lineHeight: 1,
+        fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
+        fontFamily: '"Times New Roman", Georgia, serif', fontStyle: 'italic',
+        color: 'rgba(255,255,255,0.5)', lineHeight: 1,
       }}>night</div>
+      <div style={{
+        fontSize: 25, fontWeight: 600, letterSpacing: '-0.02em',
+        color: W.ink, lineHeight: 1.1, marginTop: 6,
+      }}>
+        {greeting},{' '}
+        <span style={{ fontFamily: '"Times New Roman", Georgia, serif', fontStyle: 'italic', fontWeight: 500 }}>
+          Kirill
+        </span>
+      </div>
     </div>
   );
 }
+
 
 // Shared anim keyframes used by the paired Home tiles.
 function ToolCardKeyframes() {

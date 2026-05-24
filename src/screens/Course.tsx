@@ -1,6 +1,6 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { LiquidGlassNav, TopPad } from '../components/shared';
+import { LiquidGlassNav, TopPad, HeaderAmbient } from '../components/shared';
 import { CheckIcon, LockIcon, PlayIcon } from '../components/icons';
 import { useCurrentLesson } from '../state/store';
 
@@ -36,32 +36,22 @@ export function CourseList() {
         <div style={{
           position: 'relative', overflow: 'hidden',
           padding: '0 20px 28px',
-          background: `
-            radial-gradient(95% 75% at 25% 0%, rgba(122,105,240,0.32) 0%, rgba(122,105,240,0) 70%),
-            linear-gradient(180deg, #161325 0%, #100F1A 100%)`,
         }}>
+          <HeaderAmbient height={280} />
           <TopPad h={6} />
 
-          {/* Single soft glow behind the title — subtle, no drift. */}
-          <div aria-hidden style={{
-            position: 'absolute', top: -80, right: -60, width: 240, height: 240,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(122,105,240,0.22) 0%, rgba(122,105,240,0) 65%)',
-            pointerEvents: 'none',
-          }} />
-
-          <div style={{ position: 'relative', paddingTop: 14 }}>
+          <div style={{ position: 'relative', zIndex: 1, paddingTop: 14 }}>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
               padding: '5px 12px', borderRadius: 999,
-              background: 'rgba(122,105,240,0.14)',
-              border: '1px solid rgba(122,105,240,0.32)',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.16)',
               fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.85)',
               letterSpacing: 0,
             }}>
               <span style={{
                 width: 6, height: 6, borderRadius: 3,
-                background: '#A89AFF',
+                background: 'rgba(255,255,255,0.7)',
               }} />
               Course · 12 lessons
             </div>
@@ -77,7 +67,7 @@ export function CourseList() {
             </div>
           </div>
 
-          <div style={{ marginTop: 22, position: 'relative' }}>
+          <div style={{ marginTop: 22, position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.55)', marginBottom: 8 }}>
               <span>{done} of {total} done · ~18 min left</span>
               <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: '#fff' }}>{pct}%</span>
@@ -88,7 +78,7 @@ export function CourseList() {
             }}>
               <div style={{
                 width: `${pct}%`, height: '100%',
-                background: 'linear-gradient(90deg, #A89AFF 0%, #7A69F0 100%)',
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.55) 100%)',
               }} />
             </div>
           </div>
