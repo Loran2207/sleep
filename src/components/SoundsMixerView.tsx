@@ -141,7 +141,7 @@ function TimerRow({ value, onChange }: { value: number | null; onChange: (m: num
             <div key={opt.label} onClick={() => onChange(opt.minutes)} style={{
               padding: '9px 0', textAlign: 'center', borderRadius: 12,
               background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-              color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+              color: active ? '#000000' : 'rgba(255,255,255,0.85)',
               border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
               fontSize: 12, fontWeight: 600, cursor: 'pointer',
               fontVariantNumeric: 'tabular-nums',
@@ -174,7 +174,7 @@ function TabSwitcher({ tab, setTab, mixCount }: {
           <div key={t.id} onClick={() => setTab(t.id)} style={{
             flex: 1, padding: '9px 0', textAlign: 'center',
             background: active ? '#fff' : 'transparent',
-            color: active ? '#0E0E11' : 'rgba(255,255,255,0.85)',
+            color: active ? '#000000' : 'rgba(255,255,255,0.85)',
             borderRadius: 10,
             fontSize: 13, fontWeight: 600, cursor: 'pointer',
             transition: 'background .12s ease, color .12s ease',
@@ -185,7 +185,7 @@ function TabSwitcher({ tab, setTab, mixCount }: {
               <span style={{
                 padding: '1px 7px', borderRadius: 999,
                 fontSize: 10, fontWeight: 700,
-                background: active ? '#0E0E11' : 'rgba(255,255,255,0.10)',
+                background: active ? '#000000' : 'rgba(255,255,255,0.10)',
                 color: active ? '#fff' : 'rgba(255,255,255,0.75)',
                 fontVariantNumeric: 'tabular-nums',
               }}>{t.count}</span>

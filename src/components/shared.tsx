@@ -125,7 +125,7 @@ export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string })
       <div aria-hidden style={{
         position: 'absolute', left: 0, right: 0, bottom: 0,
         height: 180, zIndex: 28, pointerEvents: 'none',
-        background: 'linear-gradient(to top, #0E0E11 0%, #0E0E11 35%, rgba(14,14,17,0.72) 70%, rgba(14,14,17,0) 100%)',
+        background: 'linear-gradient(to top, #000000 0%, #000000 35%, rgba(0,0,0,0.72) 70%, rgba(0,0,0,0) 100%)',
       }} />
       <div style={{
         position: 'absolute', bottom: 22, left: 14, right: 14, zIndex: 30,
@@ -137,7 +137,7 @@ export function LiquidGlassNav({ active = 'home' }: { active?: NavId | string })
           <div style={{
           position: 'absolute', inset: 0,
           borderRadius: 30,
-          background: 'rgba(14,14,17,0.62)',
+          background: 'rgba(0,0,0,0.62)',
           backdropFilter: 'blur(32px) saturate(180%)',
           WebkitBackdropFilter: 'blur(32px) saturate(180%)',
           border: '1px solid rgba(255,255,255,0.06)',
@@ -545,7 +545,7 @@ export function NightShiftCard() {
         flexShrink: 0,
       }}>
         {done
-          ? <CheckIcon size={18} stroke="#0E0E11" />
+          ? <CheckIcon size={18} stroke="#000000" />
           : <NightShiftIcon size={22} stroke={W.ink} />}
       </div>
       <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
@@ -693,7 +693,7 @@ export function MiniSoundsPlayer() {
           aria-label={state.playing ? 'Pause' : 'Play'}
           style={{
             width: 36, height: 36, borderRadius: 18,
-            background: 'rgba(255,255,255,0.94)', color: '#0E0E11',
+            background: 'rgba(255,255,255,0.94)', color: '#000000',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(0,0,0,0.35)',

@@ -11,7 +11,7 @@ export function PlaceDevice() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E1014', color: '#fff', fontFamily: W.font,
+      background: '#000000', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <div style={{
@@ -59,7 +59,7 @@ export function PlaceDevice() {
         <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div onClick={() => go('tracking-active')} style={{
             padding: '17px 0', textAlign: 'center', borderRadius: 999,
-            background: '#fff', color: '#0E1014',
+            background: '#fff', color: '#000000',
             fontSize: 15, fontWeight: 600, cursor: 'pointer',
           }}>Continue</div>
           <div onClick={dontShowAgain} style={{

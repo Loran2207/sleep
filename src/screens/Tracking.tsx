@@ -87,7 +87,7 @@ export function TrackingActive() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E1014', color: '#fff', fontFamily: W.font,
+      background: '#000000', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <div style={{ position: 'absolute', inset: 0, background: `
@@ -219,14 +219,14 @@ export function TrackingActive() {
             aria-label={state.playing ? 'Pause' : 'Play'}
             style={{
               width: 36, height: 36, borderRadius: 18,
-              background: 'rgba(255,255,255,0.94)', color: '#0E0E11',
+              background: 'rgba(255,255,255,0.94)', color: '#000000',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0, cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
             }}>
             {state.playing
-              ? <GlyphPause size={14} stroke="#0E0E11" />
-              : <GlyphPlay size={14} stroke="#0E0E11" style={{ marginLeft: 2 }} />}
+              ? <GlyphPause size={14} stroke="#000000" />
+              : <GlyphPlay size={14} stroke="#000000" style={{ marginLeft: 2 }} />}
           </div>
         </div>
       </div>
@@ -296,7 +296,7 @@ function AlarmStateToggle({ ringing, onChange }: { ringing: boolean; onChange: (
             padding: '6px 12px', borderRadius: 999,
             fontSize: 12, fontWeight: 600, cursor: 'pointer',
             background: active ? '#fff' : 'transparent',
-            color: active ? '#0E1014' : 'rgba(255,255,255,0.75)',
+            color: active ? '#000000' : 'rgba(255,255,255,0.75)',
             transition: 'background .12s ease, color .12s ease',
             letterSpacing: 0.1,
           }}>{id === 'sleeping' ? 'Sleeping' : 'Ringing'}</div>
@@ -317,7 +317,7 @@ export function TrackingMixer() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E1014', color: '#fff', fontFamily: W.font,
+      background: '#000000', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <SoundsScreenBackdrop />
@@ -357,21 +357,21 @@ export function TrackingMixer() {
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0,
         padding: '14px 24px calc(28px + env(safe-area-inset-bottom))',
-        background: 'linear-gradient(180deg, rgba(14,16,20,0) 0%, rgba(14,16,20,0.88) 30%, #0E1014 100%)',
+        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.88) 30%, #000000 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         pointerEvents: 'none',
       }}>
         <div onClick={togglePlay} style={{
           pointerEvents: 'auto',
           width: 64, height: 64, borderRadius: 32,
-          background: '#fff', color: '#0E1014',
+          background: '#fff', color: '#000000',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0,
           boxShadow: '0 10px 26px rgba(0,0,0,0.45)',
         }}>
           {state.playing
-            ? <GlyphPause size={22} stroke="#0E1014" />
-            : <GlyphPlay size={22} stroke="#0E1014" style={{ marginLeft: 3 }} />}
+            ? <GlyphPause size={22} stroke="#000000" />
+            : <GlyphPlay size={22} stroke="#000000" style={{ marginLeft: 3 }} />}
         </div>
       </div>
     </div>
@@ -395,7 +395,7 @@ function AlarmRinging({ alarmTime, ringing, onToggle, onStop, onSnooze }: {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E1014', color: '#fff', fontFamily: W.font,
+      background: '#000000', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <style>{`
@@ -465,7 +465,7 @@ function AlarmRinging({ alarmTime, ringing, onToggle, onStop, onSnooze }: {
         <div onClick={onStop} style={{
           width: '100%', maxWidth: 320,
           padding: '18px 0', textAlign: 'center',
-          background: '#fff', color: '#0E1014',
+          background: '#fff', color: '#000000',
           borderRadius: 999, fontSize: 16, fontWeight: 600,
           cursor: 'pointer',
           boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
@@ -564,7 +564,7 @@ function WakeTimeSheet({ mode, alarm, napDuration, onSelectAlarm, onSelectDurati
       display: 'flex', alignItems: 'flex-end',
     }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        width: '100%', background: '#0E1014',
+        width: '100%', background: '#000000',
         borderTopLeftRadius: 24, borderTopRightRadius: 24,
         padding: '14px 20px 28px',
         boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
@@ -590,7 +590,7 @@ function WakeTimeSheet({ mode, alarm, napDuration, onSelectAlarm, onSelectDurati
                 <div key={min} onClick={() => onSelectDuration(min)} style={{
                   padding: '14px 0', textAlign: 'center', borderRadius: 14,
                   background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                  color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+                  color: active ? '#000000' : 'rgba(255,255,255,0.85)',
                   border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
                   fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   fontVariantNumeric: 'tabular-nums',
@@ -636,7 +636,7 @@ function WakeTimeSheet({ mode, alarm, napDuration, onSelectAlarm, onSelectDurati
               }}>Cancel</div>
               <div onClick={() => onSelectAlarm(draft)} style={{
                 flex: 2, padding: '14px 0', textAlign: 'center',
-                background: '#fff', color: '#0E1014',
+                background: '#fff', color: '#000000',
                 borderRadius: 999, fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}>Set alarm</div>
             </div>
@@ -669,7 +669,7 @@ function TimerSheet({ minutes, onSelect, onClose }: {
       display: 'flex', alignItems: 'flex-end',
     }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        width: '100%', background: '#0E1014',
+        width: '100%', background: '#000000',
         borderTopLeftRadius: 24, borderTopRightRadius: 24,
         padding: '14px 20px 28px',
         boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
@@ -689,7 +689,7 @@ function TimerSheet({ minutes, onSelect, onClose }: {
               <div key={opt.label} onClick={() => onSelect(opt.minutes)} style={{
                 padding: '14px 0', textAlign: 'center', borderRadius: 14,
                 background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+                color: active ? '#000000' : 'rgba(255,255,255,0.85)',
                 border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
                 fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}>{opt.label}</div>

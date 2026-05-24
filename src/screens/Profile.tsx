@@ -185,7 +185,7 @@ function SignInBanner() {
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <div style={{
             flex: 1, padding: '11px 0', textAlign: 'center',
-            background: '#fff', color: '#0E0E11',
+            background: '#fff', color: '#000000',
             borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>Create account</div>
           <div style={{

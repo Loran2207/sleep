@@ -140,11 +140,11 @@ export function JournalEntryEdit() {
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
-        background: 'linear-gradient(to top, rgba(14,14,17,0.95) 60%, transparent)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)',
       }}>
         <div onClick={save} style={{
           padding: '16px 0', textAlign: 'center',
-          background: reading.tint, color: '#0E0E11',
+          background: reading.tint, color: '#000000',
           borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
           boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
         }}>Save changes</div>
@@ -386,7 +386,7 @@ function MoodSheet({ x, y, onChange, tint, feeling, desc, onClose }: {
       }}>
         <div onClick={onClose} style={{
           padding: '15px 0', textAlign: 'center',
-          background: tint, color: '#0E0E11',
+          background: tint, color: '#000000',
           borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer',
           boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
         }}>Done</div>

@@ -52,10 +52,10 @@ export function NightShiftGuide() {
           }}>
             <div style={{
               width: 28, height: 28, borderRadius: 14,
-              background: '#7FE3A1', color: '#0E0E11',
+              background: '#7FE3A1', color: '#000000',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
-              <CheckIcon size={15} stroke="#0E0E11" />
+              <CheckIcon size={15} stroke="#000000" />
             </div>
             <div style={{ flex: 1, minWidth: 0, fontSize: 13, color: W.ink, lineHeight: 1.4 }}>
               Marked as enabled. Your screen will warm at sunset.

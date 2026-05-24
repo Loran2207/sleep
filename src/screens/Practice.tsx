@@ -76,7 +76,7 @@ export function PracticeIntro() {
                   transition: 'all .12s',
                 }}>
                   {c}
-                  <div style={{ fontSize: 10, fontWeight: 400, marginTop: 2, color: active ? 'rgba(14,14,17,0.65)' : W.weak }}>cycles</div>
+                  <div style={{ fontSize: 10, fontWeight: 400, marginTop: 2, color: active ? 'rgba(0,0,0,0.65)' : W.weak }}>cycles</div>
                 </div>
               );
             })}

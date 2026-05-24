@@ -23,7 +23,7 @@ export function SoundsPlayer() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E0E11', color: W.ink, fontFamily: W.font,
+      background: '#000000', color: W.ink, fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <SoundsScreenBackdrop />
@@ -86,7 +86,7 @@ function PlayDock({ playing, onTogglePlay, hasSounds }: {
     <div style={{
       position: 'absolute', left: 0, right: 0, bottom: 0,
       padding: '12px 16px calc(24px + env(safe-area-inset-bottom))',
-      background: 'linear-gradient(180deg, rgba(14,14,17,0) 0%, rgba(14,14,17,0.85) 35%, rgba(14,14,17,0.96) 100%)',
+      background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 35%, rgba(0,0,0,0.96) 100%)',
       backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
       pointerEvents: 'auto',
       display: 'flex', justifyContent: 'center',
@@ -97,7 +97,7 @@ function PlayDock({ playing, onTogglePlay, hasSounds }: {
         style={{
           width: 64, height: 64, borderRadius: 32,
           background: hasSounds ? '#fff' : 'rgba(255,255,255,0.18)',
-          color: '#0E0E11',
+          color: '#000000',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: hasSounds ? 'pointer' : 'default',
           boxShadow: hasSounds ? '0 10px 26px rgba(255,255,255,0.18)' : 'none',

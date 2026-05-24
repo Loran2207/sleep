@@ -93,7 +93,7 @@ export function App() {
   return (
     <div style={{
       minHeight: '100vh', width: '100vw', overflow: 'auto',
-      background: '#0E0E11',
+      background: '#000000',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '40px 20px',
     }}>

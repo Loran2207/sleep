@@ -46,7 +46,7 @@ export function WindDown() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#0E1014', color: '#fff', fontFamily: W.font,
+      background: '#000000', color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
       <BackgroundGlow />
@@ -119,7 +119,7 @@ function ModeToggle({ mode, onChange }: { mode: 'sleep' | 'nap'; onChange: (m: '
             padding: '6px 14px', borderRadius: 999,
             fontSize: 12, fontWeight: 600, cursor: 'pointer',
             background: active ? '#fff' : 'transparent',
-            color: active ? '#0E1014' : 'rgba(255,255,255,0.75)',
+            color: active ? '#000000' : 'rgba(255,255,255,0.75)',
             transition: 'background .12s ease, color .12s ease',
             letterSpacing: 0.1,
           }}>{m === 'sleep' ? 'Sleep' : 'Nap'}</div>
@@ -284,7 +284,7 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
                 <div key={opt.label} onClick={() => setTimer(opt.minutes)} style={{
                   padding: '10px 0', textAlign: 'center', borderRadius: 12,
                   background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                  color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+                  color: active ? '#000000' : 'rgba(255,255,255,0.85)',
                   border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   fontVariantNumeric: 'tabular-nums',
@@ -298,7 +298,7 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
-        background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.96) 60%, transparent)',
       }}>
         <div onClick={onContinue} style={primaryCtaStyle}>Continue</div>
       </div>
@@ -336,7 +336,7 @@ function PracticeStep() {
             border: practiceDone ? '1px solid #7FE3A1' : iconBoxStyle.border,
           }}>
             {practiceDone
-              ? <CheckIcon size={20} stroke="#0E1014" />
+              ? <CheckIcon size={20} stroke="#000000" />
               : <HabitGlyph name="breath" size={20} stroke="#fff" />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -366,7 +366,7 @@ function PracticeStep() {
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
-        background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.96) 60%, transparent)',
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         {practiceDone ? (
@@ -374,7 +374,7 @@ function PracticeStep() {
             ...primaryCtaStyle,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
           }}>
-            <PlayIcon size={14} stroke="#0E1014" />
+            <PlayIcon size={14} stroke="#000000" />
             Start tracking
           </div>
         ) : (
@@ -413,7 +413,7 @@ function AlarmToggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => 
     >
       <div style={{
         width: 18, height: 18, borderRadius: 9,
-        background: on ? '#0E1014' : '#fff',
+        background: on ? '#000000' : '#fff',
         transform: on ? 'translateX(16px)' : 'translateX(0)',
         transition: 'transform .15s ease, background .15s ease',
         boxShadow: '0 1px 3px rgba(0,0,0,0.45)',
@@ -577,7 +577,7 @@ function NapBody() {
                 <div key={min} onClick={() => setDuration(min)} style={{
                   padding: '14px 0', textAlign: 'center', borderRadius: 14,
                   background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                  color: active ? '#0E1014' : 'rgba(255,255,255,0.85)',
+                  color: active ? '#000000' : 'rgba(255,255,255,0.85)',
                   border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
                   fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   fontVariantNumeric: 'tabular-nums',
@@ -603,13 +603,13 @@ function NapBody() {
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
-        background: 'linear-gradient(to top, rgba(14,16,20,0.96) 60%, transparent)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.96) 60%, transparent)',
       }}>
         <div onClick={startNap} style={{
           ...primaryCtaStyle,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
         }}>
-          <PlayIcon size={14} stroke="#0E1014" />
+          <PlayIcon size={14} stroke="#000000" />
           Start nap · {duration} min
         </div>
       </div>
@@ -635,7 +635,7 @@ const iconBoxStyle: React.CSSProperties = {
 
 const primaryCtaStyle: React.CSSProperties = {
   padding: '18px 0', textAlign: 'center',
-  background: '#fff', color: '#0E1014',
+  background: '#fff', color: '#000000',
   borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
   boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
 };
@@ -687,7 +687,7 @@ function SoundsGlyphStack({ ids }: { ids: string[] }) {
             position: 'absolute', top: 0, left: i * STEP,
             width: TILE, height: TILE, borderRadius: 14,
             background: '#1F2128',
-            border: `2px solid ${last ? 'rgba(255,255,255,0.18)' : '#0E1014'}`,
+            border: `2px solid ${last ? 'rgba(255,255,255,0.18)' : '#000000'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: i,
             boxShadow: '0 2px 6px rgba(0,0,0,0.35)',

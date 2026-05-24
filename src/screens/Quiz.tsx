@@ -437,7 +437,7 @@ function StickyFooter({ children }: {
     <div style={{
       position: 'absolute', bottom: 0, left: 0, right: 0,
       padding: '12px 20px 22px',
-      background: 'linear-gradient(180deg, rgba(14,14,17,0) 0%, rgba(14,14,17,0.85) 30%, #0E0E11 100%)',
+      background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 30%, #000000 100%)',
       pointerEvents: 'none',
     }}>
       <div style={{ pointerEvents: 'auto' }}>
