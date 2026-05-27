@@ -58,6 +58,62 @@ export function useNightShiftDone(): [boolean, (v: boolean) => void] {
   return [v, nightShiftStore.set];
 }
 
+// ─── AUTH ───────────────────────────────────────────────────────
+// Mock auth state. Kept in memory — sign-in / sign-up / Apple Sign-In
+// flip the same flag. Sign-out and delete-account return to guest.
+// Real builds would back this with Sign in with Apple + a backend, plus
+// secure token storage in the Keychain — here it's a UX prototype.
+export type AuthProvider = 'email' | 'apple';
+export type AuthUser = { email: string; name: string; provider: AuthProvider };
+
+type AuthState =
+  | { status: 'guest' }
+  | { status: 'authed'; user: AuthUser };
+
+const authStore = createStore<AuthState>({ status: 'guest' });
+
+function nameFromEmail(email: string): string {
+  const local = email.split('@')[0] ?? '';
+  const cleaned = local.replace(/[._\-+]/g, ' ').replace(/\d+$/, '').trim();
+  if (!cleaned) return 'You';
+  return cleaned.replace(/\b\w/g, (s) => s.toUpperCase());
+}
+
+export function useAuth() {
+  const state = useSyncExternalStore(authStore.subscribe, authStore.get, authStore.get);
+  const isAuthed = state.status === 'authed';
+  const user = state.status === 'authed' ? state.user : null;
+  return {
+    state,
+    isAuthed,
+    user,
+    signIn(email: string) {
+      authStore.set({
+        status: 'authed',
+        user: { email, name: nameFromEmail(email), provider: 'email' },
+      });
+    },
+    signUp(name: string, email: string) {
+      authStore.set({
+        status: 'authed',
+        user: { email, name: name.trim() || nameFromEmail(email), provider: 'email' },
+      });
+    },
+    signInWithApple() {
+      authStore.set({
+        status: 'authed',
+        user: { email: 'you@privaterelay.appleid.com', name: 'You', provider: 'apple' },
+      });
+    },
+    signOut() {
+      authStore.set({ status: 'guest' });
+    },
+    deleteAccount() {
+      authStore.set({ status: 'guest' });
+    },
+  };
+}
+
 // ─── ONBOARDING GATE ────────────────────────────────────────────
 // Whether the first-run onboarding has been completed (or skipped).
 // Kept in memory — like the rest of this prototype's state it resets
