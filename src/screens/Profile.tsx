@@ -4,15 +4,16 @@ import { go } from '../state/navigation';
 import { TopPad, LiquidGlassNav, HeaderAmbient } from '../components/shared';
 import {
   CheckIcon, ChevronRightIcon, MoonIcon, BellIcon,
-  NightShiftIcon, PhoneOffIcon,
+  NightShiftIcon, PhoneOffIcon, TrashIcon,
 } from '../components/icons';
 import { Avatar } from '../components/Avatar';
 import {
   useSleepGoal, useLanguage, useNotifications,
   useSchedules, useSubscription, resetOnboarding,
+  useAuth,
 } from '../state/store';
 
-const PROFILE_NAME = 'Kirill Kuts';
+const GUEST_NAME = 'Kirill Kuts';
 
 const LANGUAGES = ['English', 'Español', 'Français', 'Deutsch', 'Italiano', '日本語', 'Русский'];
 
@@ -22,8 +23,14 @@ export function Profile() {
   const [notifications, setNotifications] = useNotifications();
   const { list: schedules } = useSchedules();
   const [subscription] = useSubscription();
+  const { isAuthed, user, signOut, deleteAccount } = useAuth();
 
-  const [sheet, setSheet] = useState<'goal' | 'language' | null>(null);
+  const [sheet, setSheet] = useState<'goal' | 'language' | 'sign-out' | 'delete-account' | null>(null);
+
+  const displayName = user?.name ?? GUEST_NAME;
+  const heroSub = user
+    ? `${user.email} · ${user.provider === 'apple' ? 'Apple ID' : 'Email'}`
+    : 'Local profile · not signed in';
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: W.bg, color: W.ink, fontFamily: W.font, position: 'relative', overflow: 'hidden' }}>
@@ -31,9 +38,9 @@ export function Profile() {
       <TopPad />
 
       <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', padding: '8px 16px 190px' }}>
-        <ProfileHero />
+        <ProfileHero name={displayName} sub={heroSub} />
 
-        <SignInBanner />
+        {!isAuthed && <SignInBanner />}
 
         <SectionLabel>Subscription</SectionLabel>
         <Group>
@@ -114,6 +121,31 @@ export function Profile() {
           <Row icon={<GlyphSquare>‹›</GlyphSquare>} title="Privacy policy" value="" onClick={() => { /* mock */ }} />
         </Group>
 
+        {isAuthed && user && (
+          <>
+            <SectionLabel>Account</SectionLabel>
+            <Group>
+              <Row
+                icon={<GlyphSquare>@</GlyphSquare>}
+                title="Email"
+                value={user.email}
+                onClick={() => { /* read-only in this prototype */ }}
+              />
+              <Divider />
+              <DestructiveRow
+                label="Sign out"
+                onClick={() => setSheet('sign-out')}
+              />
+              <Divider />
+              <DestructiveRow
+                label="Delete account"
+                tone="danger"
+                onClick={() => setSheet('delete-account')}
+              />
+            </Group>
+          </>
+        )}
+
         <div style={{
           textAlign: 'center', padding: '22px 0 8px',
           fontSize: 11, color: W.veryweak, fontVariantNumeric: 'tabular-nums',
@@ -136,11 +168,23 @@ export function Profile() {
           onClose={() => setSheet(null)}
         />
       )}
+      {sheet === 'sign-out' && (
+        <SignOutSheet
+          onConfirm={() => { signOut(); setSheet(null); }}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet === 'delete-account' && (
+        <DeleteAccountSheet
+          onConfirm={() => { deleteAccount(); setSheet(null); }}
+          onClose={() => setSheet(null)}
+        />
+      )}
     </div>
   );
 }
 
-function ProfileHero() {
+function ProfileHero({ name, sub }: { name: string; sub: string }) {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -151,15 +195,17 @@ function ProfileHero() {
         background: 'radial-gradient(60% 60% at 50% 30%, rgba(120,140,255,0.10), transparent 70%)',
       }} />
       <Avatar
-        name={PROFILE_NAME}
+        name={name}
         size={88}
         shadow="0 8px 28px rgba(0,0,0,0.35)"
         style={{ position: 'relative' }}
       />
       <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 14, position: 'relative' }}>
-        {PROFILE_NAME}
+        {name}
       </div>
-      <div style={{ fontSize: 13, color: W.weak, marginTop: 4, position: 'relative' }}>Local profile · not signed in</div>
+      <div style={{ fontSize: 13, color: W.weak, marginTop: 4, position: 'relative', maxWidth: 260, textAlign: 'center' }}>
+        {sub}
+      </div>
     </div>
   );
 }
@@ -184,12 +230,12 @@ function SignInBanner() {
           Sign in to sync your schedules, journal and habits across devices.
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <div style={{
+          <div onClick={() => go('auth-sign-up')} style={{
             flex: 1, padding: '11px 0', textAlign: 'center',
             background: '#fff', color: '#000000',
             borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer',
           }}>Create account</div>
-          <div style={{
+          <div onClick={() => go('auth-sign-in')} style={{
             flex: 1, padding: '11px 0', textAlign: 'center',
             background: 'transparent', color: '#fff',
             border: '1px solid rgba(255,255,255,0.22)', borderRadius: 999,
@@ -534,6 +580,119 @@ function LanguageSheet({ value, onSelect, onClose }: {
             </div>
           );
         })}
+      </div>
+    </Sheet>
+  );
+}
+
+// ─── Destructive row + auth sheets ───────────────────────────────
+function DestructiveRow({ label, onClick, tone }: {
+  label: string;
+  onClick: () => void;
+  tone?: 'danger';
+}) {
+  const color = tone === 'danger' ? '#FF6B5A' : '#FF8E7C';
+  return (
+    <div onClick={onClick} style={{
+      padding: '14px 14px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer',
+    }}>
+      <div style={{ fontSize: 15, fontWeight: 500, color }}>{label}</div>
+    </div>
+  );
+}
+
+function SignOutSheet({ onConfirm, onClose }: { onConfirm: () => void; onClose: () => void }) {
+  return (
+    <Sheet onClose={onClose}>
+      <div style={{ textAlign: 'center', padding: '6px 6px 0' }}>
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>Sign out of night?</div>
+        <div style={{
+          fontSize: 13, color: W.weak, marginTop: 6, lineHeight: 1.5,
+          maxWidth: 300, marginLeft: 'auto', marginRight: 'auto',
+        }}>
+          Your data stays on this device. Sign back in any time to keep syncing across devices.
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+        <div onClick={onConfirm} style={{
+          padding: '15px 0', textAlign: 'center',
+          background: 'rgba(255,107,90,0.10)', color: '#FF6B5A',
+          border: '1px solid rgba(255,107,90,0.32)',
+          borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+        }}>Sign out</div>
+        <div onClick={onClose} style={{
+          padding: '12px 0', textAlign: 'center',
+          color: W.weak, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+        }}>Cancel</div>
+      </div>
+    </Sheet>
+  );
+}
+
+function DeleteAccountSheet({ onConfirm, onClose }: { onConfirm: () => void; onClose: () => void }) {
+  const [confirmed, setConfirmed] = useState(false);
+  return (
+    <Sheet onClose={onClose}>
+      <div style={{ textAlign: 'center', padding: '6px 6px 0' }}>
+        <div style={{
+          width: 52, height: 52, borderRadius: 26,
+          background: 'rgba(255,107,90,0.12)', border: '1px solid rgba(255,107,90,0.30)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '4px auto 14px',
+        }}>
+          <TrashIcon size={20} stroke="#FF6B5A" />
+        </div>
+        <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.01em' }}>Delete your account?</div>
+        <div style={{
+          fontSize: 13.5, color: W.weak, marginTop: 8, lineHeight: 1.55,
+          maxWidth: 320, marginLeft: 'auto', marginRight: 'auto',
+        }}>
+          This is permanent. Your schedules, journal entries, breathing history and sound mixes will be erased from our servers within 24 hours.
+        </div>
+      </div>
+
+      <div
+        onClick={() => setConfirmed((v) => !v)}
+        style={{
+          marginTop: 18, padding: '13px 14px',
+          background: W.paper, border: `1px solid ${confirmed ? 'rgba(255,107,90,0.40)' : W.fill}`,
+          borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12,
+          cursor: 'pointer',
+        }}
+      >
+        <div style={{
+          width: 22, height: 22, borderRadius: 6,
+          border: `1.5px solid ${confirmed ? '#FF6B5A' : W.veryweak}`,
+          background: confirmed ? '#FF6B5A' : 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          {confirmed && <CheckIcon size={14} stroke="#fff" />}
+        </div>
+        <div style={{ fontSize: 13, color: W.ink, lineHeight: 1.4 }}>
+          I understand my account and data will be permanently deleted.
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+        <div
+          onClick={confirmed ? onConfirm : undefined}
+          style={{
+            padding: '15px 0', textAlign: 'center',
+            background: confirmed ? '#FF6B5A' : 'rgba(255,107,90,0.18)',
+            color: confirmed ? '#fff' : 'rgba(255,107,90,0.5)',
+            borderRadius: 14, fontSize: 15, fontWeight: 600,
+            cursor: confirmed ? 'pointer' : 'default',
+            boxShadow: confirmed ? '0 8px 22px rgba(255,107,90,0.30)' : 'none',
+            transition: 'background .15s ease, color .15s ease',
+          }}
+        >Delete account</div>
+        <div onClick={onClose} style={{
+          padding: '12px 0', textAlign: 'center',
+          color: W.ink, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        }}>Cancel</div>
       </div>
     </Sheet>
   );

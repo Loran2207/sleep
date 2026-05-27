@@ -10,6 +10,7 @@ import {
   MusicIcon, WindIcon, PencilIcon, MoonIcon, BellIcon,
   CheckIcon, ChevronLeftIcon, PhoneOffIcon,
 } from '../components/icons';
+import { go } from '../state/navigation';
 
 // Onboarding lives entirely outside the main nav stack — App renders it
 // in place of the app shell until it's completed (or dev-skipped). It's a
@@ -357,7 +358,22 @@ export function Onboarding() {
   function renderFooter(): ReactNode {
     switch (step.type) {
       case 'welcome':
-        return <Footer><PrimaryButton label="Get started" onClick={next} /></Footer>;
+        return (
+          <Footer>
+            <PrimaryButton label="Get started" onClick={next} />
+            <div onClick={() => go('auth-sign-in')} style={{
+              textAlign: 'center', marginTop: 14,
+              fontSize: 13.5, color: 'rgba(255,255,255,0.55)',
+              cursor: 'pointer', lineHeight: 1.5,
+            }}>
+              Already have an account?{' '}
+              <span style={{
+                color: '#fff', fontWeight: 600,
+                textDecoration: 'underline', textUnderlineOffset: 2,
+              }}>Log in</span>
+            </div>
+          </Footer>
+        );
       case 'features':
       case 'benefits':
         return <Footer><PrimaryButton label="Continue" onClick={next} /></Footer>;

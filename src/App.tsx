@@ -27,6 +27,7 @@ import { NightShiftGuide } from './screens/NightShiftGuide';
 import { Profile } from './screens/Profile';
 import { Subscription } from './screens/Subscription';
 import { QuizIntro, QuizSession, QuizResult } from './screens/Quiz';
+import { AuthSignIn, AuthSignUp, AuthForgot, AuthResetSent } from './screens/Auth';
 import { StubScreen } from './screens/Stub';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
@@ -61,6 +62,10 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'quiz-intro': () => <QuizIntro />,
   'quiz-session': () => <QuizSession />,
   'quiz-result': () => <QuizResult />,
+  'auth-sign-in': () => <AuthSignIn />,
+  'auth-sign-up': () => <AuthSignUp />,
+  'auth-forgot': () => <AuthForgot />,
+  'auth-reset-sent': () => <AuthResetSent />,
 };
 
 export function App() {
@@ -73,10 +78,15 @@ export function App() {
 
   // Before the app proper, run the first-run onboarding. It renders
   // inside the same frame so the phone chrome stays consistent, but
-  // without the bottom nav / mini player.
-  const body = onboardingDone
-    ? <><Screen /><MiniSoundsPlayer /></>
-    : <Onboarding />;
+  // without the bottom nav / mini player. Auth screens can be entered
+  // from the welcome step (or the profile banner) and override the
+  // onboarding gate so the form takes over the frame cleanly.
+  const isAuthScreen = screenId.startsWith('auth-');
+  const body = isAuthScreen
+    ? <Screen />
+    : onboardingDone
+      ? <><Screen /><MiniSoundsPlayer /></>
+      : <Onboarding />;
 
   // Mobile: render full-bleed (no device frame). Desktop: show framed phone.
   if (isMobileViewport) {
