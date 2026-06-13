@@ -474,6 +474,9 @@ export function useMiniPlayerHidden(): [boolean, (v: boolean) => void] {
   const v = useSyncExternalStore(miniPlayerHiddenStore.subscribe, miniPlayerHiddenStore.get, miniPlayerHiddenStore.get);
   return [v, miniPlayerHiddenStore.set];
 }
+// DEV/capture helper — set from window.__sleep so the screenshot harness
+// can suppress the mini player for clean design frames.
+export function setMiniPlayerHidden(v: boolean) { miniPlayerHiddenStore.set(v); }
 
 // ─── SOUND MIX (active tracking) ─────────────────────────────────
 export type MixSound = { id: string; vol: number };
