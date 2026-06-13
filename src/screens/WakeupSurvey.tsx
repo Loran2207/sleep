@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad } from '../components/shared';
-import { CheckIcon, ChevronLeftIcon, MicIcon, StopIcon, XIcon } from '../components/icons';
+import { TopPad, BackButton, NavButton } from '../components/shared';
+import { CheckIcon, MicIcon, StopIcon } from '../components/icons';
 import { MoodFace } from '../components/MoodFace';
 import { DiaryQuiz } from '../components/DiaryQuiz';
 import { useJournal, usePracticeDone } from '../state/store';
@@ -97,13 +97,9 @@ export function WakeupSurvey() {
         padding: '6px 14px', height: 48, flexShrink: 0,
       }}>
         {canGoBack ? (
-          <div onClick={back} aria-label="Back" style={topBtnStyle}>
-            <ChevronLeftIcon size={16} stroke={W.ink} />
-          </div>
+          <BackButton onClick={back} />
         ) : (
-          <div onClick={() => go('home')} aria-label="Close" style={topBtnStyle}>
-            <XIcon size={14} stroke={W.ink} />
-          </div>
+          <NavButton glyph="close" onClick={() => go('home')} />
         )}
         <StepDots current={stepIdx} total={STEP_ORDER.length} />
         <div style={{ width: 36 }} />
@@ -168,13 +164,6 @@ export function WakeupSurvey() {
     </div>
   );
 }
-
-const topBtnStyle: React.CSSProperties = {
-  width: 36, height: 36, borderRadius: 18,
-  background: W.fill, border: `1px solid ${W.veryweak}`,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer', color: W.ink,
-};
 
 const skipBtnStyle: React.CSSProperties = {
   flex: 1, padding: '16px 0', textAlign: 'center',

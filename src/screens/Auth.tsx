@@ -3,8 +3,8 @@ import type { CSSProperties, ReactNode } from 'react';
 import { W } from '../tokens';
 import { go, back, replace } from '../state/navigation';
 import { useAuth, completeOnboarding, useOnboardingDone } from '../state/store';
-import { ChevronLeftIcon, CheckIcon } from '../components/icons';
-import { HeaderAmbient } from '../components/shared';
+import { CheckIcon } from '../components/icons';
+import { HeaderAmbient, BackButton } from '../components/shared';
 
 // Multi-step sign-in / sign-up. Step 1 picks a provider (Apple, Google,
 // or email); if the user picks email, step 2 collects the email, and
@@ -409,7 +409,7 @@ function StepFrame({
         flexShrink: 0,
       }}>
         {showBack ? (
-          <RoundBtn onClick={onBack} label="Back"><ChevronLeftIcon size={16} stroke="#fff" /></RoundBtn>
+          <BackButton onClick={onBack} />
         ) : <div style={{ width: 36 }} />}
         {onSkip && skipLabel ? (
           <div onClick={onSkip} style={{
@@ -499,17 +499,6 @@ function PrimaryButton({ label, onClick, disabled }: { label: string; onClick: (
       boxShadow: disabled ? 'none' : '0 10px 28px rgba(0,0,0,0.5)',
       transition: 'background .15s ease, color .15s ease',
     }}>{label}</div>
-  );
-}
-
-function RoundBtn({ children, onClick, label }: { children: ReactNode; onClick: () => void; label: string }) {
-  return (
-    <div onClick={onClick} aria-label={label} role="button" style={{
-      width: 36, height: 36, borderRadius: 18,
-      background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      cursor: 'pointer',
-    }}>{children}</div>
   );
 }
 

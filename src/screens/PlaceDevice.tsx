@@ -1,6 +1,6 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { GlyphX } from '../components/icons';
+import { NavButton } from '../components/shared';
 
 export function PlaceDevice() {
   const dontShowAgain = () => {
@@ -29,13 +29,7 @@ export function PlaceDevice() {
         padding: '24px 24px 36px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}>
-          <div onClick={() => go('home')} style={{
-            width: 36, height: 36, borderRadius: 18,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'rgba(255,255,255,0.7)',
-          }}>
-            <GlyphX size={18} stroke="currentColor" />
-          </div>
+          <NavButton glyph="close" onClick={() => go('home')} />
           <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Setup</div>
           <div style={{ width: 36 }} />
         </div>

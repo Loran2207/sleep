@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
-  GlyphPlay, GlyphPause, GlyphSliders, GlyphChevDn,
+  GlyphPlay, GlyphPause, GlyphSliders,
 } from '../components/icons';
-import { TopPad } from '../components/shared';
+import { TopPad, NavButton } from '../components/shared';
 import { useMix, useSchedules, useSleepMode, useNapDuration, pickScheduleForDay } from '../state/store';
 import { lookupSound } from '../data/sounds';
 import { type QuickMix } from '../components/SoundMixerPanel';
@@ -324,13 +324,7 @@ export function TrackingMixer() {
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px' }}>
-        <div onClick={() => go('tracking-active')} style={{
-          width: 36, height: 36, borderRadius: 18,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: 'rgba(255,255,255,0.85)',
-        }}>
-          <GlyphChevDn size={18} stroke="currentColor" />
-        </div>
+        <NavButton glyph="down" onClick={() => go('tracking-active')} />
         <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65 }}>Mix</div>
         <div style={{ width: 36 }} />
       </div>

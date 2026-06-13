@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go, back } from '../state/navigation';
-import { TopPad } from '../components/shared';
-import { ArrowRightTinyIcon, ChevronLeftIcon, ChevronRightIcon } from '../components/icons';
+import { TopPad, BackButton } from '../components/shared';
+import { ArrowRightTinyIcon, ChevronRightIcon } from '../components/icons';
 import { useSchedules, useEditingScheduleId, useSleepGoal, type Schedule } from '../state/store';
 import { lookupSound } from '../data/sounds';
 
@@ -88,14 +88,7 @@ export function SleepSchedules() {
         position: 'relative', display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', padding: '4px 14px', height: 44, gap: 12,
       }}>
-        <button onClick={() => back()} aria-label="Back" style={{
-          width: 36, height: 36, borderRadius: 18, border: 'none',
-          background: W.fill, padding: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: W.ink,
-        }}>
-          <ChevronLeftIcon size={16} stroke={W.ink} />
-        </button>
+        <BackButton onClick={() => back()} />
         <PresetToggle list={list} active={active} onSelect={selectPreset} />
         <div style={{ width: 36 }} />
       </div>

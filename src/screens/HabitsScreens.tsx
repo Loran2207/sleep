@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { TopPad } from '../components/shared';
+import { TopPad, NavButton } from '../components/shared';
 import { CheckIcon, HabitGlyph, PlusIcon, TrashIcon } from '../components/icons';
 import { useHabits, useCustomLibrary, type HabitGlyphName, type CustomHabit } from '../state/store';
 
@@ -68,11 +68,7 @@ export function HabitLibrary() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '6px 12px 6px 4px',
       }}>
-        <div onClick={() => go('home')} style={{
-          width: 36, height: 36, borderRadius: 18,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', fontSize: 22, color: W.ink,
-        }}>×</div>
+        <NavButton glyph="close" onClick={() => go('home')} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ fontSize: 12, color: W.weak, fontVariantNumeric: 'tabular-nums' }}>{list.length} added</div>
           <div
@@ -370,11 +366,7 @@ export function RoutineCheckIn() {
 
       <TopPad />
       <div style={{ position: 'relative', padding: '6px 16px' }}>
-        <div onClick={() => go('home')} style={{
-          width: 36, height: 36, borderRadius: 18,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', fontSize: 22, color: W.ink,
-        }}>×</div>
+        <NavButton glyph="close" onClick={() => go('home')} />
       </div>
 
       <div style={{ position: 'relative', padding: '4px 22px 14px', textAlign: 'center' }}>

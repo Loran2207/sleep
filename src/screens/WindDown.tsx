@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { startTracking } from '../state/tracking';
-import { TopPad } from '../components/shared';
-import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, HabitGlyph, PlayIcon } from '../components/icons';
+import { TopPad, BackButton } from '../components/shared';
+import { CheckIcon, ChevronRightIcon, HabitGlyph, PlayIcon } from '../components/icons';
 import {
   useEditingScheduleId, useSchedules, useSleepMode, useNapDuration,
   useMix, useWindDownStep, usePracticeDone, pickScheduleForDay,
@@ -53,14 +53,7 @@ export function WindDown() {
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 14px', height: 44 }}>
-        <button onClick={handleBack} aria-label="Back" style={{
-          width: 32, height: 32, borderRadius: 16, border: 'none',
-          background: 'rgba(255,255,255,0.08)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', padding: 0,
-        }}>
-          <ChevronLeftIcon size={16} stroke="#fff" />
-        </button>
+        <BackButton onClick={handleBack} />
         <ModeToggle mode={mode} onChange={switchMode} />
         <PresetsButton />
       </div>

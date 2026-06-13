@@ -3,7 +3,7 @@ import { W } from '../tokens';
 import { go } from '../state/navigation';
 import {
   ToolsFilled, JournalFilled, CourseFilled, ProfileFilled,
-  ChevronRightIcon,
+  ChevronRightIcon, ChevronLeftIcon, ChevronDownIcon, XIcon,
   type IconProps,
 } from './icons';
 import type { ScreenId } from '../tokens';
@@ -73,7 +73,46 @@ export function HeaderAmbient({ height = 240 }: { height?: number }) {
   );
 }
 
-// Header bar for back-able subscreens
+// ─── Canonical circular top-nav control ──────────────────────────
+// One disc for every screen's top-left control, matching the onboarding
+// back button 1:1 (the agreed reference): a 32px translucent circle, no
+// border. The glyph carries the meaning, so the header reads the same
+// everywhere while the action stays honest:
+//   back  (‹)  pop one screen
+//   close (✕)  leave a whole flow
+//   down  (⌄)  dismiss a slide-up sheet (player, paywall, mixer)
+// `onClick` keeps each screen's own navigation target.
+export type NavGlyph = 'back' | 'close' | 'down';
+
+export function NavButton({ onClick, glyph = 'back', label }: {
+  onClick: () => void;
+  glyph?: NavGlyph;
+  label?: string;
+}) {
+  const aria = label ?? (glyph === 'close' ? 'Close' : glyph === 'down' ? 'Dismiss' : 'Back');
+  return (
+    <button type="button" onClick={onClick} aria-label={aria} style={{
+      width: 32, height: 32, borderRadius: 16, flexShrink: 0,
+      background: 'rgba(255,255,255,0.08)', border: 'none',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer', padding: 0, color: '#fff',
+    }}>
+      {glyph === 'close'
+        ? <XIcon size={14} stroke="#fff" />
+        : glyph === 'down'
+          ? <ChevronDownIcon size={16} stroke="#fff" />
+          : <ChevronLeftIcon size={16} stroke="#fff" />}
+    </button>
+  );
+}
+
+// Convenience alias for the most common case (pop one screen).
+export function BackButton({ onClick, label }: { onClick: () => void; label?: string }) {
+  return <NavButton onClick={onClick} glyph="back" label={label} />;
+}
+
+// Header bar for back-able subscreens: circular back control on the
+// left, centred title, optional action on the right.
 export function HeaderBar({ title, onBack, right }: {
   title: string;
   onBack?: () => void;
@@ -81,14 +120,21 @@ export function HeaderBar({ title, onBack, right }: {
 }) {
   return (
     <div style={{
+      position: 'relative',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '8px 16px', height: 44, fontFamily: W.font, flexShrink: 0,
+      padding: '8px 14px', minHeight: 48, fontFamily: W.font, flexShrink: 0,
     }}>
-      <div onClick={onBack} style={{ minWidth: 64, fontSize: 14, color: W.ink, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-        {onBack ? '← Back' : ''}
-      </div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: W.ink }}>{title}</div>
-      <div style={{ minWidth: 64, textAlign: 'right', fontSize: 14, color: W.weak }}>{right || ''}</div>
+      {onBack ? <BackButton onClick={onBack} /> : <div style={{ width: 36 }} />}
+      <div style={{
+        position: 'absolute', left: 56, right: 56, textAlign: 'center',
+        fontSize: 16, fontWeight: 600, color: W.ink,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        pointerEvents: 'none',
+      }}>{title}</div>
+      <div style={{
+        minWidth: 36, display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
+        position: 'relative', zIndex: 1, fontSize: 13, color: W.weak,
+      }}>{right || ''}</div>
     </div>
   );
 }

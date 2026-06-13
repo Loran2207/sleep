@@ -8,8 +8,9 @@ import { OptionCard, hexA } from '../components/QuizCard';
 import { WheelPicker } from './WindDown';
 import {
   MusicIcon, WindIcon, PencilIcon, MoonIcon, BellIcon,
-  CheckIcon, ChevronLeftIcon, PhoneOffIcon,
+  CheckIcon, PhoneOffIcon,
 } from '../components/icons';
+import { BackButton } from '../components/shared';
 import { go } from '../state/navigation';
 
 // Onboarding lives entirely outside the main nav stack — App renders it
@@ -422,7 +423,7 @@ function Header({ showBack, onBack, onSkip, progress, accent, isWelcome }: {
   }
 
   const left = showBack
-    ? <RoundBtn onClick={onBack} label="Back"><ChevronLeftIcon size={16} stroke="#fff" /></RoundBtn>
+    ? <BackButton onClick={onBack} />
     : <SkipPill onClick={onSkip} />;
   const right = showBack
     ? <SkipPill onClick={onSkip} />
@@ -442,17 +443,6 @@ function Header({ showBack, onBack, onSkip, progress, accent, isWelcome }: {
         {right}
       </div>
     </>
-  );
-}
-
-function RoundBtn({ children, onClick, label }: { children: ReactNode; onClick: () => void; label: string }) {
-  return (
-    <div onClick={onClick} aria-label={label} style={{
-      width: 32, height: 32, borderRadius: 16, flexShrink: 0,
-      background: 'rgba(255,255,255,0.08)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      cursor: 'pointer',
-    }}>{children}</div>
   );
 }
 

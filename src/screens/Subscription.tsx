@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { W } from '../tokens';
 import { back } from '../state/navigation';
-import { TopPad } from '../components/shared';
-import { GlyphChevDn } from '../components/icons';
+import { TopPad, NavButton } from '../components/shared';
 import { useSubscription, type BillingPeriod } from '../state/store';
 
 const PRICE = {
@@ -63,13 +62,7 @@ export function Subscription() {
         position: 'relative', display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', padding: '4px 16px 4px',
       }}>
-        <div onClick={() => back()} style={{
-          width: 36, height: 36, borderRadius: 18,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: 'rgba(255,255,255,0.9)',
-        }}>
-          <GlyphChevDn size={18} stroke="currentColor" />
-        </div>
+        <NavButton glyph="down" onClick={() => back()} />
         <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.7 }}>Sleep+</div>
         <div style={{ width: 36 }} />
       </div>

@@ -1,6 +1,6 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { LiquidGlassNav, TopPad, HeaderAmbient } from '../components/shared';
+import { LiquidGlassNav, TopPad, HeaderAmbient, NavButton } from '../components/shared';
 import { CheckIcon, LockIcon, PlayIcon } from '../components/icons';
 import { useCurrentLesson } from '../state/store';
 
@@ -179,7 +179,7 @@ export function Lesson() {
       </div>
       <div style={{ position: 'relative', zIndex: 2, padding: '60px 16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div onClick={() => go('course')} style={{ color: '#fff', fontSize: 18, cursor: 'pointer' }}>✕</div>
+          <NavButton glyph="close" onClick={() => go('course')} />
           <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.2)', borderRadius: 2 }}>
             <div style={{ width: `${positionPct}%`, height: '100%', background: W.ink, borderRadius: 2 }} />
           </div>
