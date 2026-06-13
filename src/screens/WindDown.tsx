@@ -60,7 +60,7 @@ export function WindDown() {
 
       {mode === 'sleep'
         ? (step === 1
-            ? <SettingsStep onContinue={() => setStep(2)} />
+            ? <SettingsStep onContinue={() => setStep(2)} onSkip={() => startTracking()} />
             : <PracticeStep />)
         : <NapBody />}
 
@@ -142,7 +142,7 @@ function StepDots({ current, total }: { current: number; total: number }) {
 // wheel sits at the top (the most consequential choice), the mix
 // summary opens the full editor as a sub-screen, the timer pills
 // live underneath.
-function SettingsStep({ onContinue }: { onContinue: () => void }) {
+function SettingsStep({ onContinue, onSkip }: { onContinue: () => void; onSkip: () => void }) {
   const { list: schedules, update } = useSchedules();
   const todaySchedule = pickScheduleForDay(schedules, 4);
   const [, setEditingId] = useEditingScheduleId();
@@ -292,8 +292,10 @@ function SettingsStep({ onContinue }: { onContinue: () => void }) {
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
         background: 'linear-gradient(to top, rgba(0,0,0,0.96) 60%, transparent)',
+        display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         <div onClick={onContinue} style={primaryCtaStyle}>Continue</div>
+        <div onClick={onSkip} style={secondaryCtaStyle}>Skip · start tracking</div>
       </div>
     </>
   );
