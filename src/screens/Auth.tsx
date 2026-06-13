@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { W } from '../tokens';
 import { go, back, replace } from '../state/navigation';
 import { useAuth, completeOnboarding, useOnboardingDone } from '../state/store';
+import { CheckIcon } from '../components/icons';
 import { HeaderAmbient, BackButton } from '../components/shared';
 
 // Passwordless auth. Step 1 picks a provider (Apple, Google, or email).
@@ -14,6 +15,7 @@ import { HeaderAmbient, BackButton } from '../components/shared';
 
 const PERIWINKLE = '#8AA1FF';
 const CORAL = '#FF8E7C';
+const MINT = '#5DDDB3';
 
 // ─── Public screens ─────────────────────────────────────────────
 export function AuthSignIn() {
@@ -245,6 +247,7 @@ function CodeStep({ email, onChangeEmail, onVerified }: {
   onVerified: () => void;
 }) {
   const [code, setCode] = useState('');
+  const [status, setStatus] = useState<'idle' | 'error' | 'success'>('idle');
   const [seconds, setSeconds] = useState(45);
   const [resent, setResent] = useState(false);
 
@@ -258,15 +261,31 @@ function CodeStep({ email, onChangeEmail, onVerified }: {
     if (seconds > 0) return;
     setSeconds(45);
     setCode('');
+    setStatus('idle');
     setResent(true);
     setTimeout(() => setResent(false), 2200);
   }
 
+  function onInput(v: string) {
+    setCode(v);
+    if (status === 'error') setStatus('idle');
+  }
+
+  // Prototype rule: 000000 is treated as a wrong code so the error state
+  // is reachable; any other 6 digits verify. A real build would check the
+  // entry against the code we emailed.
   function submit(val?: string) {
     const c = val ?? code;
     if (c.length < 6) return;
-    onVerified();
+    if (c === '000000') { setStatus('error'); return; }
+    setStatus('success');
+    // __sleepHoldCode lets the capture harness freeze the success state.
+    if (!(typeof window !== 'undefined' && (window as { __sleepHoldCode?: boolean }).__sleepHoldCode)) {
+      setTimeout(onVerified, 850);
+    }
   }
+
+  const primaryLabel = status === 'success' ? 'Verified' : status === 'error' ? 'Try again' : 'Verify';
 
   return (
     <StepBody
@@ -274,10 +293,10 @@ function CodeStep({ email, onChangeEmail, onVerified }: {
       title="Enter the code"
       sub={<>We sent a 6-digit code to{' '}
         <span style={{ color: '#fff', fontWeight: 600 }}>{email || 'your email'}</span>.</>}
-      primaryLabel="Verify"
-      primaryDisabled={code.length < 6}
-      onPrimary={submit}
-      topGlyph={<MailGlyph />}
+      primaryLabel={primaryLabel}
+      primaryDisabled={code.length < 6 || status === 'success'}
+      onPrimary={() => submit()}
+      topGlyph={<MailGlyph status={status} />}
       foot={
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div
@@ -289,41 +308,47 @@ function CodeStep({ email, onChangeEmail, onVerified }: {
             }}
           >{seconds > 0 ? `Resend code in ${seconds}s` : 'Resend code'}</div>
           {resent && (
-            <div style={{ fontSize: 13, color: PERIWINKLE, animation: 'au-fade .3s ease both' }}>
-              New code sent — check your inbox.
-            </div>
+            <div style={{ fontSize: 13, color: PERIWINKLE }}>New code sent — check your inbox.</div>
           )}
         </div>
       }
     >
-      <CodeInput value={code} onChange={setCode} onComplete={(v) => submit(v)} />
-      <div
-        onClick={onChangeEmail}
-        style={{
-          marginTop: 18, textAlign: 'center', fontSize: 13,
-          color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
-        }}
-      >
-        Wrong email? <span style={{ color: '#fff', fontWeight: 600 }}>Change it</span>
-      </div>
+      <CodeInput value={code} onChange={onInput} onComplete={(v) => submit(v)} status={status} />
+      {status === 'error' ? (
+        <div style={{ marginTop: 14, fontSize: 13, color: CORAL, fontWeight: 500 }}>
+          That code isn't right. Check your inbox and try again.
+        </div>
+      ) : status === 'success' ? (
+        <div style={{
+          marginTop: 14, fontSize: 13, color: MINT, fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <CheckIcon size={14} stroke={MINT} strokeWidth={3} /> Code verified
+        </div>
+      ) : (
+        <div onClick={onChangeEmail} style={{
+          marginTop: 16, fontSize: 13, color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+        }}>
+          Wrong email? <span style={{ color: '#fff', fontWeight: 600 }}>Change it</span>
+        </div>
+      )}
     </StepBody>
   );
 }
 
-function CodeInput({ value, onChange, onComplete }: {
+function CodeInput({ value, onChange, onComplete, status = 'idle' }: {
   value: string;
   onChange: (v: string) => void;
   onComplete?: (v: string) => void;
+  status?: 'idle' | 'error' | 'success';
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const boxes = Array.from({ length: 6 }, (_, i) => value[i] ?? '');
   const focusIdx = Math.min(value.length, 5);
+  const accent = status === 'error' ? CORAL : status === 'success' ? MINT : PERIWINKLE;
 
   return (
-    <div
-      onClick={() => ref.current?.focus()}
-      style={{ position: 'relative', cursor: 'text' }}
-    >
+    <div onClick={() => ref.current?.focus()} style={{ position: 'relative', cursor: 'text' }}>
       <input
         ref={ref}
         value={value}
@@ -344,25 +369,25 @@ function CodeInput({ value, onChange, onComplete }: {
       />
       <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between' }}>
         {boxes.map((d, i) => {
-          const active = i === focusIdx;
+          const active = i === focusIdx && status === 'idle';
+          const filled = !!d;
+          const border = status === 'error' ? hexA(CORAL, 0.6)
+            : status === 'success' ? hexA(MINT, 0.6)
+            : filled ? hexA(PERIWINKLE, 0.5)
+            : active ? PERIWINKLE
+            : 'rgba(255,255,255,0.14)';
           return (
             <div key={i} style={{
               flex: 1, height: 62, borderRadius: 14,
-              background: 'rgba(255,255,255,0.03)',
-              border: `1px solid ${d
-                ? hexA(PERIWINKLE, 0.5)
-                : active ? PERIWINKLE : 'rgba(255,255,255,0.14)'}`,
-              boxShadow: active ? `0 0 0 4px ${hexA(PERIWINKLE, 0.1)}` : 'none',
+              background: status === 'success' ? hexA(MINT, 0.08)
+                : status === 'error' ? hexA(CORAL, 0.08)
+                : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${border}`,
+              boxShadow: active ? `0 0 0 4px ${hexA(accent, 0.1)}` : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 26, fontWeight: 600, color: '#fff',
               fontVariantNumeric: 'tabular-nums',
-              transition: 'border-color .15s ease, box-shadow .15s ease',
-            }}>
-              {d || (active ? <span style={{
-                width: 2, height: 26, background: PERIWINKLE, borderRadius: 1,
-                animation: 'au-caret 1.1s steps(1) infinite',
-              }} /> : '')}
-            </div>
+            }}>{d}</div>
           );
         })}
       </div>
@@ -438,13 +463,13 @@ function StepBody({
         display: 'flex', flexDirection: 'column',
       }}>
         {topGlyph && (
-          <div style={{ marginTop: 8, marginBottom: 18, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ marginTop: 4, marginBottom: 18, display: 'flex', justifyContent: 'flex-start' }}>
             {topGlyph}
           </div>
         )}
         <Eyebrow>{eyebrow}</Eyebrow>
-        <Title style={topGlyph ? { textAlign: 'center' } : undefined}>{title}</Title>
-        <Sub style={topGlyph ? { textAlign: 'center', marginLeft: 'auto', marginRight: 'auto' } : undefined}>{sub}</Sub>
+        <Title>{title}</Title>
+        <Sub>{sub}</Sub>
 
         <div style={{ marginTop: 26 }}>{children}</div>
       </div>
@@ -776,20 +801,24 @@ function EmailGlyph() {
   );
 }
 
-function MailGlyph() {
+function MailGlyph({ status = 'idle' }: { status?: 'idle' | 'error' | 'success' }) {
+  const c = status === 'error' ? CORAL : status === 'success' ? MINT : PERIWINKLE;
   return (
     <div style={{
-      width: 88, height: 88, borderRadius: 44,
-      background: `radial-gradient(circle at 35% 30%, ${hexA(PERIWINKLE, 0.55)}, ${hexA(PERIWINKLE, 0.08)} 65%, transparent 80%)`,
-      border: `1px solid ${hexA(PERIWINKLE, 0.45)}`,
+      width: 64, height: 64, borderRadius: 32,
+      background: `radial-gradient(circle at 35% 30%, ${hexA(c, 0.55)}, ${hexA(c, 0.08)} 65%, transparent 80%)`,
+      border: `1px solid ${hexA(c, 0.45)}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      boxShadow: `0 0 24px ${hexA(PERIWINKLE, 0.30)}`,
-      animation: 'au-pulse 3.4s ease-in-out infinite',
+      boxShadow: `0 0 24px ${hexA(c, 0.3)}`,
     }}>
-      <svg width="34" height="26" viewBox="0 0 34 26" fill="none">
-        <rect x="1" y="1" width="32" height="24" rx="4" stroke="#fff" strokeWidth="1.6" />
-        <path d="M2 4l15 10 15-10" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round" />
-      </svg>
+      {status === 'success'
+        ? <CheckIcon size={26} stroke="#fff" strokeWidth={2.4} />
+        : (
+          <svg width="26" height="20" viewBox="0 0 34 26" fill="none">
+            <rect x="1" y="1" width="32" height="24" rx="4" stroke="#fff" strokeWidth="1.6" />
+            <path d="M2 4l15 10 15-10" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round" />
+          </svg>
+        )}
     </div>
   );
 }
