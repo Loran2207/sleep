@@ -27,7 +27,7 @@ import { NightShiftGuide } from './screens/NightShiftGuide';
 import { Profile } from './screens/Profile';
 import { Subscription } from './screens/Subscription';
 import { QuizIntro, QuizSession, QuizResult } from './screens/Quiz';
-import { AuthSignIn, AuthSignUp, AuthForgot, AuthResetSent } from './screens/Auth';
+import { AuthSignIn, AuthSignUp } from './screens/Auth';
 import { StubScreen } from './screens/Stub';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
@@ -64,8 +64,6 @@ const SCREENS: Record<ScreenId, () => JSX.Element> = {
   'quiz-result': () => <QuizResult />,
   'auth-sign-in': () => <AuthSignIn />,
   'auth-sign-up': () => <AuthSignUp />,
-  'auth-forgot': () => <AuthForgot />,
-  'auth-reset-sent': () => <AuthResetSent />,
 };
 
 export function App() {

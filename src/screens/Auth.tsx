@@ -3,21 +3,17 @@ import type { CSSProperties, ReactNode } from 'react';
 import { W } from '../tokens';
 import { go, back, replace } from '../state/navigation';
 import { useAuth, completeOnboarding, useOnboardingDone } from '../state/store';
-import { CheckIcon } from '../components/icons';
 import { HeaderAmbient, BackButton } from '../components/shared';
 
-// Multi-step sign-in / sign-up. Step 1 picks a provider (Apple, Google,
-// or email); if the user picks email, step 2 collects the email, and
-// step 3 collects the rest (password — plus name on sign-up). The
-// backdrop is the same warm/cool glow + rising motes used on Home /
-// Course / Profile, so auth feels like part of the same world.
+// Passwordless auth. Step 1 picks a provider (Apple, Google, or email).
+// With email we collect the address, send a 6-digit code, and verify it —
+// there are no passwords anywhere in the app. Sign-up adds one final
+// "what should we call you?" step after the code. The backdrop is the
+// same warm glow used on Home / Course / Profile, so auth feels like
+// part of the same world.
 
 const PERIWINKLE = '#8AA1FF';
-const MINT = '#5DDDB3';
 const CORAL = '#FF8E7C';
-
-// Stash between forgot-password and the confirmation step.
-let lastResetEmail = '';
 
 // ─── Public screens ─────────────────────────────────────────────
 export function AuthSignIn() {
@@ -25,12 +21,6 @@ export function AuthSignIn() {
 }
 export function AuthSignUp() {
   return <AuthShell><SignUpFlow /></AuthShell>;
-}
-export function AuthForgot() {
-  return <AuthShell><ForgotFlow /></AuthShell>;
-}
-export function AuthResetSent() {
-  return <AuthShell><ResetSentBody /></AuthShell>;
 }
 
 // ─── Shell ──────────────────────────────────────────────────────
@@ -54,14 +44,13 @@ function AuthShell({ children }: { children: ReactNode }) {
 }
 
 // ─── Sign-in ────────────────────────────────────────────────────
-type SignInStep = 'method' | 'email' | 'password';
+type SignInStep = 'method' | 'email' | 'code';
 
 function SignInFlow() {
   const { signIn, signInWithApple } = useAuth();
   const onboardingDone = useOnboardingDone();
   const [step, setStep] = useState<SignInStep>('method');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [touched, setTouched] = useState(false);
 
   function finish() {
@@ -74,7 +63,7 @@ function SignInFlow() {
   }
 
   function leaveStep() {
-    if (step === 'password') return setStep('email');
+    if (step === 'code') return setStep('email');
     if (step === 'email') return setStep('method');
     back();
   }
@@ -102,82 +91,30 @@ function SignInFlow() {
         <EmailStep
           eyebrow="Sign in"
           title="What's your email?"
-          sub="We'll use it to find your account."
+          sub="We'll send a one-time code to confirm it's you — no password needed."
           email={email}
           setEmail={setEmail}
           touched={touched}
           setTouched={setTouched}
-          onContinue={() => setStep('password')}
-          continueLabel="Continue"
+          onContinue={() => setStep('code')}
+          continueLabel="Send code"
           foot={<FootLine label="Don't have an account?" linkText="Sign up" onLink={() => go('auth-sign-up')} />}
         />
       )}
 
-      {step === 'password' && (
-        <SignInPasswordStep
+      {step === 'code' && (
+        <CodeStep
           email={email}
-          password={password}
-          setPassword={setPassword}
-          touched={touched}
-          setTouched={setTouched}
-          onSubmit={() => {
-            if (password.length < 6) { setTouched(true); return; }
-            signIn(email.trim());
-            finish();
-          }}
+          onChangeEmail={() => setStep('email')}
+          onVerified={() => { signIn(email.trim()); finish(); }}
         />
       )}
     </StepFrame>
   );
 }
 
-function SignInPasswordStep({
-  email, password, setPassword, touched, setTouched, onSubmit,
-}: {
-  email: string;
-  password: string;
-  setPassword: (v: string) => void;
-  touched: boolean;
-  setTouched: (v: boolean) => void;
-  onSubmit: () => void;
-}) {
-  const passErr = touched && password.length < 6 ? 'Use at least 6 characters' : null;
-
-  return (
-    <StepBody
-      eyebrow={`Signing in as ${email}`}
-      title="Enter your password"
-      sub="Welcome back. Your data has been waiting for you."
-      primaryLabel="Sign in"
-      primaryDisabled={false}
-      onPrimary={onSubmit}
-      foot={
-        <div style={{ textAlign: 'center' }}>
-          <span
-            onClick={() => go('auth-forgot')}
-            style={{
-              fontSize: 14, color: PERIWINKLE, fontWeight: 500, cursor: 'pointer',
-            }}
-          >Forgot password?</span>
-        </div>
-      }
-    >
-      <FloatingInput
-        label="Password"
-        type="password"
-        value={password}
-        onChange={(v) => { setPassword(v); if (!touched) setTouched(false); }}
-        autoComplete="current-password"
-        autoFocus
-        error={passErr}
-        onEnter={onSubmit}
-      />
-    </StepBody>
-  );
-}
-
 // ─── Sign-up ────────────────────────────────────────────────────
-type SignUpStep = 'method' | 'email' | 'profile';
+type SignUpStep = 'method' | 'email' | 'code' | 'name';
 
 function SignUpFlow() {
   const { signUp, signInWithApple } = useAuth();
@@ -185,13 +122,20 @@ function SignUpFlow() {
   const [step, setStep] = useState<SignUpStep>('method');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
   const [touched, setTouched] = useState(false);
 
-  function finish() { back(); }
+  function done() {
+    if (!onboardingDone) {
+      completeOnboarding();
+      replace('home');
+    } else {
+      back();
+    }
+  }
 
   function leaveStep() {
-    if (step === 'profile') return setStep('email');
+    if (step === 'name') return setStep('code');
+    if (step === 'code') return setStep('email');
     if (step === 'email') return setStep('method');
     back();
   }
@@ -208,8 +152,8 @@ function SignUpFlow() {
           eyebrow="Create your account"
           title="A home for your nights"
           sub="Free to start. We'll back up your sleep data and sync it across devices."
-          onApple={() => { signInWithApple(); finish(); }}
-          onGoogle={() => { signInWithApple(); finish(); }}
+          onApple={() => { signInWithApple(); done(); }}
+          onGoogle={() => { signInWithApple(); done(); }}
           onEmail={() => setStep('email')}
           foot={
             <>
@@ -224,28 +168,35 @@ function SignUpFlow() {
         <EmailStep
           eyebrow="Sign up"
           title="What's your email?"
-          sub="We'll send your reset link here if you ever need it."
+          sub="We'll send a 6-digit code to confirm it. No password to remember."
           email={email}
           setEmail={setEmail}
           touched={touched}
           setTouched={setTouched}
-          onContinue={() => setStep('profile')}
-          continueLabel="Continue"
+          onContinue={() => setStep('code')}
+          continueLabel="Send code"
           foot={<FootLine label="Already have an account?" linkText="Sign in" onLink={() => go('auth-sign-in')} />}
         />
       )}
 
-      {step === 'profile' && (
-        <SignUpProfileStep
-          name={name} setName={setName}
-          password={password} setPassword={setPassword}
-          touched={touched} setTouched={setTouched}
+      {step === 'code' && (
+        <CodeStep
+          email={email}
+          onChangeEmail={() => setStep('email')}
+          onVerified={() => setStep('name')}
+        />
+      )}
+
+      {step === 'name' && (
+        <NameStep
+          name={name}
+          setName={setName}
+          touched={touched}
+          setTouched={setTouched}
           onSubmit={() => {
-            const rules = passwordRules(password);
-            const allPass = rules.every((r) => r.ok);
-            if (!name.trim() || !allPass) { setTouched(true); return; }
+            if (!name.trim()) { setTouched(true); return; }
             signUp(name, email.trim());
-            finish();
+            done();
           }}
         />
       )}
@@ -253,25 +204,19 @@ function SignUpFlow() {
   );
 }
 
-function SignUpProfileStep({
-  name, setName, password, setPassword, touched, setTouched, onSubmit,
-}: {
+function NameStep({ name, setName, touched, setTouched, onSubmit }: {
   name: string;
   setName: (v: string) => void;
-  password: string;
-  setPassword: (v: string) => void;
   touched: boolean;
   setTouched: (v: boolean) => void;
   onSubmit: () => void;
 }) {
-  const rules = passwordRules(password);
   const nameErr = touched && !name.trim() ? 'Add a name' : null;
-
   return (
     <StepBody
-      eyebrow="Almost done"
-      title="A few details"
-      sub="So we know what to call you and how to keep your account safe."
+      eyebrow="Almost there"
+      title="What should we call you?"
+      sub="This is the name we'll greet you with each night."
       primaryLabel="Create account"
       primaryDisabled={false}
       onPrimary={onSubmit}
@@ -284,108 +229,144 @@ function SignUpProfileStep({
         autoComplete="name"
         autoFocus
         error={nameErr}
-      />
-      <div style={{ height: 14 }} />
-      <FloatingInput
-        label="Password"
-        type="password"
-        value={password}
-        onChange={setPassword}
-        autoComplete="new-password"
         onEnter={onSubmit}
       />
-      <PasswordChecklist rules={rules} />
     </StepBody>
   );
 }
 
-// ─── Forgot ─────────────────────────────────────────────────────
-function ForgotFlow() {
-  const [email, setEmail] = useState(lastResetEmail);
-  const [touched, setTouched] = useState(false);
-  return (
-    <StepFrame stepKey="forgot" onBack={back}>
-      <EmailStep
-        eyebrow="Forgot password"
-        title="Reset your password"
-        sub="Enter the email tied to your account and we'll send you a one-tap reset link."
-        email={email}
-        setEmail={setEmail}
-        touched={touched}
-        setTouched={setTouched}
-        onContinue={() => {
-          if (!isValidEmail(email)) { setTouched(true); return; }
-          lastResetEmail = email.trim();
-          replace('auth-reset-sent');
-        }}
-        continueLabel="Send reset link"
-        foot={<FootLine label="Remembered it?" linkText="Sign in" onLink={() => go('auth-sign-in')} />}
-      />
-    </StepFrame>
-  );
-}
+// ─── Code step (passwordless verify) ────────────────────────────
+// Replaces the old password screen. Six segmented boxes backed by one
+// hidden numeric input. Any 6 digits verify in this prototype; a real
+// build would check the code against the one we emailed.
+function CodeStep({ email, onChangeEmail, onVerified }: {
+  email: string;
+  onChangeEmail: () => void;
+  onVerified: () => void;
+}) {
+  const [code, setCode] = useState('');
+  const [seconds, setSeconds] = useState(45);
+  const [resent, setResent] = useState(false);
 
-function ResetSentBody() {
-  const [secondsLeft, setSecondsLeft] = useState(45);
-  const [resentNote, setResentNote] = useState(false);
   useEffect(() => {
-    if (secondsLeft <= 0) return;
-    const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
+    if (seconds <= 0) return;
+    const t = setTimeout(() => setSeconds((s) => s - 1), 1000);
     return () => clearTimeout(t);
-  }, [secondsLeft]);
+  }, [seconds]);
 
   function resend() {
-    if (secondsLeft > 0) return;
-    setSecondsLeft(45);
-    setResentNote(true);
-    setTimeout(() => setResentNote(false), 2200);
+    if (seconds > 0) return;
+    setSeconds(45);
+    setCode('');
+    setResent(true);
+    setTimeout(() => setResent(false), 2200);
+  }
+
+  function submit(val?: string) {
+    const c = val ?? code;
+    if (c.length < 6) return;
+    onVerified();
   }
 
   return (
-    <StepFrame stepKey="reset-sent" onBack={back} showBack={false}>
-      <StepBody
-        eyebrow="Check your inbox"
-        title="One tap away"
-        sub={
-          <>
-            We sent a reset link to{' '}
-            <span style={{ color: '#fff', fontWeight: 600 }}>{lastResetEmail || 'your email'}</span>.
-            Tap the link to set a new password.
-          </>
-        }
-        primaryLabel="Back to sign in"
-        onPrimary={() => replace('auth-sign-in')}
-        primaryDisabled={false}
-        topGlyph={<MailGlyph />}
-        foot={
+    <StepBody
+      eyebrow="Check your inbox"
+      title="Enter the code"
+      sub={<>We sent a 6-digit code to{' '}
+        <span style={{ color: '#fff', fontWeight: 600 }}>{email || 'your email'}</span>.</>}
+      primaryLabel="Verify"
+      primaryDisabled={code.length < 6}
+      onPrimary={submit}
+      topGlyph={<MailGlyph />}
+      foot={
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div
             onClick={resend}
             style={{
-              textAlign: 'center', fontSize: 13.5, fontWeight: 500,
-              color: secondsLeft > 0 ? 'rgba(255,255,255,0.35)' : PERIWINKLE,
-              cursor: secondsLeft > 0 ? 'default' : 'pointer',
-              padding: '6px 0',
+              fontSize: 13.5, fontWeight: 500,
+              color: seconds > 0 ? 'rgba(255,255,255,0.35)' : PERIWINKLE,
+              cursor: seconds > 0 ? 'default' : 'pointer', padding: '4px 0',
             }}
-          >{secondsLeft > 0 ? `Resend in ${secondsLeft}s` : 'Resend link'}</div>
-        }
-      >
-        <div style={{
-          padding: '14px 16px',
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.10)',
-          borderRadius: 14,
-          fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.5,
-        }}>
-          Didn't arrive in a minute? Check your spam folder, or resend below.
+          >{seconds > 0 ? `Resend code in ${seconds}s` : 'Resend code'}</div>
+          {resent && (
+            <div style={{ fontSize: 13, color: PERIWINKLE, animation: 'au-fade .3s ease both' }}>
+              New code sent — check your inbox.
+            </div>
+          )}
         </div>
-        {resentNote && (
-          <div style={{
-            marginTop: 12, textAlign: 'center',
-            fontSize: 13, color: PERIWINKLE, animation: 'au-fade .3s ease both',
-          }}>Sent again — check your inbox.</div>
-        )}
-      </StepBody>
-    </StepFrame>
+      }
+    >
+      <CodeInput value={code} onChange={setCode} onComplete={(v) => submit(v)} />
+      <div
+        onClick={onChangeEmail}
+        style={{
+          marginTop: 18, textAlign: 'center', fontSize: 13,
+          color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+        }}
+      >
+        Wrong email? <span style={{ color: '#fff', fontWeight: 600 }}>Change it</span>
+      </div>
+    </StepBody>
+  );
+}
+
+function CodeInput({ value, onChange, onComplete }: {
+  value: string;
+  onChange: (v: string) => void;
+  onComplete?: (v: string) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const boxes = Array.from({ length: 6 }, (_, i) => value[i] ?? '');
+  const focusIdx = Math.min(value.length, 5);
+
+  return (
+    <div
+      onClick={() => ref.current?.focus()}
+      style={{ position: 'relative', cursor: 'text' }}
+    >
+      <input
+        ref={ref}
+        value={value}
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        autoFocus
+        maxLength={6}
+        onChange={(e) => {
+          const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+          onChange(v);
+          if (v.length === 6) onComplete?.(v);
+        }}
+        style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          opacity: 0, border: 'none', background: 'transparent',
+          color: 'transparent', caretColor: 'transparent', cursor: 'text',
+        }}
+      />
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between' }}>
+        {boxes.map((d, i) => {
+          const active = i === focusIdx;
+          return (
+            <div key={i} style={{
+              flex: 1, height: 62, borderRadius: 14,
+              background: 'rgba(255,255,255,0.03)',
+              border: `1px solid ${d
+                ? hexA(PERIWINKLE, 0.5)
+                : active ? PERIWINKLE : 'rgba(255,255,255,0.14)'}`,
+              boxShadow: active ? `0 0 0 4px ${hexA(PERIWINKLE, 0.1)}` : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 26, fontWeight: 600, color: '#fff',
+              fontVariantNumeric: 'tabular-nums',
+              transition: 'border-color .15s ease, box-shadow .15s ease',
+            }}>
+              {d || (active ? <span style={{
+                width: 2, height: 26, background: PERIWINKLE, borderRadius: 1,
+                animation: 'au-caret 1.1s steps(1) infinite',
+              }} /> : '')}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -634,7 +615,7 @@ function TermsLine() {
   );
 }
 
-// ─── Email-only step (used by sign-in, sign-up, forgot) ─────────
+// ─── Email-only step (used by sign-in + sign-up) ────────────────
 function EmailStep({
   eyebrow, title, sub, email, setEmail, touched, setTouched,
   onContinue, continueLabel, foot,
@@ -681,12 +662,12 @@ function EmailStep({
   );
 }
 
-// ─── Floating-label input ────────────────────────────────────────
+// ─── Floating-label input (email / name) ────────────────────────
 function FloatingInput({
   label, type, value, onChange, autoComplete, autoFocus, error, onEnter,
 }: {
   label: string;
-  type: 'email' | 'password' | 'text';
+  type: 'email' | 'text';
   value: string;
   onChange: (v: string) => void;
   autoComplete?: string;
@@ -695,12 +676,8 @@ function FloatingInput({
   onEnter?: () => void;
 }) {
   const [focused, setFocused] = useState(false);
-  const [reveal, setReveal] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
-  const isPassword = type === 'password';
   const labelUp = focused || value.length > 0;
-  const inputType = isPassword && reveal ? 'text' : type;
-
   const accent = error ? CORAL : focused ? PERIWINKLE : 'rgba(255,255,255,0.14)';
 
   return (
@@ -712,7 +689,7 @@ function FloatingInput({
           height: 62, borderRadius: 14,
           background: 'rgba(255,255,255,0.03)',
           border: `1px solid ${accent}`,
-          boxShadow: focused && !error ? `0 0 0 4px ${hexA(PERIWINKLE, 0.10)}` : 'none',
+          boxShadow: focused && !error ? `0 0 0 4px ${hexA(PERIWINKLE, 0.1)}` : 'none',
           transition: 'border-color .18s ease, box-shadow .18s ease',
           cursor: 'text',
           overflow: 'hidden',
@@ -738,7 +715,7 @@ function FloatingInput({
         >{label}</label>
         <input
           ref={ref}
-          type={inputType}
+          type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete={autoComplete}
@@ -750,7 +727,7 @@ function FloatingInput({
           onKeyDown={(e) => { if (e.key === 'Enter' && onEnter) onEnter(); }}
           style={{
             position: 'absolute',
-            left: 16, right: isPassword ? 60 : 16, bottom: 10,
+            left: 16, right: 16, bottom: 10,
             background: 'transparent', border: 'none', outline: 'none',
             color: '#fff', fontFamily: W.font,
             fontSize: 16, fontWeight: 500, letterSpacing: '-0.01em',
@@ -759,73 +736,12 @@ function FloatingInput({
             WebkitTextFillColor: '#fff',
           }}
         />
-        {isPassword && value.length > 0 && (
-          <div
-            onClick={(e) => { e.stopPropagation(); setReveal((r) => !r); }}
-            style={{
-              position: 'absolute', right: 12, top: '50%',
-              transform: 'translateY(-50%)',
-              fontSize: 11, fontWeight: 700, letterSpacing: 0.6,
-              color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-              padding: '6px 10px', borderRadius: 8,
-              background: 'rgba(255,255,255,0.06)',
-            }}
-          >{reveal ? 'HIDE' : 'SHOW'}</div>
-        )}
       </div>
       {error && (
         <div style={{
           marginTop: 8, marginLeft: 4, fontSize: 12.5, color: CORAL, fontWeight: 500,
         }}>{error}</div>
       )}
-    </div>
-  );
-}
-
-// ─── Password rules ─────────────────────────────────────────────
-type Rule = { key: string; label: string; ok: boolean };
-
-function passwordRules(password: string): Rule[] {
-  return [
-    { key: 'len', label: 'At least 8 characters', ok: password.length >= 8 },
-    { key: 'num', label: 'Includes a number', ok: /\d/.test(password) },
-    { key: 'case', label: 'Mixes upper and lowercase letters', ok: /[a-z]/.test(password) && /[A-Z]/.test(password) },
-  ];
-}
-
-function PasswordChecklist({ rules }: { rules: Rule[] }) {
-  return (
-    <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {rules.map((r) => (
-        <div key={r.key} style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          fontSize: 13,
-          color: r.ok ? MINT : 'rgba(255,255,255,0.55)',
-          transition: 'color .2s ease',
-        }}>
-          <RuleDot ok={r.ok} />
-          <span style={{
-            transition: 'color .2s ease',
-            fontWeight: r.ok ? 500 : 400,
-          }}>{r.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function RuleDot({ ok }: { ok: boolean }) {
-  return (
-    <div style={{
-      width: 18, height: 18, borderRadius: 9,
-      background: ok ? MINT : 'transparent',
-      border: ok ? `1.5px solid ${MINT}` : '1.5px solid rgba(255,255,255,0.22)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      flexShrink: 0,
-      transition: 'all .2s ease',
-      transform: ok ? 'scale(1)' : 'scale(0.96)',
-    }}>
-      {ok && <CheckIcon size={11} stroke="#0F1A14" strokeWidth={3} />}
     </div>
   );
 }
@@ -885,6 +801,7 @@ function AuthKeyframes() {
       @keyframes au-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
       @keyframes au-fade { from { opacity: 0; } to { opacity: 1; } }
       @keyframes au-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+      @keyframes au-caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
     `}</style>
   );
 }
@@ -901,9 +818,6 @@ function hexA(hex: string, a: number): string {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-// Re-export only the public screens — internal helpers stay private.
-// Note: `FootLine` is declared after its usage above, but JS function
-// declarations are hoisted so this remains valid.
 function FootLine({ label, linkText, onLink }: { label: string; linkText: string; onLink: () => void }) {
   return (
     <div style={{

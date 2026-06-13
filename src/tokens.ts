@@ -44,6 +44,4 @@ export type ScreenId =
   | 'quiz-session'
   | 'quiz-result'
   | 'auth-sign-in'
-  | 'auth-sign-up'
-  | 'auth-forgot'
-  | 'auth-reset-sent';
+  | 'auth-sign-up';
