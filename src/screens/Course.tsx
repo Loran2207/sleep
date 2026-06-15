@@ -1,7 +1,7 @@
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { LiquidGlassNav, TopPad, NavButton } from '../components/shared';
-import { CheckIcon, LockIcon, PlayIcon, GlyphBook } from '../components/icons';
+import { CheckIcon, LockIcon, PlayIcon } from '../components/icons';
 import { CosmicBackdrop, COSMIC, hexA } from '../components/cosmic';
 import { useCurrentLesson } from '../state/store';
 
@@ -42,33 +42,15 @@ export function CourseList() {
       <CosmicBackdrop hue="red" stars={24} />
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 190, position: 'relative', zIndex: 1 }}>
         <div style={{ padding: '0 20px 22px', position: 'relative', zIndex: 1 }}>
-          <TopPad h={12} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8 }}>
-            <div style={{
-              width: 54, height: 54, borderRadius: 27, flexShrink: 0,
-              background: `linear-gradient(135deg, ${hexA(RED, 0.55)}, ${hexA(RED, 0.16)})`,
-              border: `1px solid ${hexA(RED, 0.55)}`,
-              boxShadow: `0 8px 22px ${hexA(RED, 0.28)}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <GlyphBook size={24} stroke={RED_LIGHT} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                display: 'inline-flex', alignItems: 'center',
-                padding: '4px 10px', borderRadius: 999,
-                background: hexA(RED, 0.1), border: `1px solid ${hexA(RED, 0.3)}`,
-                fontSize: 11, fontWeight: 600, color: RED_LIGHT, letterSpacing: 0.2,
-              }}>Course · 12 lessons</div>
-              <div style={{ fontSize: 23, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15, marginTop: 8, color: '#fff' }}>
-                The science of sleep
-              </div>
+          <TopPad h={14} />
+          <div style={{ marginTop: 6 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: RED_LIGHT, letterSpacing: 0.3 }}>Course · 12 lessons</div>
+            <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.12, marginTop: 8, color: '#fff' }}>
+              The science of{' '}
+              <span style={{ fontFamily: '"Times New Roman", Georgia, serif', fontStyle: 'italic', fontWeight: 500 }}>sleep</span>
             </div>
           </div>
-          <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.6)', marginTop: 14, lineHeight: 1.5 }}>
-            Short, evidence-based lessons on why sleep matters and how to make yours better.
-          </div>
-          <div style={{ marginTop: 18 }}>
+          <div style={{ marginTop: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.55)', marginBottom: 8 }}>
               <span>{done} of {total} done · ~18 min left</span>
               <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: RED_LIGHT }}>{pct}%</span>
