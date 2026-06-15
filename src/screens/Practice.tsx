@@ -4,7 +4,8 @@ import { back, replace } from '../state/navigation';
 import { TopPad, HeaderBar } from '../components/shared';
 import { CheckIcon, HabitGlyph } from '../components/icons';
 import { CosmicBackdrop, CosmicMedallion, COSMIC, hexA } from '../components/cosmic';
-import { usePracticeCycles, usePracticeDone, useWindDownStep, useBreathSessions, type BreathFeeling } from '../state/store';
+import { usePracticeCycles, usePracticeDone, useBreathSessions, type BreathFeeling } from '../state/store';
+import { startTracking, consumeBreathThenTrack } from '../state/tracking';
 import { TODAY_DATE } from '../data/days';
 
 // Breathing practice, in the cosmic-blue language: starfield backdrops
@@ -335,7 +336,6 @@ export function PracticeComplete() {
   const [saveToJournal, setSaveToJournal] = useState(true);
   const [cycles] = usePracticeCycles();
   const [, setPracticeDone] = usePracticeDone();
-  const [, setWindStep] = useWindDownStep();
   const { add: addBreathSession } = useBreathSessions();
   const savedRef = useRef(false);
   const seconds = cycles * 19;
@@ -344,7 +344,6 @@ export function PracticeComplete() {
 
   useEffect(() => {
     setPracticeDone(true);
-    setWindStep(2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -359,7 +358,8 @@ export function PracticeComplete() {
       });
       savedRef.current = true;
     }
-    back();
+    if (consumeBreathThenTrack()) startTracking();
+    else back();
   }
 
   return (

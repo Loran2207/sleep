@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
-import { startTracking } from '../state/tracking';
-import { TopPad, BackButton } from '../components/shared';
-import { CheckIcon, ChevronRightIcon, HabitGlyph, PlayIcon } from '../components/icons';
+import { startTracking, startBreathingThenTrack } from '../state/tracking';
+import { TopPad, BackButton, Switch } from '../components/shared';
+import { ChevronRightIcon, HabitGlyph, PlayIcon } from '../components/icons';
 import {
   useEditingScheduleId, useSchedules, useSleepMode, useNapDuration,
-  useMix, useWindDownStep, usePracticeDone, pickScheduleForDay,
+  useMix, pickScheduleForDay,
 } from '../state/store';
 import { lookupSound } from '../data/sounds';
 
@@ -29,18 +30,16 @@ function napWakeTime(durationMin: number) {
   return fmt(d.getHours(), d.getMinutes());
 }
 
+// Wind down: a single, calm setup screen. Three toggle cards — Alarm,
+// Sounds, Breathing — each collapses cleanly when off. One Continue:
+// if Breathing is on it runs the 4-7-8 flow first, otherwise it goes
+// straight to sleep tracking. (Nap mode keeps its own simple body.)
 export function WindDown() {
   const [mode, setMode] = useSleepMode();
-  const [step, setStep] = useWindDownStep();
 
-  function handleBack() {
-    if (mode === 'sleep' && step > 1) setStep((step - 1) as 1 | 2);
-    else go('home');
-  }
-
-  function switchMode(m: 'sleep' | 'nap') {
-    setMode(m);
-    setStep(1);
+  function onContinue(breathing: boolean) {
+    if (breathing) startBreathingThenTrack();
+    else startTracking();
   }
 
   return (
@@ -53,25 +52,12 @@ export function WindDown() {
       <TopPad />
 
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 14px', height: 44 }}>
-        <BackButton onClick={handleBack} />
-        <ModeToggle mode={mode} onChange={switchMode} />
+        <BackButton onClick={() => go('home')} />
+        <ModeToggle mode={mode} onChange={setMode} />
         <PresetsButton />
       </div>
 
-      {mode === 'sleep'
-        ? (step === 1
-            ? <SettingsStep onContinue={() => setStep(2)} onSkip={() => startTracking()} />
-            : <PracticeStep />)
-        : <NapBody />}
-
-      {mode === 'sleep' && (
-        <div style={{
-          position: 'absolute', top: 56, left: 0, right: 0,
-          display: 'flex', justifyContent: 'center', pointerEvents: 'none',
-        }}>
-          <StepDots current={step - 1} total={2} />
-        </div>
-      )}
+      {mode === 'sleep' ? <SettingsStep onContinue={onContinue} /> : <NapBody />}
     </div>
   );
 }
@@ -122,27 +108,8 @@ function ModeToggle({ mode, onChange }: { mode: 'sleep' | 'nap'; onChange: (m: '
   );
 }
 
-function StepDots({ current, total }: { current: number; total: number }) {
-  return (
-    <div style={{ display: 'flex', gap: 6 }}>
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} style={{
-          width: i === current ? 20 : 6, height: 5, borderRadius: 3,
-          background: i <= current ? '#fff' : 'rgba(255,255,255,0.18)',
-          transition: 'width .2s ease, background .2s ease',
-        }} />
-      ))}
-    </div>
-  );
-}
-
-// ─── Step 1 — settings (alarm + sounds + timer) ─────────────────
-// One scrollable view that lets the user lock in everything that
-// matters for the night before they sit down to breathe. The alarm
-// wheel sits at the top (the most consequential choice), the mix
-// summary opens the full editor as a sub-screen, the timer pills
-// live underneath.
-function SettingsStep({ onContinue, onSkip }: { onContinue: () => void; onSkip: () => void }) {
+// ─── Sleep setup — three toggle cards + Continue ────────────────
+function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void }) {
   const { list: schedules, update } = useSchedules();
   const todaySchedule = pickScheduleForDay(schedules, 4);
   const [, setEditingId] = useEditingScheduleId();
@@ -150,22 +117,20 @@ function SettingsStep({ onContinue, onSkip }: { onContinue: () => void; onSkip: 
 
   const [hour, setHour] = useState(todaySchedule.wakeHour);
   const [minute, setMinute] = useState(todaySchedule.wakeMinute);
-  const [noAlarm, setNoAlarm] = useState(false);
+  const [alarmOn, setAlarmOn] = useState(true);
+  const [soundsOn, setSoundsOn] = useState(todaySchedule.sounds.length > 0);
+  const [breathingOn, setBreathingOn] = useState(true);
 
-  // Commit alarm + persist on each tick of the wheel so the rest of
-  // the app (mix-store, schedule) stays in sync without an explicit
-  // save step. When the user opts out of an alarm, we clear the
-  // mix-store's alarm string but leave the schedule's wake time
-  // intact so re-enabling the toggle picks the same time back up.
+  // Keep the mix-store alarm in sync; clear it when the alarm is off.
   useEffect(() => {
-    if (noAlarm) {
-      setAlarm('');
-    } else {
+    if (alarmOn) {
       setAlarm(fmt(hour, minute));
       update(todaySchedule.id, { wakeHour: hour, wakeMinute: minute });
+    } else {
+      setAlarm('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hour, minute, noAlarm]);
+  }, [hour, minute, alarmOn]);
 
   const sleepEst = useMemo(() => {
     const bedMin = todaySchedule.bedHour * 60 + todaySchedule.bedMinute;
@@ -178,242 +143,139 @@ function SettingsStep({ onContinue, onSkip }: { onContinue: () => void; onSkip: 
   const sleepM = sleepEst % 60;
 
   const soundCount = todaySchedule.sounds.length;
-  const summary = soundCount === 0
-    ? 'Pick something soft'
-    : soundCount === 1
-      ? lookupSound(todaySchedule.sounds[0].id)?.name ?? 'Sound'
-      : `${soundCount} sounds layered`;
+  const summary = soundCount === 0 ? 'Pick something soft'
+    : soundCount === 1 ? (lookupSound(todaySchedule.sounds[0].id)?.name ?? 'Sound')
+    : `${soundCount} sounds layered`;
 
-  function openMix() {
-    setEditingId(todaySchedule.id);
-    go('schedule-mix');
-  }
-  function setTimer(min: number | null) {
-    update(todaySchedule.id, { timerMin: min });
-  }
+  function openMix() { setEditingId(todaySchedule.id); go('schedule-mix'); }
+  function setTimer(min: number | null) { update(todaySchedule.id, { timerMin: min }); }
 
   return (
     <>
-      <div style={{ position: 'relative', padding: '36px 22px 8px' }}>
-        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-          Set up tonight
-        </div>
+      <div style={{ position: 'relative', padding: '18px 22px 4px' }}>
+        <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15 }}>Set up tonight</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 6 }}>Three quick choices, then drift off.</div>
       </div>
 
       <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '14px 16px 20px' }}>
-        <SectionTitle>Wake up at</SectionTitle>
-        <div style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 22, padding: '14px 16px 14px',
-        }}>
-          <div style={{
-            opacity: noAlarm ? 0.32 : 1,
-            pointerEvents: noAlarm ? 'none' : 'auto',
-            transition: 'opacity .18s ease',
-          }}>
-            <WheelPicker hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} />
-          </div>
-          <div style={{
-            marginTop: 10, textAlign: 'center',
-            fontSize: 12, color: 'rgba(255,255,255,0.65)',
-          }}>
-            {noAlarm
-              ? <>No alarm · <strong style={{ color: '#fff', fontWeight: 600 }}>wake naturally</strong></>
-              : <>≈ <strong style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-                  {sleepH}h {String(sleepM).padStart(2, '0')}m
-                </strong> of sleep</>}
-          </div>
-
-          <div style={{
-            marginTop: 14, paddingTop: 14,
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
-              Wake without an alarm
-            </div>
-            <AlarmToggle on={noAlarm} onChange={setNoAlarm} />
-          </div>
-        </div>
-
-        <SectionTitle>Sounds</SectionTitle>
-        <div onClick={openMix} style={cardStyle}>
-          <SoundsGlyphStack ids={todaySchedule.sounds.map((s) => s.id)} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
-            {soundCount > 0 && (
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {todaySchedule.sounds.map((s) => lookupSound(s.id)?.name ?? s.id).join(' · ')}
+        <ToggleCard icon={<AlarmIcon />} title="Alarm" on={alarmOn} onToggle={setAlarmOn}
+          trailing={alarmOn ? fmt(hour, minute) : undefined}>
+          {alarmOn ? (
+            <>
+              <WheelPicker hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} />
+              <div style={{ marginTop: 8, textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
+                ≈ <strong style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sleepH}h {String(sleepM).padStart(2, '0')}m</strong> of sleep
               </div>
-            )}
-          </div>
-          <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
-        </div>
+            </>
+          ) : (
+            <div style={hintStyle}>You'll wake naturally — no alarm.</div>
+          )}
+        </ToggleCard>
 
-        <SectionTitle>Timer</SectionTitle>
-        <div style={{
-          padding: '12px 12px',
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 18,
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '0 4px 10px',
-          }}>
-            <div style={{
-              fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 500,
-            }}>Sounds stop after, minutes</div>
-            <div style={{
-              fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
-              color: '#fff',
-            }}>{todaySchedule.timerMin ? `${todaySchedule.timerMin} min` : 'until alarm'}</div>
+        <ToggleCard icon={<WavesIcon />} title="Sounds" on={soundsOn} onToggle={setSoundsOn}>
+          {soundsOn ? (
+            <>
+              <div onClick={openMix} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 0 14px', cursor: 'pointer' }}>
+                <SoundsGlyphStack ids={todaySchedule.sounds.map((s) => s.id)} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
+                  {soundCount > 0 && (
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {todaySchedule.sounds.map((s) => lookupSound(s.id)?.name ?? s.id).join(' · ')}
+                    </div>
+                  )}
+                </div>
+                <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>Stops after</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{todaySchedule.timerMin ? `${todaySchedule.timerMin} min` : 'until alarm'}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+                {TIMER_OPTIONS.map((opt) => {
+                  const active = opt.minutes === todaySchedule.timerMin;
+                  return (
+                    <div key={opt.label} onClick={() => setTimer(opt.minutes)} style={{
+                      padding: '9px 0', textAlign: 'center', borderRadius: 11,
+                      background: active ? '#fff' : 'rgba(255,255,255,0.06)',
+                      color: active ? '#000000' : 'rgba(255,255,255,0.85)',
+                      border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer', fontVariantNumeric: 'tabular-nums',
+                      transition: 'background .12s ease, color .12s ease',
+                    }}>{opt.label}</div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div style={hintStyle}>Fall asleep in silence.</div>
+          )}
+        </ToggleCard>
+
+        <ToggleCard icon={<HabitGlyph name="breath" size={18} stroke="#fff" />} title="Wind-down breathing" on={breathingOn} onToggle={setBreathingOn}>
+          <div style={hintStyle}>
+            {breathingOn ? 'A 4-7-8 breath before we start — about 3 minutes.' : "We'll start tracking right away."}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
-            {TIMER_OPTIONS.map((opt) => {
-              const active = opt.minutes === todaySchedule.timerMin;
-              return (
-                <div key={opt.label} onClick={() => setTimer(opt.minutes)} style={{
-                  padding: '10px 0', textAlign: 'center', borderRadius: 12,
-                  background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                  color: active ? '#000000' : 'rgba(255,255,255,0.85)',
-                  border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  fontVariantNumeric: 'tabular-nums',
-                  transition: 'background .12s ease, color .12s ease',
-                }}>{opt.label}</div>
-              );
-            })}
-          </div>
-        </div>
+        </ToggleCard>
       </div>
 
       <div style={{
         padding: '12px 16px 24px', position: 'relative',
         background: 'linear-gradient(to top, rgba(0,0,0,0.96) 60%, transparent)',
-        display: 'flex', flexDirection: 'column', gap: 10,
       }}>
-        <div onClick={onContinue} style={primaryCtaStyle}>Continue</div>
-        <div onClick={onSkip} style={secondaryCtaStyle}>Skip · start tracking</div>
+        <div onClick={() => onContinue(breathingOn)} style={primaryCtaStyle}>Continue</div>
       </div>
     </>
   );
 }
 
-// ─── Step 2 — practice (4-7-8 breath) ──────────────────────────
-// Two equal-weight actions: a primary "Start practice" that opens
-// the breathing flow, and a secondary "Skip" that goes straight to
-// tracking — same column, same shape, different visual weight, so
-// either choice is one tap away.
-function PracticeStep() {
-  const [practiceDone] = usePracticeDone();
-  const startSleepTracking = () => startTracking();
-
+function ToggleCard({ icon, title, trailing, on, onToggle, children }: {
+  icon: ReactNode; title: string; trailing?: ReactNode;
+  on: boolean; onToggle: (v: boolean) => void; children?: ReactNode;
+}) {
   return (
-    <>
-      <div style={{ position: 'relative', padding: '36px 22px 8px' }}>
-        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-          One slow breath
+    <div style={{
+      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 20, marginBottom: 12, overflow: 'hidden',
+    }}>
+      <div onClick={() => onToggle(!on)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', cursor: 'pointer' }}>
+        <div style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff' }}>{icon}</div>
+        <div style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600 }}>{title}</div>
+        {trailing != null && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontVariantNumeric: 'tabular-nums' }}>{trailing}</div>}
+        <Switch on={on} onChange={onToggle} ariaLabel={title} />
+      </div>
+      {children != null && (
+        <div style={{ padding: '12px 14px 14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          {children}
         </div>
-      </div>
-
-      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '20px 16px 20px' }}>
-        <div onClick={() => go('practice-intro')} style={{
-          ...cardStyle,
-          border: practiceDone
-            ? '1px solid rgba(127, 227, 161, 0.45)'
-            : '1px solid rgba(255,255,255,0.08)',
-        }}>
-          <div style={{
-            ...iconBoxStyle,
-            background: practiceDone ? '#7FE3A1' : iconBoxStyle.background,
-            border: practiceDone ? '1px solid #7FE3A1' : iconBoxStyle.border,
-          }}>
-            {practiceDone
-              ? <CheckIcon size={20} stroke="#000000" />
-              : <HabitGlyph name="breath" size={20} stroke="#fff" />}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              fontSize: 15, fontWeight: 600, lineHeight: 1.2,
-            }}>
-              4-7-8 breathing
-              {practiceDone && (
-                <span style={{
-                  fontSize: 10, fontWeight: 600,
-                  padding: '2px 7px', borderRadius: 999,
-                  background: 'rgba(127,227,161,0.18)',
-                  color: '#7FE3A1',
-                  border: '1px solid rgba(127,227,161,0.35)',
-                  letterSpacing: 0.2,
-                }}>Done</span>
-              )}
-            </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>
-              {practiceDone ? 'Tap to redo' : 'Inhale 4s · hold 7s · exhale 8s · ~3 min'}
-            </div>
-          </div>
-          <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
-        </div>
-      </div>
-
-      <div style={{
-        padding: '12px 16px 24px', position: 'relative',
-        background: 'linear-gradient(to top, rgba(0,0,0,0.96) 60%, transparent)',
-        display: 'flex', flexDirection: 'column', gap: 10,
-      }}>
-        {practiceDone ? (
-          <div onClick={startSleepTracking} style={{
-            ...primaryCtaStyle,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-          }}>
-            <PlayIcon size={14} stroke="#000000" />
-            Start tracking
-          </div>
-        ) : (
-          <>
-            <div onClick={() => go('practice-intro')} style={primaryCtaStyle}>
-              Start practice
-            </div>
-            <div onClick={startSleepTracking} style={secondaryCtaStyle}>
-              Skip · start tracking
-            </div>
-          </>
-        )}
-      </div>
-    </>
-  );
-}
-
-// Small "no alarm" toggle. Matches the visual weight of the Profile
-// settings switch so the control reads as a familiar iOS-style
-// affordance, but uses the wind-down palette (white pill on dark
-// glass) instead of the brighter dashboard one.
-function AlarmToggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div
-      onClick={() => onChange(!on)}
-      role="switch"
-      aria-checked={on}
-      style={{
-        width: 40, height: 24, borderRadius: 12, padding: 2,
-        background: on ? '#fff' : 'rgba(255,255,255,0.14)',
-        border: on ? '1px solid #fff' : '1px solid rgba(255,255,255,0.18)',
-        display: 'flex', alignItems: 'center',
-        cursor: 'pointer', flexShrink: 0,
-        transition: 'background .15s ease',
-      }}
-    >
-      <div style={{
-        width: 18, height: 18, borderRadius: 9,
-        background: on ? '#000000' : '#fff',
-        transform: on ? 'translateX(16px)' : 'translateX(0)',
-        transition: 'transform .15s ease, background .15s ease',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.45)',
-      }} />
+      )}
     </div>
+  );
+}
+
+const hintStyle: React.CSSProperties = {
+  fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.45,
+};
+
+function AlarmIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="13" r="7" />
+      <path d="M12 10v3l2 1.5" />
+      <path d="M5 3 2.5 5.5M19 3l2.5 2.5" />
+    </svg>
+  );
+}
+
+function WavesIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <line x1="4" y1="10" x2="4" y2="14" />
+      <line x1="8.5" y1="7" x2="8.5" y2="17" />
+      <line x1="13" y1="4" x2="13" y2="20" />
+      <line x1="17.5" y1="8" x2="17.5" y2="16" />
+      <line x1="21" y1="10.5" x2="21" y2="13.5" />
+    </svg>
   );
 }
 
@@ -444,9 +306,9 @@ export function WheelPicker({ hour, minute, onChange }: {
       }} />
       <WheelColumn options={hours} value={hour} onChange={handleHour} />
       <div style={{
-        alignSelf: 'center', fontSize: 22, fontWeight: 500,
-        fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.6)',
-        lineHeight: 1, transform: 'translateY(-1px)',
+        alignSelf: 'center', fontSize: 24, fontWeight: 500,
+        fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.55)',
+        lineHeight: 1, paddingBottom: 2,
       }}>:</div>
       <WheelColumn options={minutes} value={minute} onChange={handleMinute} />
     </div>
@@ -496,7 +358,7 @@ function WheelColumn({ options, value, onChange }: {
       ref={ref}
       onScroll={onScroll}
       style={{
-        width: 80, height: HEIGHT,
+        width: 72, height: HEIGHT,
         overflowY: 'scroll',
         scrollSnapType: 'y mandatory',
         scrollbarWidth: 'none',
@@ -514,7 +376,7 @@ function WheelColumn({ options, value, onChange }: {
             height: ITEM_H, scrollSnapAlign: 'center',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: active ? 26 : 22, fontWeight: active ? 600 : 500,
-            color: active ? '#fff' : 'rgba(255,255,255,0.50)',
+            color: active ? '#fff' : 'rgba(255,255,255,0.45)',
             fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em',
             lineHeight: 1,
             transition: 'color .12s ease, font-size .12s ease',
@@ -612,34 +474,11 @@ function NapBody() {
   );
 }
 
-const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 18, padding: '14px 14px',
-  display: 'flex', alignItems: 'center', gap: 14,
-  cursor: 'pointer',
-};
-
-const iconBoxStyle: React.CSSProperties = {
-  width: 44, height: 44, borderRadius: 14,
-  background: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.10)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  flexShrink: 0,
-};
-
 const primaryCtaStyle: React.CSSProperties = {
   padding: '18px 0', textAlign: 'center',
   background: '#fff', color: '#000000',
   borderRadius: 999, fontSize: 16, fontWeight: 600, cursor: 'pointer',
   boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
-};
-
-const secondaryCtaStyle: React.CSSProperties = {
-  padding: '18px 0', textAlign: 'center',
-  background: 'rgba(255,255,255,0.08)', color: '#fff',
-  border: '1px solid rgba(255,255,255,0.16)',
-  borderRadius: 999, fontSize: 15, fontWeight: 500, cursor: 'pointer',
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {

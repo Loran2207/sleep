@@ -187,6 +187,40 @@ export function SettingsCard({ icon, title, desc, onClick }: {
   );
 }
 
+// ─── Switch ──────────────────────────────────────────────────────
+// Polished on/off toggle used by the wind-down setup cards. White track
+// + dark knob when on, matching the app's monochrome controls.
+export function Switch({ on, onChange, ariaLabel }: {
+  on: boolean;
+  onChange: (v: boolean) => void;
+  ariaLabel?: string;
+}) {
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); onChange(!on); }}
+      role="switch"
+      aria-checked={on}
+      aria-label={ariaLabel}
+      style={{
+        width: 46, height: 28, borderRadius: 14, padding: 3, flexShrink: 0,
+        cursor: 'pointer',
+        background: on ? '#fff' : 'rgba(255,255,255,0.16)',
+        border: on ? '1px solid #fff' : '1px solid rgba(255,255,255,0.20)',
+        display: 'flex', alignItems: 'center',
+        transition: 'background .18s ease, border-color .18s ease',
+      }}
+    >
+      <div style={{
+        width: 22, height: 22, borderRadius: 11,
+        background: on ? '#000' : '#fff',
+        transform: on ? 'translateX(18px)' : 'translateX(0)',
+        transition: 'transform .18s cubic-bezier(.3,.8,.3,1), background .18s ease',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
+      }} />
+    </div>
+  );
+}
+
 // ─── Liquid Glass bottom navigation ──────────────────────────────
 // 4 tabs + a raised central "Go to sleep" action. The center button
 // sits in a soft notch above the pill so it reads as the primary
