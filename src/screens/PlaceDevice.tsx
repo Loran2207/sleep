@@ -61,7 +61,7 @@ export function PlaceDevice() {
             background: 'rgba(255,255,255,0.08)', color: '#fff',
             border: '1px solid rgba(255,255,255,0.16)',
             fontSize: 14, fontWeight: 500, cursor: 'pointer',
-          }}>Skip</div>
+          }}>Don't show again</div>
         </div>
       </div>
     </div>
