@@ -353,6 +353,29 @@ function WheelColumn({ options, value, onChange }: {
     requestAnimationFrame(() => { programmaticScroll.current = false; });
   }, [value, options]);
 
+  // Capture mode: html-to-design loses scroll position, so render a
+  // static centred window (set by the screenshot harness only).
+  if (typeof window !== 'undefined' && (window as { __sleepStaticWheel?: boolean }).__sleepStaticWheel) {
+    const idx = options.indexOf(value);
+    return (
+      <div style={{ width: 72, height: HEIGHT, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        {[-2, -1, 0, 1, 2].map((d, i) => {
+          const o = options[idx + d];
+          if (o == null) return <div key={i} style={{ height: ITEM_H }} />;
+          const active = d === 0;
+          return (
+            <div key={i} style={{
+              height: ITEM_H, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: active ? 26 : 22, fontWeight: active ? 600 : 500,
+              color: active ? '#fff' : 'rgba(255,255,255,0.45)',
+              fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', lineHeight: 1,
+            }}>{pad(o)}</div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div
       ref={ref}
