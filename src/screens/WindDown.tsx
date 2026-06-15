@@ -117,23 +117,26 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
                 </div>
                 <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', flexShrink: 0 }}>Stops after</span>
-                <div style={{ flex: 1, display: 'flex', gap: 4 }}>
-                  {TIMER_OPTIONS.map((opt) => {
-                    const active = opt.minutes === todaySchedule.timerMin;
-                    return (
-                      <div key={opt.label} onClick={() => setTimer(opt.minutes)} style={{
-                        flex: 1, padding: '7px 0', textAlign: 'center', borderRadius: 9,
-                        background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                        color: active ? '#000000' : 'rgba(255,255,255,0.8)',
-                        border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
-                        fontSize: 11, fontWeight: 600, cursor: 'pointer', fontVariantNumeric: 'tabular-nums',
-                        transition: 'background .12s ease, color .12s ease',
-                      }}>{opt.label}</div>
-                    );
-                  })}
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)' }}>Sounds stop after</span>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+                  {todaySchedule.timerMin ? `${todaySchedule.timerMin} min` : 'Until alarm'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {TIMER_OPTIONS.map((opt) => {
+                  const active = opt.minutes === todaySchedule.timerMin;
+                  return (
+                    <div key={opt.label} onClick={() => setTimer(opt.minutes)} style={{
+                      flex: 1, padding: '8px 0', textAlign: 'center', borderRadius: 10,
+                      background: active ? '#fff' : 'rgba(255,255,255,0.06)',
+                      color: active ? '#000000' : 'rgba(255,255,255,0.8)',
+                      border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer', fontVariantNumeric: 'tabular-nums',
+                      transition: 'background .12s ease, color .12s ease',
+                    }}>{opt.label}</div>
+                  );
+                })}
               </div>
             </>
           ) : (
