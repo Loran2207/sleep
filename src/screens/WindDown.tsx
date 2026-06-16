@@ -3,12 +3,24 @@ import type { ReactNode } from 'react';
 import { W } from '../tokens';
 import { go } from '../state/navigation';
 import { startTracking, startBreathingThenTrack } from '../state/tracking';
-import { TopPad, Switch, HeaderBar } from '../components/shared';
+import { TopPad, HeaderBar } from '../components/shared';
 import { ChevronRightIcon, HabitGlyph } from '../components/icons';
+import { CosmicBackdrop, COSMIC, hexA } from '../components/cosmic';
 import {
   useEditingScheduleId, useSchedules, useMix, pickScheduleForDay,
 } from '../state/store';
 import { lookupSound } from '../data/sounds';
+
+// Wind down wears the cosmic-blue language — the same world as the
+// breathing practice: a starfield backdrop and blue-tinted glass cards.
+// One calm setup screen, split into two quiet sections: "Wake up" holds
+// the morning alarm, "Evening routine" holds the breathing practice and
+// the sounds. Each card collapses to one line when off and opens its
+// controls when on, so nothing on the screen feels busy. A single
+// context-aware Continue closes it out.
+const BLUE = COSMIC.blue.accent;
+const BLUE_LIGHT = COSMIC.blue.light;
+const ACTIVE_TEXT = '#04122B';
 
 const TIMER_OPTIONS: { label: string; minutes: number | null }[] = [
   { label: 'Off', minutes: null },
@@ -22,9 +34,6 @@ const TIMER_OPTIONS: { label: string; minutes: number | null }[] = [
 function pad(n: number) { return String(n).padStart(2, '0'); }
 function fmt(h: number, m: number) { return `${pad(h)}:${pad(m)}`; }
 
-// Wind down: one calm setup screen — three toggle cards (Alarm, Sounds,
-// Breathing) and a single context-aware Continue. A plain centred nav
-// title sits up top; no tabs, no presets, no big heading.
 export function WindDown() {
   function onContinue(breathing: boolean) {
     if (breathing) startBreathingThenTrack();
@@ -34,10 +43,10 @@ export function WindDown() {
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#000000', color: '#fff', fontFamily: W.font,
+      background: W.bg, color: '#fff', fontFamily: W.font,
       position: 'relative', overflow: 'hidden',
     }}>
-      <BackgroundGlow />
+      <CosmicBackdrop hue="blue" stars={26} />
       <TopPad />
       <HeaderBar title="Tonight" onBack={() => go('home')} />
       <SettingsStep onContinue={onContinue} />
@@ -54,8 +63,8 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
   const [hour, setHour] = useState(todaySchedule.wakeHour);
   const [minute, setMinute] = useState(todaySchedule.wakeMinute);
   const [alarmOn, setAlarmOn] = useState(true);
-  const [soundsOn, setSoundsOn] = useState(todaySchedule.sounds.length > 0);
   const [breathingOn, setBreathingOn] = useState(true);
+  const [soundsOn, setSoundsOn] = useState(todaySchedule.sounds.length > 0);
 
   useEffect(() => {
     if (alarmOn) {
@@ -87,19 +96,29 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
 
   return (
     <>
-      <div style={{ position: 'relative', flex: 1, overflowY: 'auto', padding: '10px 16px 20px' }}>
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', padding: '8px 16px 20px' }}>
+        <SectionMini>Wake up</SectionMini>
         <ToggleCard icon={<AlarmIcon />} title="Alarm" on={alarmOn} onToggle={setAlarmOn}
           trailing={alarmOn ? fmt(hour, minute) : undefined}>
           {alarmOn ? (
             <>
-              <WheelPicker hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} />
-              <div style={{ marginTop: 8, textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
-                ≈ <strong style={{ color: '#fff', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sleepH}h {String(sleepM).padStart(2, '0')}m</strong> of sleep
+              <WheelPicker hour={hour} minute={minute} accent={BLUE} onChange={(h, m) => { setHour(h); setMinute(m); }} />
+              <div style={{ marginTop: 6, textAlign: 'center', fontSize: 12.5, color: 'rgba(255,255,255,0.55)' }}>
+                ≈ <strong style={{ color: BLUE_LIGHT, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sleepH}h {pad(sleepM)}m</strong> of sleep
               </div>
             </>
           ) : (
-            <div style={hintStyle}>You'll wake naturally — no alarm.</div>
+            <div style={hintStyle}>No alarm — you'll wake naturally.</div>
           )}
+        </ToggleCard>
+
+        <SectionMini style={{ marginTop: 22 }}>Evening routine</SectionMini>
+        <ToggleCard icon={<HabitGlyph name="breath" size={18} stroke="currentColor" />} title="Breathing practice" on={breathingOn} onToggle={setBreathingOn}>
+          <div style={hintStyle}>
+            {breathingOn
+              ? 'A short 4-7-8 breathing practice runs first, then tracking begins.'
+              : 'Tracking begins as soon as you continue.'}
+          </div>
         </ToggleCard>
 
         <ToggleCard icon={<WavesIcon />} title="Sounds" on={soundsOn} onToggle={setSoundsOn}>
@@ -108,54 +127,42 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
               <div onClick={openMix} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 0 14px', cursor: 'pointer' }}>
                 <SoundsGlyphStack ids={todaySchedule.sounds.map((s) => s.id)} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
-                  {soundCount > 0 && (
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {todaySchedule.sounds.map((s) => lookupSound(s.id)?.name ?? s.id).join(' · ')}
-                    </div>
-                  )}
+                  <div style={{ fontSize: 14.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
+                  <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>Tap to change the mix</div>
                 </div>
-                <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.55)" />
+                <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.5)" />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)' }}>Sounds stop after</span>
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+                <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.55)' }}>Sounds stop after</span>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: BLUE_LIGHT, fontVariantNumeric: 'tabular-nums' }}>
                   {todaySchedule.timerMin ? `${todaySchedule.timerMin} min` : 'Until alarm'}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: 5 }}>
+              <div style={{ display: 'flex', gap: 6 }}>
                 {TIMER_OPTIONS.map((opt) => {
                   const active = opt.minutes === todaySchedule.timerMin;
                   return (
                     <div key={opt.label} onClick={() => setTimer(opt.minutes)} style={{
-                      flex: 1, padding: '8px 0', textAlign: 'center', borderRadius: 10,
-                      background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                      color: active ? '#000000' : 'rgba(255,255,255,0.8)',
-                      border: active ? '1px solid #fff' : '1px solid rgba(255,255,255,0.10)',
-                      fontSize: 12, fontWeight: 600, cursor: 'pointer', fontVariantNumeric: 'tabular-nums',
-                      transition: 'background .12s ease, color .12s ease',
+                      flex: 1, padding: '8px 0', textAlign: 'center', borderRadius: 11,
+                      background: active ? BLUE : 'rgba(255,255,255,0.05)',
+                      color: active ? ACTIVE_TEXT : 'rgba(255,255,255,0.75)',
+                      border: `1px solid ${active ? BLUE : hexA(BLUE, 0.16)}`,
+                      boxShadow: active ? `0 4px 14px ${hexA(BLUE, 0.32)}` : 'none',
+                      fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontVariantNumeric: 'tabular-nums',
                     }}>{opt.label}</div>
                   );
                 })}
               </div>
             </>
           ) : (
-            <div style={hintStyle}>Fall asleep in silence.</div>
+            <div style={hintStyle}>You'll fall asleep in silence.</div>
           )}
-        </ToggleCard>
-
-        <ToggleCard icon={<HabitGlyph name="breath" size={18} stroke="#fff" />} title="Breathing practice" on={breathingOn} onToggle={setBreathingOn}>
-          <div style={hintStyle}>
-            {breathingOn
-              ? 'A 4-7-8 breathing practice runs before tracking begins.'
-              : 'Off — tracking begins right after you continue.'}
-          </div>
         </ToggleCard>
       </div>
 
       <div style={{
-        padding: '12px 16px 24px', position: 'relative',
-        background: 'linear-gradient(to top, rgba(0,0,0,0.96) 60%, transparent)',
+        position: 'relative', zIndex: 1, padding: '12px 16px 24px',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.96) 55%, transparent)',
       }}>
         <div onClick={() => onContinue(breathingOn)} style={primaryCtaStyle}>Continue</div>
       </div>
@@ -163,26 +170,83 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
   );
 }
 
+// Quiet section label that splits the screen into its two blocks
+// (Wake up / Evening routine). Minimal: small, low-contrast, letter-
+// spaced — a divider made of type, not lines.
+function SectionMini({ children, style }: { children: ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      fontSize: 12, fontWeight: 600, letterSpacing: '0.06em',
+      color: 'rgba(255,255,255,0.4)', padding: '0 8px 10px',
+      ...style,
+    }}>{children}</div>
+  );
+}
+
+// Blue-tinted glass card. When on, the icon chip lights up in the accent
+// and the body opens; when off, the whole card cools to a quiet grey row
+// with a single explanatory line.
 function ToggleCard({ icon, title, trailing, on, onToggle, children }: {
   icon: ReactNode; title: string; trailing?: ReactNode;
   on: boolean; onToggle: (v: boolean) => void; children?: ReactNode;
 }) {
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 20, marginBottom: 12, overflow: 'hidden',
+      background: on ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+      border: `1px solid ${on ? hexA(BLUE, 0.2) : 'rgba(255,255,255,0.08)'}`,
+      borderRadius: 22, marginBottom: 12, overflow: 'hidden',
+      transition: 'border-color .2s ease, background .2s ease',
     }}>
-      <div onClick={() => onToggle(!on)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', cursor: 'pointer' }}>
-        <div style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff' }}>{icon}</div>
-        <div style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600 }}>{title}</div>
-        {trailing != null && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontVariantNumeric: 'tabular-nums' }}>{trailing}</div>}
-        <Switch on={on} onChange={onToggle} ariaLabel={title} />
+      <div onClick={() => onToggle(!on)} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', cursor: 'pointer' }}>
+        <div style={{
+          width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: on ? `linear-gradient(140deg, ${hexA(BLUE, 0.55)}, ${hexA(BLUE, 0.14)})` : 'rgba(255,255,255,0.05)',
+          border: `1px solid ${on ? hexA(BLUE, 0.5) : 'rgba(255,255,255,0.1)'}`,
+          boxShadow: on ? `inset 0 1px 8px ${hexA(BLUE, 0.3)}` : 'none',
+          color: on ? BLUE_LIGHT : 'rgba(255,255,255,0.5)',
+          transition: 'all .2s ease',
+        }}>{icon}</div>
+        <div style={{ flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 600, color: on ? '#fff' : 'rgba(255,255,255,0.8)' }}>{title}</div>
+        {trailing != null && <div style={{ fontSize: 13, fontWeight: 600, color: BLUE_LIGHT, fontVariantNumeric: 'tabular-nums' }}>{trailing}</div>}
+        <BlueSwitch on={on} onChange={onToggle} ariaLabel={title} />
       </div>
       {children != null && (
-        <div style={{ padding: '12px 14px 14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ padding: '12px 14px 15px', borderTop: `1px solid ${on ? hexA(BLUE, 0.1) : 'rgba(255,255,255,0.06)'}` }}>
           {children}
         </div>
       )}
+    </div>
+  );
+}
+
+// Accent toggle — blue track + white knob with a soft glow when on, a
+// quiet translucent track when off. Prettier than a flat monochrome
+// switch and ties the control to the screen's cosmic-blue language.
+function BlueSwitch({ on, onChange, ariaLabel }: {
+  on: boolean; onChange: (v: boolean) => void; ariaLabel?: string;
+}) {
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); onChange(!on); }}
+      role="switch"
+      aria-checked={on}
+      aria-label={ariaLabel}
+      style={{
+        width: 46, height: 28, borderRadius: 14, padding: 3, flexShrink: 0, cursor: 'pointer',
+        background: on ? `linear-gradient(135deg, ${BLUE}, ${hexA(BLUE, 0.72)})` : 'rgba(255,255,255,0.12)',
+        border: `1px solid ${on ? hexA(BLUE, 0.9) : 'rgba(255,255,255,0.16)'}`,
+        boxShadow: on ? `0 0 0 1px ${hexA(BLUE, 0.22)}, 0 6px 16px ${hexA(BLUE, 0.4)}` : 'inset 0 1px 2px rgba(0,0,0,0.3)',
+        display: 'flex', alignItems: 'center',
+        transition: 'background .2s ease, border-color .2s ease, box-shadow .2s ease',
+      }}
+    >
+      <div style={{
+        width: 22, height: 22, borderRadius: 11, background: '#fff',
+        transform: on ? 'translateX(18px)' : 'translateX(0)',
+        transition: 'transform .2s cubic-bezier(.3,.8,.3,1)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.45)',
+      }} />
     </div>
   );
 }
@@ -216,13 +280,17 @@ function WavesIcon() {
 // ─── Apple-style time wheel ────────────────────────────────────
 // Exported so onboarding can reuse it. Container height matches the
 // column (5 * 36 = 180) so the highlight band and the selected value
-// share the same centre line — fixes the value sitting off-centre.
-export function WheelPicker({ hour, minute, onChange }: {
-  hour: number; minute: number;
+// share the same centre line. An optional accent tints the highlight
+// band; without it the band stays the neutral wireframe grey.
+export function WheelPicker({ hour, minute, accent, onChange }: {
+  hour: number; minute: number; accent?: string;
   onChange: (h: number, m: number) => void;
 }) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
+  const band: React.CSSProperties = accent
+    ? { background: hexA(accent, 0.14), border: `1px solid ${hexA(accent, 0.3)}` }
+    : { background: 'rgba(255,255,255,0.07)', border: '1px solid transparent' };
   return (
     <div style={{
       position: 'relative', height: 180,
@@ -231,7 +299,7 @@ export function WheelPicker({ hour, minute, onChange }: {
       <div aria-hidden style={{
         position: 'absolute', left: 8, right: 8, top: '50%',
         transform: 'translateY(-50%)', height: 44, borderRadius: 14,
-        background: 'rgba(255,255,255,0.07)', pointerEvents: 'none',
+        ...band, pointerEvents: 'none',
       }} />
       <WheelColumn options={hours} value={hour} onChange={(v) => onChange(v, minute)} />
       <div style={{
@@ -346,9 +414,9 @@ function SoundsGlyphStack({ ids }: { ids: string[] }) {
     return (
       <div style={{
         width: 44, height: 44, borderRadius: 14,
-        background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.10)',
+        background: hexA(BLUE, 0.12), border: `1px solid ${hexA(BLUE, 0.28)}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, color: 'rgba(255,255,255,0.6)', fontSize: 18,
+        flexShrink: 0, color: BLUE_LIGHT, fontSize: 18,
       }}>♪</div>
     );
   }
@@ -366,7 +434,7 @@ function SoundsGlyphStack({ ids }: { ids: string[] }) {
           <div key={s!.id} style={{
             position: 'absolute', top: 0, left: i * STEP,
             width: TILE, height: TILE, borderRadius: 14, background: '#1F2128',
-            border: `2px solid ${last ? 'rgba(255,255,255,0.18)' : '#000000'}`,
+            border: `2px solid ${last ? hexA(BLUE, 0.4) : '#000000'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: i, boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
           }}>
@@ -378,27 +446,12 @@ function SoundsGlyphStack({ ids }: { ids: string[] }) {
         <div style={{
           position: 'absolute', top: 0, left: display.length * STEP,
           width: TILE, height: TILE, borderRadius: 14, background: '#1F2128',
-          border: '2px solid rgba(255,255,255,0.18)',
+          border: `2px solid ${hexA(BLUE, 0.4)}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: display.length, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)',
           fontVariantNumeric: 'tabular-nums',
         }}>+{overflow}</div>
       )}
     </div>
-  );
-}
-
-function BackgroundGlow() {
-  return (
-    <div style={{
-      position: 'absolute', inset: 0, pointerEvents: 'none',
-      background: `
-        radial-gradient(80% 50% at 50% 8%, rgba(120,140,255,0.12), transparent 60%),
-        radial-gradient(1px 1px at 18% 25%, rgba(255,255,255,0.4), transparent 50%),
-        radial-gradient(1px 1px at 78% 18%, rgba(255,255,255,0.35), transparent 50%),
-        radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.25), transparent 50%),
-        radial-gradient(1.2px 1.2px at 88% 64%, rgba(255,255,255,0.28), transparent 50%)
-      `,
-    }} />
   );
 }
