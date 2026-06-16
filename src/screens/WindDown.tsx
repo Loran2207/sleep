@@ -12,23 +12,24 @@ import {
 import { lookupSound } from '../data/sounds';
 
 // Wind down wears the cosmic-blue language — the same world as the
-// breathing practice: a starfield backdrop and blue-tinted glass cards.
-// One calm setup screen, split into two quiet sections: "Wake up" holds
-// the morning alarm, "Evening routine" holds the breathing practice and
-// the sounds. Each card collapses to one line when off and opens its
-// controls when on, so nothing on the screen feels busy. A single
-// context-aware Continue closes it out.
+// breathing practice. One calm setup screen, split into two quiet
+// sections: "Wake up" holds the morning alarm, "Evening routine" holds
+// the breathing practice and the sounds, explained once by a single
+// caption so the cards stay almost text-free. A card opens its controls
+// only when it has any (the alarm wheel, the sound mix + timer);
+// everything else is just a titled row with a toggle.
 const BLUE = COSMIC.blue.accent;
 const BLUE_LIGHT = COSMIC.blue.light;
 const ACTIVE_TEXT = '#04122B';
 
+// Minutes the sounds keep playing before they fade. The unit lives on
+// the pills (15m, 30m) so no separate value label is needed.
 const TIMER_OPTIONS: { label: string; minutes: number | null }[] = [
   { label: 'Off', minutes: null },
-  { label: '15', minutes: 15 },
-  { label: '30', minutes: 30 },
-  { label: '45', minutes: 45 },
-  { label: '60', minutes: 60 },
-  { label: '90', minutes: 90 },
+  { label: '15m', minutes: 15 },
+  { label: '30m', minutes: 30 },
+  { label: '60m', minutes: 60 },
+  { label: '90m', minutes: 90 },
 ];
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
@@ -86,10 +87,8 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
   const sleepH = Math.floor(sleepEst / 60);
   const sleepM = sleepEst % 60;
 
-  const soundCount = todaySchedule.sounds.length;
-  const summary = soundCount === 0 ? 'Pick something soft'
-    : soundCount === 1 ? (lookupSound(todaySchedule.sounds[0].id)?.name ?? 'Sound')
-    : `${soundCount} sounds layered`;
+  const names = todaySchedule.sounds.map((s) => lookupSound(s.id)?.name ?? s.id);
+  const summary = names.length ? names.join(' · ') : 'Pick something soft';
 
   function openMix() { setEditingId(todaySchedule.id); go('schedule-mix'); }
   function setTimer(min: number | null) { update(todaySchedule.id, { timerMin: min }); }
@@ -107,43 +106,28 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
                 ≈ <strong style={{ color: BLUE_LIGHT, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sleepH}h {pad(sleepM)}m</strong> of sleep
               </div>
             </>
-          ) : (
-            <div style={hintStyle}>No alarm — you'll wake naturally.</div>
-          )}
+          ) : null}
         </ToggleCard>
 
-        <SectionMini style={{ marginTop: 22 }}>Evening routine</SectionMini>
-        <ToggleCard icon={<HabitGlyph name="breath" size={18} stroke="currentColor" />} title="Breathing practice" on={breathingOn} onToggle={setBreathingOn}>
-          <div style={hintStyle}>
-            {breathingOn
-              ? 'A short 4-7-8 breathing practice runs first, then tracking begins.'
-              : 'Tracking begins as soon as you continue.'}
-          </div>
-        </ToggleCard>
+        <SectionMini caption="Helps you wind down before tracking begins." style={{ marginTop: 22 }}>Evening routine</SectionMini>
+        <ToggleCard icon={<HabitGlyph name="breath" size={18} stroke="currentColor" />} title="Breathing practice"
+          on={breathingOn} onToggle={setBreathingOn} trailing={breathingOn ? '4-7-8' : undefined} />
 
         <ToggleCard icon={<WavesIcon />} title="Sounds" on={soundsOn} onToggle={setSoundsOn}>
           {soundsOn ? (
             <>
-              <div onClick={openMix} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 0 14px', cursor: 'pointer' }}>
+              <div onClick={openMix} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 0 13px', cursor: 'pointer' }}>
                 <SoundsGlyphStack ids={todaySchedule.sounds.map((s) => s.id)} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
-                  <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>Tap to change the mix</div>
-                </div>
+                <div style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{summary}</div>
                 <ChevronRightIcon size={16} stroke="rgba(255,255,255,0.5)" />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-                <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.55)' }}>Sounds stop after</span>
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: BLUE_LIGHT, fontVariantNumeric: 'tabular-nums' }}>
-                  {todaySchedule.timerMin ? `${todaySchedule.timerMin} min` : 'Until alarm'}
-                </span>
-              </div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)', margin: '0 0 8px 2px' }}>Stops after</div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {TIMER_OPTIONS.map((opt) => {
                   const active = opt.minutes === todaySchedule.timerMin;
                   return (
                     <div key={opt.label} onClick={() => setTimer(opt.minutes)} style={{
-                      flex: 1, padding: '8px 0', textAlign: 'center', borderRadius: 11,
+                      flex: 1, padding: '9px 0', textAlign: 'center', borderRadius: 11,
                       background: active ? BLUE : 'rgba(255,255,255,0.05)',
                       color: active ? ACTIVE_TEXT : 'rgba(255,255,255,0.75)',
                       border: `1px solid ${active ? BLUE : hexA(BLUE, 0.16)}`,
@@ -154,9 +138,7 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
                 })}
               </div>
             </>
-          ) : (
-            <div style={hintStyle}>You'll fall asleep in silence.</div>
-          )}
+          ) : null}
         </ToggleCard>
       </div>
 
@@ -170,22 +152,23 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
   );
 }
 
-// Quiet section label that splits the screen into its two blocks
-// (Wake up / Evening routine). Minimal: small, low-contrast, letter-
-// spaced — a divider made of type, not lines.
-function SectionMini({ children, style }: { children: ReactNode; style?: React.CSSProperties }) {
+// Quiet section label that splits the screen into its two blocks (Wake
+// up / Evening routine). An optional one-line caption explains the whole
+// block once, so the cards below need no sentence of their own.
+function SectionMini({ children, caption, style }: { children: ReactNode; caption?: string; style?: React.CSSProperties }) {
   return (
-    <div style={{
-      fontSize: 12, fontWeight: 600, letterSpacing: '0.06em',
-      color: 'rgba(255,255,255,0.4)', padding: '0 8px 10px',
-      ...style,
-    }}>{children}</div>
+    <div style={{ padding: '0 8px 10px', ...style }}>
+      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.42)' }}>{children}</div>
+      {caption && (
+        <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.4)', marginTop: 5, lineHeight: 1.4 }}>{caption}</div>
+      )}
+    </div>
   );
 }
 
 // Blue-tinted glass card. When on, the icon chip lights up in the accent
-// and the body opens; when off, the whole card cools to a quiet grey row
-// with a single explanatory line.
+// and the body (if any) opens; when off, the card cools to a quiet grey
+// row. Cards with no controls (breathing) are just the row.
 function ToggleCard({ icon, title, trailing, on, onToggle, children }: {
   icon: ReactNode; title: string; trailing?: ReactNode;
   on: boolean; onToggle: (v: boolean) => void; children?: ReactNode;
@@ -208,7 +191,7 @@ function ToggleCard({ icon, title, trailing, on, onToggle, children }: {
           transition: 'all .2s ease',
         }}>{icon}</div>
         <div style={{ flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 600, color: on ? '#fff' : 'rgba(255,255,255,0.8)' }}>{title}</div>
-        {trailing != null && <div style={{ fontSize: 13, fontWeight: 600, color: BLUE_LIGHT, fontVariantNumeric: 'tabular-nums' }}>{trailing}</div>}
+        {trailing != null && <div style={{ fontSize: 13, fontWeight: 600, color: BLUE_LIGHT, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>{trailing}</div>}
         <BlueSwitch on={on} onChange={onToggle} ariaLabel={title} />
       </div>
       {children != null && (
@@ -221,8 +204,7 @@ function ToggleCard({ icon, title, trailing, on, onToggle, children }: {
 }
 
 // Accent toggle — blue track + white knob with a soft glow when on, a
-// quiet translucent track when off. Prettier than a flat monochrome
-// switch and ties the control to the screen's cosmic-blue language.
+// quiet translucent track when off.
 function BlueSwitch({ on, onChange, ariaLabel }: {
   on: boolean; onChange: (v: boolean) => void; ariaLabel?: string;
 }) {
@@ -250,10 +232,6 @@ function BlueSwitch({ on, onChange, ariaLabel }: {
     </div>
   );
 }
-
-const hintStyle: React.CSSProperties = {
-  fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.45,
-};
 
 function AlarmIcon() {
   return (
