@@ -97,8 +97,7 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
     <>
       <div style={{ position: 'relative', zIndex: 1, flex: 1, overflowY: 'auto', padding: '8px 16px 20px' }}>
         <SectionMini>Wake up</SectionMini>
-        <ToggleCard icon={<AlarmIcon />} title="Alarm" on={alarmOn} onToggle={setAlarmOn}
-          trailing={alarmOn ? fmt(hour, minute) : undefined}>
+        <ToggleCard icon={<AlarmIcon />} title="Alarm" on={alarmOn} onToggle={setAlarmOn}>
           {alarmOn ? (
             <>
               <WheelPicker hour={hour} minute={minute} accent={BLUE} onChange={(h, m) => { setHour(h); setMinute(m); }} />
@@ -111,7 +110,7 @@ function SettingsStep({ onContinue }: { onContinue: (breathing: boolean) => void
 
         <SectionMini caption="Helps you wind down before tracking begins." style={{ marginTop: 22 }}>Evening routine</SectionMini>
         <ToggleCard icon={<HabitGlyph name="breath" size={18} stroke="currentColor" />} title="Breathing practice"
-          on={breathingOn} onToggle={setBreathingOn} trailing={breathingOn ? '4-7-8' : undefined} />
+          on={breathingOn} onToggle={setBreathingOn} />
 
         <ToggleCard icon={<WavesIcon />} title="Sounds" on={soundsOn} onToggle={setSoundsOn}>
           {soundsOn ? (
